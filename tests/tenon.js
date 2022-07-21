@@ -6,7 +6,6 @@ const https = require('https');
 // Wait until a time limit in seconds expires.
 const wait = timeLimit => new Promise(resolve => setTimeout(resolve, 1000 * timeLimit));
 exports.reporter = async (tenonData, id) => {
-  console.log('Started retrieving tenon');
   if (tenonData && tenonData.accessToken && tenonData.requestIDs && tenonData.requestIDs[id]) {
     // Shared request options.
     const requestOptions = {
@@ -85,6 +84,7 @@ exports.reporter = async (tenonData, id) => {
         // If the test is still in the Tenon queue:
         status = testResult.status;
         if (status === 202) {
+          console.log('Waiting 15 seconds more for tenon result');
           // Wait 15 more seconds.
           await wait(15);
           // Get the test result again.
@@ -99,10 +99,11 @@ exports.reporter = async (tenonData, id) => {
       }
       // Otherwise, i.e. if the test is still running or failed:
       else {
+        console.log('ERROR: tenon test incomplete or failed');
         return {
           result: {
             prevented: true,
-            error: 'ERROR: Tenon result not retrieved',
+            error: 'ERROR: tenon test incomplete or failed',
             status
           }
         };
@@ -111,16 +112,18 @@ exports.reporter = async (tenonData, id) => {
     // Otherwise, if the test is still running after a wait for its status:
     else {
       // Report the test status.
+      console.log('ERROR: tenon test incomplete');
       return {
         result: {
           prevented: true,
-          error: 'ERROR: test status not completed',
+          error: 'ERROR: tenon test status not completed',
           testStatus
         }
       };
     }
   }
   else {
+    console.log('ERROR: tenon authorization and test data incomplete');
     return {
       result: {
         prevented: true,
