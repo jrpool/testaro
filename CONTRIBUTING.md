@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -123,4 +124,4 @@ Some utility functions in modules in the `procs` directory are available for sup
 
 ## License agreement
 
-As of 12 February 2024, upon the transfer of the repository ownership to CVS Health, contributors of code to Testaro are required to execute the [CVS Health OSS Project Contributor License Agreement](https://forms.office.com/pages/responsepage.aspx?id=uGG7-v46dU65NKR_eCuM1xbiih2MIwxBuRvO0D_wqVFUQ1k0OE5SVVJWWkY4MTVJMkY3Sk9GM1FHRC4u) for Testaro before any pull request will be approved and merged.
+From 12 February 2024 through 30 September 2025, contributors of code to Testaro executed the [CVS Health OSS Project Contributor License Agreement](https://forms.office.com/pages/responsepage.aspx?id=uGG7-v46dU65NKR_eCuM1xbiih2MIwxBuRvO0D_wqVFUQ1k0OE5SVVJWWkY4MTVJMkY3Sk9GM1FHRC4u) for Testaro before any pull request was approved and merged.

@@ -18,7 +18,7 @@ The need for multi-tool integration, and its costs, are discussed in [Accessibil
 
 Testaro launches and controls web browsers, performing operations, conducting tests, and recording results.
 
-Testaro was designed to be a workstation-based agent, because many of the tests performed by Testaro simulate the use of a web browser on a workstation. However, Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating system. Results of installing it on servers have not yet been reported.
+Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating system.
 
 Testaro accepts _jobs_, performs them, and returns _reports_.
 
@@ -62,7 +62,7 @@ Some of the tests of Testaro are designed to act as approximate alternatives to 
 
 ## Rules
 
-Each tool accessed with Testaro defines _rules_ and tests _targets_ for compliance with its rules. In total, the eleven tools define more than a thousand rules. The latest tabulation of tool rules, excluding those that have been deprecated by Testilo, is:
+Each tool accessed with Testaro defines _rules_ and tests _targets_ for compliance with its rules. Testilo has classified the rules into _issues_ and deprecated some rules as poorly implemented. If the deprecated rules are excluded, the counts are:
 
 ```
 Accessibility Checker: 93
@@ -73,13 +73,13 @@ Editoria11y: 23
 HTML CodeSniffer: 110
 Nu Html Checker: 260
 QualWeb: 115
-Testaro: 47
+Testaro: 57
 WallyAX: 27
 WAVE: 60
-total: 1007
+total: 1017
 ```
 
-Some of the tools are under active development, and their rule counts change over time.
+This tabulation may not be exact, because some of the tools are under active development.
 
 ## Code organization
 
@@ -97,11 +97,11 @@ Version 16 or later of [Node.js](https://nodejs.org/en/).
 
 ### As an application
 
-You can clone the [Testaro repository](https://github.com/cvs-health/testaro) to install Testaro as an application:
+You can clone the [Testaro repository](https://github.com/jrpool/testaro) to install Testaro as an application:
 
 ```bash
 cd path/to/what/will/be/the/parent/directory/of/testaro
-git clone https://github.com/cvs-health/testaro.git
+git clone https://github.com/jrpool/testaro.git
 cd testaro
 npm install
 npx playwright install
@@ -195,7 +195,7 @@ Here is an example of a job:
 }
 ```
 
-This job tells Testaro to perform two acts. One performs one test of the Axe tool wih reporting at detail level 2, and the other performs two tests of the QualWeb tool.
+This job tells Testaro to perform two _acts_. One performs one test of the Axe tool wih reporting at detail level 2, and the other performs two tests of the QualWeb tool.
 
 Each act includes a `launch` property with a default value. That instructs Testaro, before performing those tests, to launch a new Webkit browser, open a context (window) with some properties of an iPhone 8 and without a reduced-motion setting, create a page (tab), and navigate to a particular page of the `abccorp.com` website.
 
@@ -953,15 +953,15 @@ The JavaScript code in this project generally conforms to the ESLint configurati
 
 ## History
 
-Work on the custom tests in this package began in 2017, and work on the multi-package ensemble that Testaro implements began in early 2018. These two aspects were combined into the [Autotest](https://github.com/jrpool/autotest) package in early 2021 and into the more single-purpose packages, Testaro and Testilo, in January 2022.
+Work on the custom tests in this package began in 2017, and work on the multi-package ensemble that Testaro implements began in early 2018. These two aspects were combined into an “Autotest” package in early 2021 and into the more single-purpose packages, Testaro and Testilo, in January 2022.
 
-On 12 February 2024 ownership of the Testaro repository was transfered from the personal account of contributor Jonathan Pool to the organization account `cvs-health` of CVS Health. The MIT license of the repository did not change.
+On 12 February 2024 ownership of the Testaro repository was transfered from the personal account of contributor Jonathan Pool to the organization account `cvs-health` of CVS Health. The MIT license of the [repository](https://github.com/cvs-health/testaro) did not change, but the copyright holder changed to CVS Health.
 
-Maintenance of this repository by copyright holder CVS Health may come to an end on 30 September 2025. Thereafter, forks of this repository may be the loci of further development.
+Maintenance of the repository owned by CVS Health came to an end on 30 September 2025. The current repository was forked from the `cvs-health` repository in October 2025 and then unlinked from the fork network.
 
 ## Contributing
 
-As of 12 February 2024, upon the transfer of the repository ownership to CVS Health, contributors of code to Testaro are required to execute the [CVS Health OSS Project Contributor License Agreement](https://forms.office.com/pages/responsepage.aspx?id=uGG7-v46dU65NKR_eCuM1xbiih2MIwxBuRvO0D_wqVFUQ1k0OE5SVVJWWkY4MTVJMkY3Sk9GM1FHRC4u) for Testaro before any pull request will be approved and merged.
+From 12 February 2024 through 30 September 2025, contributors of code to Testaro executed a [CVS Health OSS Project Contributor License Agreement](https://forms.office.com/pages/responsepage.aspx?id=uGG7-v46dU65NKR_eCuM1xbiih2MIwxBuRvO0D_wqVFUQ1k0OE5SVVJWWkY4MTVJMkY3Sk9GM1FHRC4u) for Testaro before any pull request was approved and merged.
 
 ## Future work
 
@@ -975,6 +975,7 @@ Future work on this project is being considered. Strategic recommendations for s
 
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
