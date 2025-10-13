@@ -40,8 +40,6 @@ const fs = require('fs').promises;
 // Scanner. Importing and executing 'close' crashed the Node process.
 const accessibilityChecker = require('accessibility-checker');
 const {getCompliance} = accessibilityChecker;
-// Utility module.
-const {doBy} = require('../procs/job');
 
 // FUNCTIONS
 
@@ -49,7 +47,7 @@ const {doBy} = require('../procs/job');
 const run = async (content, timeLimit) => {
   const nowLabel = (new Date()).toISOString().slice(0, 19);
   try {
-    const ibmReport = await accessibilityChecker.getCompliance(content, nowLabel);
+    const ibmReport = await getCompliance(content, nowLabel);
     if (typeof ibmReport === 'object' && ibmReport.report) {
       return ibmReport;
     }
