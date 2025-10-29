@@ -583,6 +583,8 @@ const doActs = async (report, opts = {}) => {
     if (report.jobData && ! report.jobData.aborted) {
       let act = acts[actIndex];
       const {type, which} = act;
+      const actSuffix = type === 'test' ? ` ${which}` : '';
+      const message = `>>>> ${type}${actSuffix}`;
       // If granular reporting has been specified:
       if (report.observe) {
         // If a progress callback has been provided:
@@ -600,8 +602,6 @@ const doActs = async (report, opts = {}) => {
         }
         // Otherwise, i.e. if no progress callback has been provided:
         else {
-          const actSuffix = type === 'test' ? ` ${which}` : '';
-          const message = `>>>> ${type}${actSuffix}`;
           // Notify the observer of the act and log it.
           tellServer(report, messageParams, message);
         }
