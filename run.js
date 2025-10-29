@@ -32,7 +32,7 @@
 // Module to perform file operations.
 const fs = require('fs/promises');
 // Module to keep secrets.
-require('dotenv').config();
+require('dotenv').config({quiet: true});
 // Module to validate jobs.
 const {isBrowserID, isDeviceID, isURL, isValidJob, tools} = require('./procs/job');
 // Module to standardize report formats.
@@ -587,9 +587,9 @@ const doActs = async (report, opts = {}) => {
       const message = `>>>> ${type}${actSuffix}`;
       // If granular reporting has been specified:
       if (report.observe) {
-        // If a progress callback has been provided:
         const whichParam = which ? `&which=${which}` : '';
         const messageParams = `act=${type}${whichParam}`;
+        // If a progress callback has been provided:
         if (onProgress) {
           // Notify the observer of the act.
           try {
