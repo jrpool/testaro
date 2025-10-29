@@ -569,26 +569,42 @@ const abortActs = (report, actIndex) => {
   console.log(`ERROR: Job aborted on act ${actIndex}`);
 };
 // Performs the acts in a report and adds the results to the report.
-const doActs = async (report) => {
+const doActs = async (report, opts = {}) => {
   const {acts} = report;
+  const {onProgress = null, signal = null} = opts;
   // Get the standardization specification.
   const standard = report.standard || 'only';
   const reportPath = `${tmpDir}/report.json`;
   // For each act in the report.
   for (const doActsIndex in acts) {
+    if (signal && signal.aborted) throw new Error('doActs aborted');
     actIndex = doActsIndex;
     // If the job has not been aborted:
     if (report.jobData && ! report.jobData.aborted) {
       let act = acts[actIndex];
       const {type, which} = act;
-      const actSuffix = type === 'test' ? ` ${which}` : '';
-      const message = `>>>> ${type}${actSuffix}`;
       // If granular reporting has been specified:
       if (report.observe) {
-        // Notify the observer of the act and log it.
+        // If a progress callback has been provided:
         const whichParam = which ? `&which=${which}` : '';
         const messageParams = `act=${type}${whichParam}`;
-        tellServer(report, messageParams, message);
+        if (onProgress) {
+          // Notify the observer of the act.
+          try {
+            onProgress({
+              type,
+              which
+            });
+          }
+          catch (error) {}
+        }
+        // Otherwise, i.e. if no progress callback has been provided:
+        else {
+          const actSuffix = type === 'test' ? ` ${which}` : '';
+          const message = `>>>> ${type}${actSuffix}`;
+          // Notify the observer of the act and log it.
+          tellServer(report, messageParams, message);
+        }
       }
       // Otherwise, i.e. if granular reporting has not been specified:
       else {
@@ -1386,7 +1402,7 @@ const doActs = async (report) => {
   return report;
 };
 // Runs a job and returns a report.
-exports.doJob = async job => {
+exports.doJob = async (job, opts = {}) => {
   // Make a report as a copy of the job.
   let report = JSON.parse(JSON.stringify(job));
   const jobData = report.jobData = {};
@@ -1428,7 +1444,7 @@ exports.doJob = async job => {
     });
     // Perform the acts and get a report.
     console.log('Performing the job acts');
-    report = await doActs(report, 0, null);
+    report = await doActs(report, opts);
     // Add the end time and duration to the report.
     const endTime = new Date();
     report.jobData.endTime = nowString();
