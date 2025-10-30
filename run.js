@@ -597,6 +597,7 @@ const doActs = async (report, opts = {}) => {
               type,
               which
             });
+            console.log(`${message} (observer notified)`);
           }
           catch (error) {}
         }
