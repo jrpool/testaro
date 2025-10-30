@@ -41,9 +41,8 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   let result = {};
   // Get the ASLint runner and bundle scripts.
   const aslintRunner = await fs.readFile(`${__dirname}/../procs/aslint.js`, 'utf8');
-  const aslintBundle = await fs.readFile(
-    `${__dirname}/../node_modules/aslint-testaro/aslint.bundle.js`, 'utf8'
-  );
+  const aslintBundlePath = require.resolve('aslint-testaro/aslint.bundle.js');
+  const aslintBundle = await fs.readFile(aslintBundlePath, 'utf8');
   // Get the nonce, if any.
   const act = report.acts[actIndex];
   const {jobData} = report;
