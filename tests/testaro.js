@@ -1,5 +1,6 @@
 /*
   © 2023–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -33,8 +34,6 @@
 const {init, report} = require('../procs/testaro');
 // Module to handle files.
 const fs = require('fs/promises');
-// Module to send a notice to an observer.
-const {tellServer} = require('../procs/tellServer');
 
 // ######## CONSTANTS
 
@@ -196,16 +195,6 @@ exports.reporter = async (page, report, actIndex) => {
         if (isJS && argRules && argRules.includes(rule)) {
           // Add them to the argument array.
           ruleArgs.push(... args[rule]);
-        }
-        // If granular reporting is specified:
-        const what = evalRules[rule] || etcRules[rule];
-        if (report.observe) {
-          // Report the rule to the server.
-          tellServer(
-            options.report,
-            `act=test&which=testaro&rule=${rule}&ruleWhat=${what}`,
-            `>>>>>> ${rule} (${what})`
-          );
         }
         // Test the page.
         if (! result[rule]) {

@@ -32,6 +32,7 @@ Preparing a PR:
 
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 

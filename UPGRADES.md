@@ -393,7 +393,7 @@ Based on my analysis of the codebase, I can now provide comprehensive answers to
 
 ### **Import/export syntax conversion**
 - **134 `require()` calls** need conversion to `import` statements
-- **91 `exports.` assignments** need conversion to `export` statements  
+- **91 `exports.` assignments** need conversion to `export` statements
 - **2 `module.exports`** need conversion to `export default`
 - **Dynamic requires**: The codebase has dynamic `require()` calls like `require(\`../tests/${which}\`)` that need special handling
 
@@ -470,7 +470,7 @@ Based on my analysis of the codebase, I can now provide comprehensive answers to
    - Add TypeScript tooling and types
    - Convert syntax to TypeScript
    - Establish type safety
-   
+
 2. **Phase 2**: Convert to ES modules within TypeScript
    - Use TypeScript's ES module support
    - Convert `require`/`exports` to `import`/`export`
@@ -490,7 +490,7 @@ Based on my analysis of the codebase, I can now provide comprehensive answers to
 ### **Specific efficiencies for this codebase:**
 
 #### **Dynamic loading patterns**
-- **Current**: `require(\`../tests/${which}\`)` 
+- **Current**: `require(\`../tests/${which}\`)`
 - **TypeScript + ESM**: `const module = await import(\`../tests/${which}.js\`)` with proper typing
 
 #### **Child process handling**
@@ -802,10 +802,10 @@ import { AxeValidation } from '../packages/core/src/validations/axe';
 test.describe('Axe Tool Validation', () => {
   test('should detect basic accessibility violations', async ({ page }) => {
     await page.goto('http://localhost:3000/test-pages/basic-violations.html');
-    
+
     const validation = new AxeValidation();
     const result = await validation.run(page);
-    
+
     expect(result.violations).toHaveLength(2);
     expect(result.violations[0].id).toBe('color-contrast');
   });
@@ -822,7 +822,7 @@ test.describe('Cross-Tool Validation', () => {
       waveValidation.run(page),
       htmlcsValidation.run(page)
     ]);
-    
+
     const disagreements = findDisagreements(results);
     expect(disagreements).toBeDefined();
     expect(disagreements.length).toBeGreaterThan(0);
@@ -907,7 +907,7 @@ export class AxeTool implements TestingTool {
     const results = await new AxeBuilder({ page })
       .withTags(options.tags)
       .analyze();
-    
+
     return this.standardizeResults(results);
   }
 }
@@ -994,10 +994,10 @@ import { AxeValidation } from '../packages/core/src/validations/axe';
 test.describe('Axe Tool Validation', () => {
   test('should detect basic accessibility violations', async ({ page }) => {
     await page.goto('http://localhost:3000/test-pages/basic-violations.html');
-    
+
     const validation = new AxeValidation();
     const result = await validation.run(page);
-    
+
     expect(result.violations).toHaveLength(2);
     expect(result.violations[0].id).toBe('color-contrast');
   });
@@ -1013,7 +1013,7 @@ test.describe('Cross-Tool Validation', () => {
       waveValidation.run(page),
       htmlcsValidation.run(page)
     ]);
-    
+
     const disagreements = findDisagreements(results);
     expect(disagreements).toBeDefined();
     expect(disagreements.length).toBeGreaterThan(0);
@@ -1081,7 +1081,7 @@ export class AxeTool implements TestingTool {
     const results = await new AxeBuilder({ page })
       .withTags(options.tags)
       .analyze();
-    
+
     return this.standardizeResults(results);
   }
 }
@@ -1131,7 +1131,7 @@ Perfect! Now I can see the implementation details. You're absolutely correct abo
 #### **1. HTML CodeSniffer (`htmlcs`) - RECOMMENDED**
 - **Maintenance**: Squiz Labs, appears less actively maintained
 - **Implementation**: Pure JavaScript, self-contained, reads from local file
-- **Upgrade challenges**: 
+- **Upgrade challenges**:
   - Uses `fs.readFile()` to load script from local file
   - Injects script into page DOM
   - Uses global `window.HTMLCS_RUNNER` API
@@ -1191,19 +1191,19 @@ Perfect! Now I can see the implementation details. You're absolutely correct abo
 export class HTMLCodeSnifferTool implements TestingTool {
   async run(page: Page, options: ToolOptions): Promise<ToolResult> {
     const scriptText = await fs.readFile(
-      new URL('../htmlcs/HTMLCS.js', import.meta.url), 
+      new URL('../htmlcs/HTMLCS.js', import.meta.url),
       'utf8'
     );
-    
+
     const issues = await page.evaluate(
       (scriptText, scriptNonce, rules) => {
         // Modern ES module version of current logic
       },
-      scriptText, 
-      options.scriptNonce, 
+      scriptText,
+      options.scriptNonce,
       options.rules
     );
-    
+
     return this.standardizeResults(issues);
   }
 }
@@ -1260,19 +1260,19 @@ This approach gives you the most antiquated tool (as requested) while providing 
 export class HTMLCodeSnifferTool implements TestingTool {
   async run(page: Page, options: ToolOptions): Promise<ToolResult> {
     const scriptText = await fs.readFile(
-      new URL('../htmlcs/HTMLCS.js', import.meta.url), 
+      new URL('../htmlcs/HTMLCS.js', import.meta.url),
       'utf8'
     );
-    
+
     const issues = await page.evaluate(
       (scriptText, scriptNonce, rules) => {
         // Modern ES module version of current logic
       },
-      scriptText, 
-      options.scriptNonce, 
+      scriptText,
+      options.scriptNonce,
       options.rules
     );
-    
+
     return this.standardizeResults(issues);
   }
 }
@@ -1387,16 +1387,16 @@ export class ASLintTool implements TestingTool {
   async run(page: Page, options: ToolOptions): Promise<ToolResult> {
     // Challenge 1: ES module file system access
     const aslintRunner = await fs.readFile(
-      new URL('../procs/aslint.js', import.meta.url), 
+      new URL('../procs/aslint.js', import.meta.url),
       'utf8'
     );
-    
+
     // Challenge 2: Monorepo package resolution
     const aslintBundle = await fs.readFile(
       new URL('../node_modules/aslint-testaro/aslint.bundle.js', import.meta.url),
       'utf8'
     );
-    
+
     // Challenge 3: Complex script injection with typing
     await page.evaluate(
       (args: ScriptInjectionArgs) => {
@@ -1404,18 +1404,18 @@ export class ASLintTool implements TestingTool {
       },
       { scriptNonce: options.scriptNonce, aslintBundle, aslintRunner }
     );
-    
+
     // Challenge 4: Async waiting with timeout
     const reportLoc = page.locator('#aslintResult');
-    await reportLoc.waitFor({ 
-      state: 'attached', 
-      timeout: 1000 * options.timeLimit 
+    await reportLoc.waitFor({
+      state: 'attached',
+      timeout: 1000 * options.timeLimit
     });
-    
+
     // Challenge 5: Complex result parsing
     const actReport = await reportLoc.textContent();
     const result = JSON.parse(actReport);
-    
+
     return this.standardizeResults(result);
   }
 }
@@ -1456,16 +1456,16 @@ export class ASLintTool implements TestingTool {
   async run(page: Page, options: ToolOptions): Promise<ToolResult> {
     // Challenge 1: ES module file system access
     const aslintRunner = await fs.readFile(
-      new URL('../procs/aslint.js', import.meta.url), 
+      new URL('../procs/aslint.js', import.meta.url),
       'utf8'
     );
-    
+
     // Challenge 2: Monorepo package resolution
     const aslintBundle = await fs.readFile(
       new URL('../node_modules/aslint-testaro/aslint.bundle.js', import.meta.url),
       'utf8'
     );
-    
+
     // Challenge 3: Complex script injection with typing
     await page.evaluate(
       (args: ScriptInjectionArgs) => {
@@ -1473,18 +1473,18 @@ export class ASLintTool implements TestingTool {
       },
       { scriptNonce: options.scriptNonce, aslintBundle, aslintRunner }
     );
-    
+
     // Challenge 4: Async waiting with timeout
     const reportLoc = page.locator('#aslintResult');
-    await reportLoc.waitFor({ 
-      state: 'attached', 
-      timeout: 1000 * options.timeLimit 
+    await reportLoc.waitFor({
+      state: 'attached',
+      timeout: 1000 * options.timeLimit
     });
-    
+
     // Challenge 5: Complex result parsing
     const actReport = await reportLoc.textContent();
     const result = JSON.parse(actReport);
-    
+
     return this.standardizeResults(result);
   }
 }
@@ -1599,7 +1599,7 @@ export class AxeTool implements TestingTool {
   async run(page: Page, options: AxeToolOptions): Promise<AxeToolResult> {
     // Tool-specific implementation
   }
-  
+
   async validate(page: Page, options: ValidationOptions): Promise<ValidationResult> {
     // Tool-specific validation
   }
@@ -1613,32 +1613,32 @@ export class AxeTool implements TestingTool {
 // packages/testaro/src/orchestrator.ts
 export class TestaroOrchestrator {
   private tools: Map<string, TestingTool> = new Map();
-  
+
   async registerTool(name: string, tool: TestingTool): Promise<void> {
     this.tools.set(name, tool);
   }
-  
+
   async runTools(
-    page: Page, 
+    page: Page,
     toolConfigs: ToolConfig[]
   ): Promise<ToolResult[]> {
     // Parallel execution of tools
     const results = await Promise.all(
       toolConfigs.map(config => this.runTool(page, config))
     );
-    
+
     return results;
   }
-  
+
   private async runTool(
-    page: Page, 
+    page: Page,
     config: ToolConfig
   ): Promise<ToolResult> {
     const tool = this.tools.get(config.name);
     if (!tool) {
       throw new Error(`Tool ${config.name} not found`);
     }
-    
+
     return await tool.run(page, config.options);
   }
 }
@@ -1651,30 +1651,30 @@ export class TestaroOrchestrator {
 // apps/tool-server/src/server.ts
 export class ToolServer {
   private tools: Map<string, TestingTool> = new Map();
-  
+
   async start(port: number): Promise<void> {
     // Register available tools
     await this.registerTools();
-    
+
     // Start HTTP server
     const server = express();
     server.post('/run/:tool', this.handleToolRequest.bind(this));
     server.listen(port);
   }
-  
+
   private async handleToolRequest(
-    req: Request, 
+    req: Request,
     res: Response
   ): Promise<void> {
     const { tool } = req.params;
     const { pageData, options } = req.body;
-    
+
     const toolInstance = this.tools.get(tool);
     if (!toolInstance) {
       res.status(404).json({ error: 'Tool not found' });
       return;
     }
-    
+
     // Run tool on provided page data
     const result = await toolInstance.run(pageData, options);
     res.json(result);
@@ -1687,27 +1687,27 @@ export class ToolServer {
 // packages/testaro/src/distributed-executor.ts
 export class DistributedExecutor {
   private toolServers: Map<string, string> = new Map();
-  
+
   async runTools(
-    page: Page, 
+    page: Page,
     toolConfigs: ToolConfig[]
   ): Promise<ToolResult[]> {
     // Distribute tools across servers
     const serverAssignments = this.assignToolsToServers(toolConfigs);
-    
+
     // Execute tools in parallel
     const results = await Promise.all(
-      serverAssignments.map(assignment => 
+      serverAssignments.map(assignment =>
         this.executeOnServer(assignment.server, assignment.tools, page)
       )
     );
-    
+
     return results.flat();
   }
-  
+
   private async executeOnServer(
-    server: string, 
-    tools: ToolConfig[], 
+    server: string,
+    tools: ToolConfig[],
     page: Page
   ): Promise<ToolResult[]> {
     // Send page data and tool configs to server
@@ -1715,7 +1715,7 @@ export class DistributedExecutor {
       method: 'POST',
       body: JSON.stringify({ tools, pageData: await page.content() })
     });
-    
+
     return await response.json();
   }
 }
@@ -1730,7 +1730,7 @@ export class CustomerARulesTool implements TestingTool {
   async run(page: Page, options: ToolOptions): Promise<ToolResult> {
     // Customer-specific rule implementations
     const violations = await this.checkCustomRules(page, options.rules);
-    
+
     return {
       violations,
       passes: [],
@@ -1738,19 +1738,19 @@ export class CustomerARulesTool implements TestingTool {
       inapplicable: []
     };
   }
-  
+
   private async checkCustomRules(
-    page: Page, 
+    page: Page,
     rules: string[]
   ): Promise<Violation[]> {
     // Implement customer-specific business rules
     const results: Violation[] = [];
-    
+
     for (const rule of rules) {
       const violations = await this.checkRule(page, rule);
       results.push(...violations);
     }
-    
+
     return results;
   }
 }
@@ -1882,7 +1882,7 @@ export class AxeTool implements TestingTool {
   async run(page: Page, options: AxeToolOptions): Promise<AxeToolResult> {
     // Tool-specific implementation
   }
-  
+
   async validate(page: Page, options: ValidationOptions): Promise<ValidationResult> {
     // Tool-specific validation
   }
@@ -1893,32 +1893,32 @@ export class AxeTool implements TestingTool {
 // packages/testaro/src/orchestrator.ts
 export class TestaroOrchestrator {
   private tools: Map<string, TestingTool> = new Map();
-  
+
   async registerTool(name: string, tool: TestingTool): Promise<void> {
     this.tools.set(name, tool);
   }
-  
+
   async runTools(
-    page: Page, 
+    page: Page,
     toolConfigs: ToolConfig[]
   ): Promise<ToolResult[]> {
     // Parallel execution of tools
     const results = await Promise.all(
       toolConfigs.map(config => this.runTool(page, config))
     );
-    
+
     return results;
   }
-  
+
   private async runTool(
-    page: Page, 
+    page: Page,
     config: ToolConfig
   ): Promise<ToolResult> {
     const tool = this.tools.get(config.name);
     if (!tool) {
       throw new Error(`Tool ${config.name} not found`);
     }
-    
+
     return await tool.run(page, config.options);
   }
 }
@@ -1928,30 +1928,30 @@ export class TestaroOrchestrator {
 // apps/tool-server/src/server.ts
 export class ToolServer {
   private tools: Map<string, TestingTool> = new Map();
-  
+
   async start(port: number): Promise<void> {
     // Register available tools
     await this.registerTools();
-    
+
     // Start HTTP server
     const server = express();
     server.post('/run/:tool', this.handleToolRequest.bind(this));
     server.listen(port);
   }
-  
+
   private async handleToolRequest(
-    req: Request, 
+    req: Request,
     res: Response
   ): Promise<void> {
     const { tool } = req.params;
     const { pageData, options } = req.body;
-    
+
     const toolInstance = this.tools.get(tool);
     if (!toolInstance) {
       res.status(404).json({ error: 'Tool not found' });
       return;
     }
-    
+
     // Run tool on provided page data
     const result = await toolInstance.run(pageData, options);
     res.json(result);
@@ -1963,27 +1963,27 @@ export class ToolServer {
 // packages/testaro/src/distributed-executor.ts
 export class DistributedExecutor {
   private toolServers: Map<string, string> = new Map();
-  
+
   async runTools(
-    page: Page, 
+    page: Page,
     toolConfigs: ToolConfig[]
   ): Promise<ToolResult[]> {
     // Distribute tools across servers
     const serverAssignments = this.assignToolsToServers(toolConfigs);
-    
+
     // Execute tools in parallel
     const results = await Promise.all(
-      serverAssignments.map(assignment => 
+      serverAssignments.map(assignment =>
         this.executeOnServer(assignment.server, assignment.tools, page)
       )
     );
-    
+
     return results.flat();
   }
-  
+
   private async executeOnServer(
-    server: string, 
-    tools: ToolConfig[], 
+    server: string,
+    tools: ToolConfig[],
     page: Page
   ): Promise<ToolResult[]> {
     // Send page data and tool configs to server
@@ -1991,7 +1991,7 @@ export class DistributedExecutor {
       method: 'POST',
       body: JSON.stringify({ tools, pageData: await page.content() })
     });
-    
+
     return await response.json();
   }
 }
@@ -2003,7 +2003,7 @@ export class CustomerARulesTool implements TestingTool {
   async run(page: Page, options: ToolOptions): Promise<ToolResult> {
     // Customer-specific rule implementations
     const violations = await this.checkCustomRules(page, options.rules);
-    
+
     return {
       violations,
       passes: [],
@@ -2011,19 +2011,19 @@ export class CustomerARulesTool implements TestingTool {
       inapplicable: []
     };
   }
-  
+
   private async checkCustomRules(
-    page: Page, 
+    page: Page,
     rules: string[]
   ): Promise<Violation[]> {
     // Implement customer-specific business rules
     const results: Violation[] = [];
-    
+
     for (const rule of rules) {
       const violations = await this.checkRule(page, rule);
       results.push(...violations);
     }
-    
+
     return results;
   }
 }
@@ -2431,6 +2431,7 @@ describe('Database queries', () => {
 
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 

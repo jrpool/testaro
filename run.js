@@ -1,5 +1,6 @@
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -677,7 +678,7 @@ const doActs = async (report, opts = {}) => {
         // Save the report.
         let reportJSON = JSON.stringify(report);
         await fs.writeFile(reportPath, reportJSON);
-        // Create a process and wait for it to perform the act and add the result to the saved report.
+        // Create a process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
           let closed = false;
           const child = fork(
