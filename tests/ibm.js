@@ -183,7 +183,6 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   const act = report.acts[actIndex];
   const {withItems, withNewContent, rules} = act;
   const contentType = withNewContent ? 'new' : 'existing';
-  console.log(`>>>>>> Content type: ${contentType}`);
   try {
     const typeContent = contentType === 'existing' ? await page.content() : page.url();
     // Perform the tests.
