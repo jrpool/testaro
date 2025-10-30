@@ -200,6 +200,7 @@ exports.reporter = async (page, report, actIndex) => {
         if (! result[rule]) {
           result[rule] = {};
         }
+        const what = evalRules[rule] || etcRules[rule];
         result[rule].what = what;
         const startTime = Date.now();
         try {
