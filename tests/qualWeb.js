@@ -62,7 +62,8 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   // Specify the invariant test options.
   const qualWebOptions = {
     log: {
-      console: true
+      console: false,
+      file: false
     },
     crawlOptions: {
       maxDepth: 0,
