@@ -600,7 +600,9 @@ const doActs = async (report, opts = {}) => {
             });
             console.log(`${message} (observer notified)`);
           }
-          catch (error) {}
+          catch (error) {
+            console.log(`${message} (observer notification failed: ${errorStart(error)})`);
+          }
         }
         // Otherwise, i.e. if no progress callback has been provided:
         else {
