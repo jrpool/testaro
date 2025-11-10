@@ -148,6 +148,8 @@ const wait = ms => {
 };
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
+  const url = await page.url();
+  const browser = page.context().browser();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;
   const argRules = args ? Object.keys(args) : null;
@@ -184,6 +186,10 @@ exports.reporter = async (page, report, actIndex) => {
       : Object.keys(evalRules).filter(ruleID => ! rules.slice(1).includes(ruleID));
     const testTimes = [];
     for (const rule of calledRules.filter(rule => ! futureRules.has(rule))) {
+      // Recreate a page for the test.
+      const context = await browser.newContext();
+      page = await context.newPage();
+      await page.goto(url);
       // Initialize an argument array.
       const ruleArgs = [page, withItems];
       // If the rule is defined with JavaScript or JSON but not both:
@@ -253,6 +259,7 @@ exports.reporter = async (page, report, actIndex) => {
         data.rulesInvalid.push(rule);
         console.log(`ERROR: Rule ${rule} not validly defined`);
       }
+      context.close();
     }
     testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
       data.ruleTestTimes[pair[0]] = pair[1];
