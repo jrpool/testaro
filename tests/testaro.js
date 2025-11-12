@@ -310,9 +310,6 @@ exports.reporter = async (page, report, actIndex) => {
         console.log(`ERROR: Rule ${rule} not validly defined`);
       }
     }
-    // Close the browser.
-    await Promise.all(browser.contexts().map(context => context.close()));
-    await browser.close();
     // Record the test times in descending order.
     testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
       data.ruleTestTimes[pair[0]] = pair[1];
