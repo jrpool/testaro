@@ -32,6 +32,8 @@
 
 // Module to perform common operations.
 const {init, report} = require('../procs/testaro');
+// Function to launch a browser.
+const {launch} = require('../run');
 // Module to handle files.
 const fs = require('fs/promises');
 
@@ -59,23 +61,17 @@ const futureEvalRulesCleanRoom = {
 // when preparing clean-room submissions.
 const futureRules = new Set([]);
 const evalRules = {
-  altScheme: 'img elements with alt attributes having URLs as their entire values',
-  captionLoc: 'caption elements that are not first children of table elements',
-  datalistRef: 'elements with ambiguous or missing referenced datalist elements',
-  secHeading: 'headings that violate the logical level order in their sectioning containers',
-  textSem: 'semantically vague elements i, b, and/or small',
   adbID: 'elements with ambiguous or missing referenced descriptions',
-  imageLink: 'links with image files as their destinations',
-  legendLoc: 'legend elements that are not first children of fieldset elements',
-  optRoleSel: 'Non-option elements with option roles that have no aria-selected attributes',
-  phOnly: 'input elements with placeholders but no accessible names',
   allCaps: 'leaf elements with entirely upper-case text longer than 7 characters',
   allHidden: 'page that is entirely or mostly hidden',
   allSlanted: 'leaf elements with entirely italic or oblique text longer than 39 characters',
+  altScheme: 'img elements with alt attributes having URLs as their entire values',
   attVal: 'duplicate attribute values',
   autocomplete: 'name and email inputs without autocomplete attributes',
   bulk: 'large count of visible elements',
   buttonMenu: 'nonstandard keyboard navigation between items of button-controlled menus',
+  captionLoc: 'caption elements that are not first children of table elements',
+  datalistRef: 'elements with ambiguous or missing referenced datalist elements',
   distortion: 'distorted text',
   docType: 'document without a doctype property',
   dupAtt: 'elements with duplicate attributes',
@@ -89,7 +85,9 @@ const evalRules = {
   hover: 'hover-caused content changes',
   hovInd: 'hover indication nonstandard',
   hr: 'hr element instead of styles used for vertical segmentation',
+  imageLink: 'links with image files as their destinations',
   labClash: 'labeling inconsistencies',
+  legendLoc: 'legend elements that are not first children of fieldset elements',
   lineHeight: 'text with a line height less than 1.5 times its font size',
   linkAmb: 'links with identical texts but different destinations',
   linkExt: 'links that automatically open new windows',
@@ -101,13 +99,17 @@ const evalRules = {
   motion: 'motion without user request',
   nonTable: 'table elements used for layout',
   opFoc: 'operable elements that are not Tab-focusable',
+  optRoleSel: 'Non-option elements with option roles that have no aria-selected attributes',
+  phOnly: 'input elements with placeholders but no accessible names',
   pseudoP: 'adjacent br elements suspected of nonsemantically simulating p elements',
   radioSet: 'radio buttons not grouped into standard field sets',
   role: 'native-replacing explicit roles',
+  secHeading: 'headings that violate the logical level order in their sectioning containers',
   styleDiff: 'style inconsistencies',
   tabNav: 'nonstandard keyboard navigation between elements with the tab role',
   targetSmall: 'buttons, inputs, and non-inline links smaller than 44 pixels wide and high',
   targetTiny: 'buttons, inputs, and non-inline links smaller than 24 pixels wide and high',
+  textSem: 'semantically vague elements i, b, and/or small',
   titledEl: 'title attributes on inappropriate elements',
   zIndex: 'non-default Z indexes'
 };
@@ -116,6 +118,35 @@ const etcRules = {
   elements: 'data on specified elements',
   textNodes: 'data on specified text nodes',
   title: 'page title',
+};
+// Tests that modify the page.
+const contaminators = [
+  'bulk',
+  'buttonMenu',
+  'focAll',
+  'focOp',
+  'focInd',
+  'hover',
+  'hovInd',
+  'labClash',
+  'motion',
+  'opFoc',
+  'tabNav',
+  'radioSet',
+  'role',
+  'styleDiff'
+];
+// Extraordinary time limits on rules.
+const slowTestLimits = {
+  buttonMenu: 15,
+  focAll: 10,
+  focVis: 10,
+  hover: 10,
+  hovInd: 10,
+  labClash: 10,
+  motion: 15,
+  opFoc: 10,
+  tabNav: 10
 };
 
 // ######## FUNCTIONS
@@ -149,7 +180,7 @@ const wait = ms => {
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
   const url = await page.url();
-  const browser = page.context().browser();
+  let browser = page.context().browser();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;
   const argRules = args ? Object.keys(args) : null;
@@ -180,22 +211,34 @@ exports.reporter = async (page, report, actIndex) => {
   ) {
     // Wait 1 second to prevent out-of-order logging with granular reporting.
     await wait(1000);
-    // For each rule invoked except future rules:
-    const calledRules = rules[0] === 'y'
+    let calledRules = rules[0] === 'y'
       ? rules.slice(1)
       : Object.keys(evalRules).filter(ruleID => ! rules.slice(1).includes(ruleID));
+    const calledContaminators = calledRules.filter(rule => contaminators.includes(rule)).sort();
+    const calledBenignRules = calledRules.filter(rule => ! contaminators.includes(rule)).sort();
     const testTimes = [];
-    for (const rule of calledRules.filter(rule => ! futureRules.has(rule))) {
-      // Recreate a page for the test.
-      const context = await browser.newContext();
-      page = await context.newPage();
-      await page.goto(url);
+    let contaminatorsStarted = false;
+    // Starting with the noncontaminators, for each rule invoked:
+    for (const rule of calledBenignRules.concat(calledContaminators)) {
+      // If it is a contaminator other than the first one or the page has closed:
+      if (contaminators.includes(rule) && ! contaminatorsStarted || page.isClosed()) {
+        // Replace the browser and the page and navigate to the target.
+        await launch(
+          report,
+          process.env.DEBUG === 'true',
+          Number.parseInt(process.env.WAITS) || 0,
+          report.browserID,
+          url
+        );
+        page = require('../run').page;
+        contaminatorsStarted = true;
+      }
       // Initialize an argument array.
       const ruleArgs = [page, withItems];
-      // If the rule is defined with JavaScript or JSON but not both:
       const ruleFileNames = await fs.readdir(`${__dirname}/../testaro`);
       const isJS = ruleFileNames.includes(`${rule}.js`);
       const isJSON = ruleFileNames.includes(`${rule}.json`);
+      // If the rule is defined with JavaScript or JSON but not both:
       if ((isJS || isJSON) && ! (isJS && isJSON)) {
         // If with JavaScript and it has extra arguments:
         if (isJS && argRules && argRules.includes(rule)) {
@@ -210,8 +253,10 @@ exports.reporter = async (page, report, actIndex) => {
         result[rule].what = what;
         const startTime = Date.now();
         try {
-          // Apply a 15-second time limit to the test. If it expires:
+          // Apply a time limit to the test.
+          const timeLimit = 1000 * (slowTestLimits[rule] ?? 5);
           let timeout;
+          // If the time limit expires during the test:
           const timer = new Promise(resolve => {
             timeout = setTimeout(() => {
               // Add data about the test, including its prevention, to the result.
@@ -222,24 +267,26 @@ exports.reporter = async (page, report, actIndex) => {
               result[rule].standardInstances = [];
               console.log(`ERROR: Test of testaro rule ${rule} timed out`);
               resolve({timedOut: true});
-            }, 15000);
+            }, timeLimit);
           });
+          // Perform the test, subject to the time limit.
           const ruleReport = isJS
             ? require(`../testaro/${rule}`).reporter(... ruleArgs)
             : jsonTest(rule, ruleArgs);
-          const timeoutReport = await Promise.race([timer, ruleReport]);
+          // Get the test result or a timeout result.
+          const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
           clearTimeout(timeout);
-          // If the test was completed before the deadline:
-          if (! timeoutReport.timedOut) {
+          // If the test was completed:
+          if (! ruleOrTimeoutReport.timedOut) {
             // Add data from the test to the result.
             const endTime = Date.now();
             testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
-            Object.keys(timeoutReport).forEach(key => {
-              result[rule][key] = timeoutReport[key];
+            Object.keys(ruleOrTimeoutReport).forEach(key => {
+              result[rule][key] = ruleOrTimeoutReport[key];
             });
             result[rule].totals = result[rule].totals.map(total => Math.round(total));
             // If testing is to stop after a failure and the page failed the test:
-            if (stopOnFail && timeoutReport.totals.some(total => total)) {
+            if (stopOnFail && ruleOrTimeoutReport.totals.some(total => total)) {
               // Stop testing.
               break;
             }
@@ -247,7 +294,7 @@ exports.reporter = async (page, report, actIndex) => {
         }
         // If an error is thrown by the test:
         catch(error) {
-          // Report this.
+          // Report the error.
           data.rulePreventions.push(rule);
           data.rulePreventionMessages[rule] = error.message;
           console.log(`ERROR: Test of testaro rule ${rule} prevented (${error.message})`);
@@ -259,8 +306,11 @@ exports.reporter = async (page, report, actIndex) => {
         data.rulesInvalid.push(rule);
         console.log(`ERROR: Rule ${rule} not validly defined`);
       }
-      context.close();
     }
+    // Close the browser.
+    await Promise.all(browser.contexts().map(context => context.close()));
+    await browser.close();
+    // Record the test times in descending order.
     testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
       data.ruleTestTimes[pair[0]] = pair[1];
     });
