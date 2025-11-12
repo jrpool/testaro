@@ -1,5 +1,6 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -59,7 +60,6 @@ exports.reporter = async (page, withItems) => {
         return await isInlineLink(loc);
       }
     },
-    isDestructive: false,
     complaints: {
       instance: 'Link is inline but has no underline',
       summary: 'Inline links are missing underlines'

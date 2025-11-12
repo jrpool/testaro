@@ -1,5 +1,6 @@
 /*
   © 2022–2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -80,7 +81,6 @@ exports.reporter = async (page, withItems) => {
         return true;
       }
     }),
-    isDestructive: false,
     complaints: {
       instance: 'Table is misused to arrange content',
       summary: 'Tables are misused to arrange content'

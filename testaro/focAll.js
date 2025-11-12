@@ -1,5 +1,6 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -77,13 +78,6 @@ exports.reporter = async page => {
     tabFocused,
     discrepancy: tabFocused - focusableCount
   };
-  // Reload the page, because properties were added to elements.
-  try {
-    await page.reload({timeout: 15000});
-  }
-  catch(error) {
-    console.log('ERROR: page reload timed out');
-  }
   const count = Math.abs(data.discrepancy);
   // Return the result.
   return {

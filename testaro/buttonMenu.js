@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -291,13 +292,6 @@ exports.reporter = async (page, withItems, trialKeySpecs = []) => {
       },
       excerpt: ''
     });
-  }
-  // Reload the page, because attributes of elements were modified.
-  try {
-    await page.reload({timeout: 15000});
-  }
-  catch(error) {
-    console.log('ERROR: page reload timed out');
   }
   return {
     data,

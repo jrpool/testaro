@@ -1447,7 +1447,6 @@ exports.doJob = async (job, opts = {}) => {
       }
     });
     // Perform the acts and get a report.
-    console.log('Performing the job acts');
     report = await doActs(report, opts);
     // Add the end time and duration to the report.
     const endTime = new Date();

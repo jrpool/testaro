@@ -1,5 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -48,7 +49,6 @@ exports.reporter = async (page, withItems) => {
       return transform
       && ['matrix', 'perspective', 'rotate', 'scale', 'skew'].some(key => transform.includes(key));
     }),
-    isDestructive: false,
     complaints: {
       instance: 'Element distorts its text',
       summary: 'Elements distort their texts'

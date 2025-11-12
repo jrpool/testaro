@@ -1,5 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -48,7 +49,6 @@ exports.reporter = async (page, withItems) => {
       const title = await loc.getAttribute('title');
       return elData.excerpt.toLowerCase().includes(title.toLowerCase());
     },
-    isDestructive: false,
     complaints: {
       instance: 'Link has a title attribute that repeats link text content',
       summary: 'Links have title attributes that repeat link text contents'

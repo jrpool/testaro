@@ -1,5 +1,6 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -104,12 +105,5 @@ exports.reporter = async (page, withItems) => {
     'Hovering over the element __param__',
     'Hovering over elements adds elements to or subtracts elements from the page'
   ];
-  // Reload the page, because hovering may have caused content changes.
-  try {
-    await page.reload({timeout: 15000});
-  }
-  catch(error) {
-    console.log('ERROR: page reload timed out');
-  }
   return await report(withItems, all, 'hover', whats, 0);
 };

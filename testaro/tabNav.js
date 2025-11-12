@@ -1,5 +1,6 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -454,13 +455,6 @@ exports.reporter = async (page, withItems) => {
   const tabLists = await page.$$('[role=tablist]:visible');
   if (tabLists.length) {
     await testTabLists(tabLists, withItems, page);
-    // Reload the page, because keyboard navigation may have triggered content changes.
-    try {
-      await page.reload({timeout: 15000});
-    }
-    catch(error) {
-      console.log('ERROR: page reload timed out');
-    }
   }
   // Get the totals of navigation errors, bad tabs, and bad tab lists.
   const totals = data.totals ? [

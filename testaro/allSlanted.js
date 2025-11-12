@@ -1,5 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -47,7 +48,6 @@ exports.reporter = async (page, withItems) => {
       const elText = el.textContent;
       return ['italic', 'oblique'].includes(elStyleDec.fontStyle) && elText.length > 39;
     }),
-    isDestructive: false,
     complaints: {
       instance: 'Element contains all-italic or all-oblique text',
       summary: 'Elements contain all-italic or all-oblique text'

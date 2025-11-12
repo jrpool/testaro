@@ -121,20 +121,17 @@ const etcRules = {
 };
 // Tests that modify the page.
 const contaminators = [
-  'bulk',
   'buttonMenu',
+  'elements',
   'focAll',
   'focOp',
   'focInd',
   'hover',
   'hovInd',
-  'labClash',
   'motion',
   'opFoc',
   'tabNav',
-  'radioSet',
-  'role',
-  'styleDiff'
+  'textNodes'
 ];
 // Extraordinary time limits on rules.
 const slowTestLimits = {
@@ -220,8 +217,14 @@ exports.reporter = async (page, report, actIndex) => {
     let contaminatorsStarted = false;
     // Starting with the noncontaminators, for each rule invoked:
     for (const rule of calledBenignRules.concat(calledContaminators)) {
+      const pageClosed = page.isClosed();
       // If it is a contaminator other than the first one or the page has closed:
-      if (contaminators.includes(rule) && ! contaminatorsStarted || page.isClosed()) {
+      if (contaminators.includes(rule) && ! contaminatorsStarted || pageClosed) {
+        // If the page has closed:
+        if (pageClosed) {
+          // Report this.
+          console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
+        }
         // Replace the browser and the page and navigate to the target.
         await launch(
           report,

@@ -48,7 +48,6 @@ exports.reporter = async (page, withItems) => {
         return true;
       });
     },
-    isDestructive: false,
     complaints: {
       instance: 'Element is not the first child of a fieldset element',
       summary: 'legend elements are not the first children of fieldset elements'

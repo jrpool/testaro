@@ -1,5 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -64,7 +65,6 @@ exports.reporter = async (page, withItems) => {
         return transformStyle === 'uppercase' && elText.length > 7;
       }
     }),
-    isDestructive: false,
     complaints: {
       instance: 'Element contains all-capital text',
       summary: 'Elements contain all-capital text'

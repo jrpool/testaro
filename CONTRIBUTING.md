@@ -114,8 +114,6 @@ More complex Testaro rules are implemented in JavaScript. Some rules are _simpli
 
 The `selector` value is a CSS selector that identifies candidate elements for violation reporting. What makes this rule simplifiable, instead of simple, is that these elements may or may not be determined to violate the rule. Each of the elements identified by the selector must be further analyzed by the pruner. The pruner takes a Playwright locator as its argument and returns `true` if it finds that the element located by the locator violates the rule, or `false` if not.
 
-The `isDestructive` property should be set to `true` if your pruner modifies the page. Any pruner that calls the `isOperable()` function from the `operable` module does so.
-
 ### Complex rules
 
 Even more complex Testaro rules require analysis that cannot fit into the simple or simplifiable category. You can begin with existing JavaScript rules, or the `data/template.js` file, as an example.

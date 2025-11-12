@@ -40,7 +40,6 @@ exports.reporter = async (page, withItems) => {
         return /\.(?:png|jpe?g|gif|svg|webp|ico)(?:$|[?#])/i.test(href);
       });
     },
-    isDestructive: false,
     complaints: {
       instance: 'Link destination is an image file',
       summary: 'Links have image files as their destinations'

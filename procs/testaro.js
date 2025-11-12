@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -129,7 +130,7 @@ const report = exports.report = async (withItems, all, ruleID, whats, ordinalSev
 // Performs a simplifiable test.
 exports.simplify = async (page, withItems, ruleData) => {
   const {
-    ruleID, selector, pruner, isDestructive, complaints, ordinalSeverity, summaryTagName
+    ruleID, selector, pruner, complaints, ordinalSeverity, summaryTagName
   } = ruleData;
   // Get an object with initialized violation locators and result as properties.
   const all = await init(100, page, selector);
@@ -149,16 +150,6 @@ exports.simplify = async (page, withItems, ruleData) => {
     complaints.summary
   ];
   const result = await report(withItems, all, ruleID, whats, ordinalSeverity, summaryTagName);
-  // If the pruner modifies the page:
-  if (isDestructive) {
-    // Reload the page.
-    try {
-      await page.reload({timeout: 15000});
-    }
-    catch(error) {
-      console.log('ERROR: page reload timed out');
-    }
-  }
   // Return the result.
   return result;
 };
