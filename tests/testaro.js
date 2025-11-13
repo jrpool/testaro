@@ -221,7 +221,7 @@ exports.reporter = async (page, report, actIndex) => {
     let contaminatorsStarted = false;
     // Starting with the noncontaminators, for each rule invoked:
     for (const rule of calledBenignRules.concat(calledContaminators)) {
-      const pageClosed = page.isClosed();
+      const pageClosed = page ? page.isClosed() : true;
       const isContaminator = contaminators.includes(rule);
       // If it is a contaminator other than the first one or the page has closed:
       if (contaminatorsStarted || pageClosed) {
