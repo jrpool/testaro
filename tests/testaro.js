@@ -135,15 +135,20 @@ const contaminators = [
 ];
 // Extraordinary time limits on rules.
 const slowTestLimits = {
+  allCaps: 10,
   buttonMenu: 15,
+  distortion: 10,
+  docType: 10,
   focAll: 10,
   focVis: 10,
   hover: 10,
   hovInd: 10,
   labClash: 10,
+  lineHeight: 10,
   motion: 15,
   opFoc: 10,
-  tabNav: 10
+  tabNav: 10,
+  textSem: 10
 };
 
 // ######## FUNCTIONS
@@ -177,7 +182,6 @@ const wait = ms => {
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
   const url = await page.url();
-  let browser = page.context().browser();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;
   const argRules = args ? Object.keys(args) : null;
@@ -218,8 +222,9 @@ exports.reporter = async (page, report, actIndex) => {
     // Starting with the noncontaminators, for each rule invoked:
     for (const rule of calledBenignRules.concat(calledContaminators)) {
       const pageClosed = page.isClosed();
+      const isContaminator = contaminators.includes(rule);
       // If it is a contaminator other than the first one or the page has closed:
-      if (contaminators.includes(rule) && ! contaminatorsStarted || pageClosed) {
+      if (contaminatorsStarted || pageClosed) {
         // If the page has closed:
         if (pageClosed) {
           // Report this.
@@ -234,6 +239,9 @@ exports.reporter = async (page, report, actIndex) => {
           url
         );
         page = require('../run').page;
+      }
+      // If it is a contaminator, ensure that future tests use new browsers.
+      if (isContaminator) {
         contaminatorsStarted = true;
       }
       // Initialize an argument array.
