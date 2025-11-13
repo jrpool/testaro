@@ -214,10 +214,15 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
 // Closes the current browser.
 const browserClose = async () => {
   if (browser) {
-    let contexts = browser.contexts();
-    for (const context of contexts) {
-      await context.close();
-      contexts = browser.contexts();
+    for (const context of browser.contexts()) {
+      try {
+        await context.close();
+      }
+      catch(error) {
+        console.log(
+          `ERROR trying to close context: ${error.message.slice(0, 200).replace(/\n.+/s, '')}`
+        );
+      }
     }
     await browser.close();
     browser = null;
