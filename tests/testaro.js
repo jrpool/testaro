@@ -140,6 +140,7 @@ const slowTestLimits = {
   distortion: 10,
   docType: 10,
   focAll: 10,
+  focInd: 10,
   focVis: 10,
   hover: 10,
   hovInd: 10,
