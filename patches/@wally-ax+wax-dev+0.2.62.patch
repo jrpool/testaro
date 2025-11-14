@@ -1,0 +1,28 @@
+diff --git a/node_modules/@wally-ax/wax-dev/src/runnerHtml.js b/node_modules/@wally-ax/wax-dev/src/runnerHtml.js
+index 1d84a0b..d9c3fc5 100644
+--- a/node_modules/@wally-ax/wax-dev/src/runnerHtml.js
++++ b/node_modules/@wally-ax/wax-dev/src/runnerHtml.js
+@@ -34,8 +34,8 @@ const runner = function (code, options) {
+           description,
+           severity,
+           code,
+-          groupData = {}
+         } = item;
++        const groupData = item.groupData || {};
+ 
+         const cleanedItem = {};
+         if (element) cleanedItem.element = element;
+diff --git a/node_modules/@wally-ax/wax-dev/src/runnerUrl.js b/node_modules/@wally-ax/wax-dev/src/runnerUrl.js
+index 0e020a0..3c6850f 100644
+--- a/node_modules/@wally-ax/wax-dev/src/runnerUrl.js
++++ b/node_modules/@wally-ax/wax-dev/src/runnerUrl.js
+@@ -33,8 +33,8 @@ const runner = function (code, options) {
+             selector,
+             component,
+             issue_category_name,
+-            groupData = {}
+           } = item;
++          const groupData = item.groupData || {};
+ 
+           const cleanedItem = {};
+ 

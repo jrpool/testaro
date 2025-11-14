@@ -8,7 +8,8 @@
     "test": "node validation/executors/test",
     "run": "node validation/executors/run",
     "dirWatch": "node validation/executors/dirWatch",
-    "netWatch": "node validation/executors/netWatch"
+    "netWatch": "node validation/executors/netWatch",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
     "playwright-dompath": "*"
   },
   "devDependencies": {
-    "eslint": "*"
+    "eslint": "*",
+    "patch-package": "*"
   }
 }
