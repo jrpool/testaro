@@ -217,11 +217,16 @@ exports.reporter = async (page, report, actIndex) => {
       ? rules.slice(1)
       : Object.keys(evalRules).filter(ruleID => ! rules.slice(1).includes(ruleID));
     const calledContaminators = calledRules.filter(rule => contaminators.includes(rule)).sort();
+    const firstCalledContaminator = calledContaminators[0];
     const calledBenignRules = calledRules.filter(rule => ! contaminators.includes(rule)).sort();
     const testTimes = [];
     let contaminatorsStarted = false;
     // Starting with the noncontaminators, for each rule invoked:
     for (const rule of calledBenignRules.concat(calledContaminators)) {
+      console.log(`Starting rule ${rule}`);
+      if (rule === firstCalledContaminator) {
+        console.log('  It is the first contaminator');
+      }
       const pageClosed = page ? page.isClosed() : true;
       const isContaminator = contaminators.includes(rule);
       // If it is a contaminator other than the first one or the page has closed:
