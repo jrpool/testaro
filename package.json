@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "59.1.2",
+  "version": "59.2.0",
   "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
@@ -8,8 +8,7 @@
     "test": "node validation/executors/test",
     "run": "node validation/executors/run",
     "dirWatch": "node validation/executors/dirWatch",
-    "netWatch": "node validation/executors/netWatch",
-    "postinstall": "patch-package"
+    "netWatch": "node validation/executors/netWatch"
   },
   "repository": {
     "type": "git",
@@ -35,16 +34,14 @@
     "@siteimprove/alfa-act": "*",
     "@siteimprove/alfa-playwright": "*",
     "@siteimprove/alfa-rules": "*",
-    "@wally-ax/wax-dev": "*",
+    "@wally-ax/wax-dev": "npm:@jrpool/wax-dev@^1.0.0",
     "accessibility-checker": "*",
     "aslint-testaro": "*",
     "axe-playwright": "*",
     "dotenv": "*",
-    "patch-package": "*",
     "pixelmatch": "*",
     "playwright": "*",
-    "playwright-dompath": "*",
-    "postinstall-postinstall": "*"
+    "playwright-dompath": "*"
   },
   "devDependencies": {
     "eslint": "*"
