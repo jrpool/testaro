@@ -9,7 +9,8 @@
     "run": "node validation/executors/run",
     "dirWatch": "node validation/executors/dirWatch",
     "netWatch": "node validation/executors/netWatch",
-    "postinstall": "patch-package"
+    "postinstall": "postinstall-postinstall",
+    "postinstall:patch": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -43,7 +44,8 @@
     "patch-package": "*",
     "pixelmatch": "*",
     "playwright": "*",
-    "playwright-dompath": "*"
+    "playwright-dompath": "*",
+    "postinstall-postinstall": "*"
   },
   "devDependencies": {
     "eslint": "*"
