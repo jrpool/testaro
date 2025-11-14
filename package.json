@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "59.1.0",
+  "version": "59.1.1",
   "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
@@ -40,12 +40,12 @@
     "aslint-testaro": "*",
     "axe-playwright": "*",
     "dotenv": "*",
+    "patch-package": "*",
     "pixelmatch": "*",
     "playwright": "*",
     "playwright-dompath": "*"
   },
   "devDependencies": {
-    "eslint": "*",
-    "patch-package": "*"
+    "eslint": "*"
   }
 }
