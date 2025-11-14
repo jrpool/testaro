@@ -9,8 +9,7 @@
     "run": "node validation/executors/run",
     "dirWatch": "node validation/executors/dirWatch",
     "netWatch": "node validation/executors/netWatch",
-    "postinstall": "postinstall-postinstall",
-    "postinstall:patch": "patch-package"
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
