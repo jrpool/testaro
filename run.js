@@ -215,11 +215,10 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
 // Closes the current browser.
 const browserClose = async () => {
   if (browser) {
+    browserCloseIntentional = true;
     for (const context of browser.contexts()) {
       try {
-        browserCloseIntentional = true;
         await context.close();
-        browserCloseIntentional = false;
       }
       catch(error) {
         console.log(
@@ -228,6 +227,7 @@ const browserClose = async () => {
       }
     }
     await browser.close();
+    browserCloseIntentional = false;
     browser = null;
   }
 };
