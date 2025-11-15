@@ -289,7 +289,7 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
       // Create a diagnostic listener for its unintentional closing.
       browserContext.on('close', () => {
         if (! browserCloseIntentional) {
-          console.log(new Error('Browser context closed').stack);
+          console.log('ERROR: Browser context unexpectedly closed');
         }
       });
       // Prevent default timeouts.
