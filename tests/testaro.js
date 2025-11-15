@@ -28,7 +28,7 @@
   This test implements the Testaro evaluative rules.
 */
 
-// ######## IMPORTS
+// IMPORTS
 
 // Module to perform common operations.
 const {init, report} = require('../procs/testaro');
@@ -37,7 +37,7 @@ const {launch} = require('../run');
 // Module to handle files.
 const fs = require('fs/promises');
 
-// ######## CONSTANTS
+// CONSTANTS
 
 // The validation job data for the tests listed below are in the pending directory.
 /*
@@ -152,6 +152,11 @@ const slowTestLimits = {
   textSem: 10
 };
 
+// ERROR HANDLER
+process.on('unhandledRejection', reason => {
+  console.error(`ERROR: Unhandled Promise Rejection (${reason})`);
+});
+
 // ######## FUNCTIONS
 
 // Conducts a JSON-defined test.
@@ -182,6 +187,10 @@ const wait = ms => {
 };
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
+  // Report page crashes.
+  page.on('crash', () => {
+    console.log('ERROR: Page crashed');
+  });
   const url = await page.url();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;

@@ -214,6 +214,8 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
 };
 // Closes the current browser.
 const browserClose = async () => {
+  console.log('DIAGNOSTIC: browserClose() called. Stack trace:');
+  console.log(new Error().stack);
   if (browser) {
     browserCloseIntentional = true;
     for (const context of browser.contexts()) {
@@ -277,21 +279,20 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
       logger: {
         isEnabled: () => false,
         log: (name, severity, message) => console.log(message.slice(0, 100))
-      }
+      },
+      headless: ! debug,
+      slowMo: waits || 0,
+      args: ['--disable-dev-shm-usage']
     };
-    browserOptions.headless = ! debug;
-    browserOptions.slowMo = waits || 0;
     try {
       // Replace the browser with a new one.
       browser = await browserType.launch(browserOptions);
-      // Open a context (i.e. browser window).
-      const browserContext = await browser.newContext(device.windowOptions);
-      // Create a diagnostic listener for its unintentional closing.
-      browserContext.on('close', () => {
-        if (! browserCloseIntentional) {
-          console.log('ERROR: Browser context unexpectedly closed');
-        }
+      // Report if it becomes disconnected.
+      browser.on('disconnected', () => {
+        console.log('NOTICE: Browser disconnected');
       });
+      // Redefine the context (i.e. browser window).
+      browserContext = await browser.newContext(device.windowOptions);
       // Prevent default timeouts.
       browserContext.setDefaultTimeout(0);
       // When a page (i.e. browser tab) is added to the browser context (i.e. browser window):

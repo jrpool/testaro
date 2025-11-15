@@ -34,11 +34,9 @@ exports.reporter = async (page, withItems) => {
   const ruleData = {
     ruleID: 'optRoleSel',
     selector: '[role="option"]',
-    pruner: async (loc) => {
-      return loc.evaluate(el => {
-        return ! el.hasAttribute('aria-selected');
-      });
-    },
+    pruner: async (loc) => await loc.evaluate(el => {
+      return ! el.hasAttribute('aria-selected');
+    }),
     complaints: {
       instance: 'Element has an explicit option role but no aria-selected attribute',
       summary: 'Elements with explicit option roles have no aria-selected attributes'
