@@ -100,6 +100,7 @@ const tmpDir = os.tmpdir();
 
 // Facts about the current session.
 let actCount = 0;
+let browserCloseIntentional = false;
 // Facts about the current act.
 let actIndex = 0;
 let browser;
@@ -216,7 +217,9 @@ const browserClose = async () => {
   if (browser) {
     for (const context of browser.contexts()) {
       try {
+        browserCloseIntentional = true;
         await context.close();
+        browserCloseIntentional = false;
       }
       catch(error) {
         console.log(
@@ -283,6 +286,12 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
       browser = await browserType.launch(browserOptions);
       // Open a context (i.e. browser window).
       const browserContext = await browser.newContext(device.windowOptions);
+      // Create a diagnostic listener for its unintentional closing.
+      browserContext.on('close', () => {
+        if (! browserCloseIntentional) {
+          console.log(new Error('Browser context closed').stack);
+        }
+      });
       // Prevent default timeouts.
       browserContext.setDefaultTimeout(0);
       // When a page (i.e. browser tab) is added to the browser context (i.e. browser window):
