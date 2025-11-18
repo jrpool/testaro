@@ -611,24 +611,16 @@ const convert = (toolName, data, result, standardResult) => {
     rules.forEach(rule => {
       // Copy its instances to the standard result.
       const ruleResult = result[rule];
-      if (ruleResult.standardInstances) {
-        standardResult.instances.push(... ruleResult.standardInstances);
-      }
-      else {
-        console.log(`ERROR: Testaro rule ${rule} result has no standardInstances property`);
-      }
+      ruleResult.standardInstances ??= [];
+      standardResult.instances.push(... ruleResult.standardInstances);
       // Initialize a record of its sample-ratio-weighted totals.
       data.ruleTotals[rule] = [0, 0, 0, 0];
       // Add those totals to the record and to the standard result.
-      if (ruleResult.totals) {
-        for (const index in ruleResult.totals) {
-          const ruleTotal = ruleResult.totals[index];
-          data.ruleTotals[rule][index] += ruleTotal;
-          standardResult.totals[index] += ruleTotal;
-        }
-      }
-      else {
-        console.log(`ERROR: Testaro rule ${rule} result has no totals property`);
+      ruleResult.totals ??= [0, 0, 0, 0];
+      for (const index in ruleResult.totals) {
+        const ruleTotal = ruleResult.totals[index];
+        data.ruleTotals[rule][index] += ruleTotal;
+        standardResult.totals[index] += ruleTotal;
       }
     });
     const preventionCount = result.preventions && result.preventions.length;

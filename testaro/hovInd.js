@@ -140,113 +140,104 @@ exports.reporter = async (page, withItems, sampleSize = 20) => {
   const sample = locsAll.filter((loc, index) => sampleIndexes.includes(index));
   // For each trigger in the sample:
   for (const loc of sample) {
-    // Get its style properties.
-    const preStyles = await getHoverStyles(loc);
-    // Try to focus it.
     try {
+      // Get its style properties.
+      const preStyles = await getHoverStyles(loc);
+      // Focus it.
       await loc.focus({timeout: 500});
       // If focusing succeeds, get its style properties.
       const focStyles = await getHoverStyles(loc);
-      // Try to blur it.
-      try {
-        await loc.blur({timeout: 500});
-        // If blurring succeeds, try to hover over it.
-        try {
-          await loc.hover({timeout: 500});
-          // If hovering succeeds, get its style properties.
-          const hovStyles = await getHoverStyles(loc);
-          // If all 3 style declarations belong to the same element:
-          if ([focStyles, hovStyles].every(style => style.code === preStyles.code)) {
-            // Get data on the element if itemization is required.
-            const elData = withItems ? await getLocatorData(loc) : null;
-            // If the hover cursor is nonstandard:
-            const cursorData = getCursorData(hovStyles);
-            if (! cursorData.ok) {
-              // Add to the totals.
-              totals[2] += psRatio;
-              data.typeTotals.badCursor += psRatio;
-              // If itemization is required:
-              if (withItems) {
-                // Add an instance to the result.
-                standardInstances.push({
-                  ruleID: 'hovInd',
-                  what: `Element has a nonstandard hover cursor (${cursorData.cursor})`,
-                  ordinalSeverity: 2,
-                  tagName: elData.tagName,
-                  id: elData.id,
-                  location: elData.location,
-                  excerpt: elData.excerpt
-                });
-              }
-            }
-            // If the element is a button and the hover and default states are not distinct:
-            if (hovStyles.tagName === 'BUTTON' && areAlike(preStyles, hovStyles)) {
-              // Add to the totals.
-              totals[1] += psRatio;
-              data.typeTotals.hoverLikeDefault += psRatio;
-              // If itemization is required:
-              if (withItems) {
-                // Add an instance to the result.
-                standardInstances.push({
-                  ruleID: 'hovInd',
-                  what: 'Element border, outline, color, and background color do not change when hovered over',
-                  ordinalSeverity: 1,
-                  tagName: elData.tagName,
-                  id: elData.id,
-                  location: elData.location,
-                  excerpt: elData.excerpt
-                });
-              }
-            }
-            // If the hover and focus states are indistinct but differ from the default state:
-            if (areAlike(hovStyles, focStyles) && ! areAlike(hovStyles, preStyles)) {
-              // Add to the totals.
-              totals[1] += psRatio;
-              data.typeTotals.hoverLikeFocus += psRatio;
-              // If itemization is required:
-              if (withItems) {
-                // Add an instance to the result.
-                standardInstances.push({
-                  ruleID: 'hovInd',
-                  what: 'Element border, outline, color, and background color are alike on hover and focus',
-                  ordinalSeverity: 1,
-                  tagName: elData.tagName,
-                  id: elData.id,
-                  location: elData.location,
-                  excerpt: elData.excerpt
-                });
-              }
-            }
-          }
-          // Otherwise, i.e. if the style properties do not all belong to the same element:
-          else {
-            // Report this and quit.
-            data.prevented = true;
-            data.error = 'ERROR: Page changes on focus or hover prevent test';
-            break;
+      // Blur it.
+      await loc.blur({timeout: 500});
+      // If blurring succeeds, try to hover over it.
+      await loc.hover({timeout: 500});
+      // If hovering succeeds, get its style properties.
+      const hovStyles = await getHoverStyles(loc);
+      // If all 3 style declarations belong to the same element:
+      if ([focStyles, hovStyles].every(style => style.code === preStyles.code)) {
+        // Get data on the element if itemization is required.
+        const elData = withItems ? await getLocatorData(loc) : null;
+        // If the hover cursor is nonstandard:
+        const cursorData = getCursorData(hovStyles);
+        if (! cursorData.ok) {
+          // Add to the totals.
+          totals[2] += psRatio;
+          data.typeTotals.badCursor += psRatio;
+          // If itemization is required:
+          if (withItems) {
+            // Add an instance to the result.
+            standardInstances.push({
+              ruleID: 'hovInd',
+              what: `Element has a nonstandard hover cursor (${cursorData.cursor})`,
+              ordinalSeverity: 2,
+              tagName: elData.tagName,
+              id: elData.id,
+              location: elData.location,
+              excerpt: elData.excerpt
+            });
           }
         }
-        // If hovering fails:
-        catch(error) {
-          // Report this.
-          data.prevented = true;
-          data.error = 'ERROR: Hovering failed';
-          break;
+        // If the element is a button and the hover and default states are not distinct:
+        if (hovStyles.tagName === 'BUTTON' && areAlike(preStyles, hovStyles)) {
+          // Add to the totals.
+          totals[1] += psRatio;
+          data.typeTotals.hoverLikeDefault += psRatio;
+          // If itemization is required:
+          if (withItems) {
+            // Add an instance to the result.
+            standardInstances.push({
+              ruleID: 'hovInd',
+              what: 'Element border, outline, color, and background color do not change when hovered over',
+              ordinalSeverity: 1,
+              tagName: elData.tagName,
+              id: elData.id,
+              location: elData.location,
+              excerpt: elData.excerpt
+            });
+          }
+        }
+        // If the hover and focus states are indistinct but differ from the default state:
+        if (areAlike(hovStyles, focStyles) && ! areAlike(hovStyles, preStyles)) {
+          // Add to the totals.
+          totals[1] += psRatio;
+          data.typeTotals.hoverLikeFocus += psRatio;
+          // If itemization is required:
+          if (withItems) {
+            // Add an instance to the result.
+            standardInstances.push({
+              ruleID: 'hovInd',
+              what: 'Element border, outline, color, and background color are alike on hover and focus',
+              ordinalSeverity: 1,
+              tagName: elData.tagName,
+              id: elData.id,
+              location: elData.location,
+              excerpt: elData.excerpt
+            });
+          }
         }
       }
-      // If blurring fails:
-      catch(error) {
-        // Report this.
+      // Otherwise, i.e. if the style properties do not all belong to the same element:
+      else {
+        // Report this and quit.
         data.prevented = true;
-        data.error = 'ERROR: Blurring failed';
+        data.error = 'ERROR: Page changes on focus or hover prevent test';
         break;
       }
     }
-    // If focusing fails:
     catch(error) {
-      // Report this.
+      // If the page closed:
+      if (
+        ['Target page', 'detached', 'null', 'closed'].some(string => error.message.includes(string))
+      ) {
+        data.error = `ERROR during hovInd test: ${error.message}`;
+      }
+      else {
+        const elementText = loc ? await loc.textContent({timeout: 200}) : '';
+        const excerpt = elementText ? elementText.trim().slice(0, 100) : '<no text>';
+        data.error = `ERROR manipulating element (${excerpt}) during hovInd test`;
+      }
       data.prevented = true;
-      data.error = 'ERROR: Focusing failed';
+      // Abort this test.
       break;
     }
   }

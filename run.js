@@ -214,8 +214,6 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
 };
 // Closes the current browser.
 const browserClose = async () => {
-  console.log('DIAGNOSTIC: browserClose() called. Stack trace:');
-  console.log(new Error().stack);
   if (browser) {
     browserCloseIntentional = true;
     for (const context of browser.contexts()) {
@@ -260,7 +258,10 @@ const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
   }
 };
 // Launches a browser and navigates to a URL.
-const launch = exports.launch = async (report, debug, waits, tempBrowserID, tempURL) => {
+const launch = exports.launch = async (
+  report, debug, waits, tempBrowserID, tempURL, retries = 2
+) => {
+  console.log('XXX Launch called');
   const act = report.acts[actIndex];
   const {device} = report;
   const deviceID = device && device.id;
@@ -273,7 +274,9 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
     // Create a browser of the specified or default type.
     const browserType = require('playwright')[browserID];
     // Close the current browser, if any.
+    console.log('XXX About to close browser');
     await browserClose();
+    console.log('XXX Browser closed');
     // Define browser options.
     const browserOptions = {
       logger: {
@@ -286,13 +289,13 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
     };
     try {
       // Replace the browser with a new one.
+      console.log('XXX About to launch browser');
       browser = await browserType.launch(browserOptions);
-      // Report if it becomes disconnected.
-      browser.on('disconnected', () => {
-        console.log('NOTICE: Browser disconnected');
-      });
+      console.log('XXX Browser launched');
       // Redefine the context (i.e. browser window).
+      console.log('XXX About to create browser context');
       browserContext = await browser.newContext(device.windowOptions);
+      console.log('XXX Browser context created');
       // Prevent default timeouts.
       browserContext.setDefaultTimeout(0);
       // When a page (i.e. browser tab) is added to the browser context (i.e. browser window):
@@ -357,11 +360,15 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
         });
       });
       // Replace the page with the first page (tab) of the context (window).
+      console.log('XXX About to create page');
       page = await browserContext.newPage();
+      console.log('XXX Page created');
       // Wait until it is stable.
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
       // Navigate to the specified URL.
+      console.log('XXX About to navigate');
       const navResult = await goTo(report, page, url, 15000, 'domcontentloaded');
+      console.log('XXX Navigation completed');
       // If the navigation succeeded:
       if (navResult.success) {
         // Update the name of the current browser type and store it in the page.
@@ -381,18 +388,38 @@ const launch = exports.launch = async (report, debug, waits, tempBrowserID, temp
         // Report this.
         addError(true, false, report, actIndex, 'status429');
       }
-      // Otherwise, i.e. if the launch or navigation failed:
+      // Otherwise, i.e. if the launch or navigation failed for another reason:
       else {
-        // Report this.
-        addError(true, false, report, actIndex, `ERROR: Launch failed (${navResult.error})`);
-        page = null;
+        // Cause another attempt to launch and navigate, if retries remain.
+        throw new Error(`Navigation failed (${navResult.error})`);
       }
     }
     // If an error occurred:
     catch(error) {
-      // Report this.
-      addError(true, false, report, actIndex, `ERROR launching or navigating ${error.message}`);
-      page = null;
+      // If retries remain:
+      if (retries > 0) {
+        console.log(`WARNING: Retrying launch (${retries} retries left)`);
+        await wait(2000);
+        return launch(report, debug, waits, tempBrowserID, tempURL, retries - 1);
+      }
+      // Otherwise, i.e. if no retries remain:
+      else {
+        // Report this.
+        addError(
+          true, false, report, actIndex, `FINAL ERROR launching or navigating (${error.message})`
+        );
+        // If the browser was created, and thus not a context of it:
+        if (browser) {
+          // Report this.
+          console.log('ERROR: Browser was created but context creation failed');
+          // Close the browser.
+          await browser.close().catch(() => {
+            console.log('ERROR: Could not close browser after context creation failure');
+          });
+          browser = null;
+        }
+        page = null;
+      }
     };
   }
   // Otherwise, i.e. if the browser or device ID is invalid:
