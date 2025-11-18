@@ -34,7 +34,7 @@
 
 // IMPORTS
 
-const pixelmatch = require('pixelmatch');
+const {pixelmatch} = require('pixelmatch');
 const {PNG} = require('pngjs');
 
 // FUNCTIONS
