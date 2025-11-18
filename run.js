@@ -205,7 +205,9 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
     }
   }
   catch(error) {
-    console.log(`ERROR visiting ${url} (${error.message.slice(0, 200)})`);
+    if (debug) {
+      console.log(`ERROR visiting ${url} (${error.message.slice(0, 200)})`);
+    }
     return {
       success: false,
       error: 'noVisit'
