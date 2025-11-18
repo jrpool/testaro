@@ -280,7 +280,11 @@ const launch = exports.launch = async (
     const browserOptions = {
       logger: {
         isEnabled: () => false,
-        log: (name, severity, message) => console.log(message.slice(0, 100))
+        log: (name, severity, message) => {
+          if (['warning', 'error'].includes(severity)) {
+            console.log(`${severity.toUpperCase()}: ${message.slice(0, 200)}`);
+          }
+        }
       },
       headless: ! debug,
       slowMo: waits || 0,
