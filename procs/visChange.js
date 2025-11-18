@@ -34,6 +34,7 @@
 
 // IMPORTS
 
+const pixelmatch = require('pixelmatch');
 const {PNG} = require('pngjs');
 
 // FUNCTIONS
@@ -103,8 +104,6 @@ exports.visChange = async (page, options = {}) => {
       // Get their dimensions.
       const {width, height} = pngs[0];
       // Get the count of differing pixels between the shots.
-      const pixelmatchModule = await import('pixelmatch');
-      const pixelmatch = pixelmatchModule.default;
       const pixelChanges = pixelmatch(pngs[0].data, pngs[1].data, null, width, height);
       // Get the ratio of differing to all pixels as a percentage.
       const changePercent = 100 * pixelChanges / (width * height);

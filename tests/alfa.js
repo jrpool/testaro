@@ -27,14 +27,19 @@
   This test implements the alfa ruleset for accessibility.
 */
 
+// IMPORTS
+
+const {Audit} = require('@siteimprove/alfa-act');
+const alfaDOM = require('@siteimprove/alfa-dom');
+const {Playwright} = require('@siteimprove/alfa-playwright');
+let alfaRules = require('@siteimprove/alfa-rules');
+
 // FUNCTIONS
 
 // Conducts and reports the alfa tests.
 exports.reporter = async (page, report, actIndex, timeLimit) => {
   const act = report.acts[actIndex];
   const {rules} = act;
-  const alfaRulesModule = await import('@siteimprove/alfa-rules');
-  const alfaRules = alfaRulesModule.default;
   // If only some rules are to be employed:
   if (rules && rules.length) {
     // Remove the other rules.
@@ -84,11 +89,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     }
     // Test the page content with the specified rules.
     const doc = await page.evaluateHandle('document');
-    const alfaPlaywrightModule = await import('@siteimprove/alfa-playwright');
-    const {Playwright} = alfaPlaywrightModule;
     const alfaPage = await Playwright.toPage(doc);
-    const alfaActModule = await import('@siteimprove/alfa-act');
-    const {Audit} = alfaActModule;
     const audit = Audit.of(alfaPage, alfaRules);
     const outcomes = Array.from(await audit.evaluate());
     // For each failure or warning:
