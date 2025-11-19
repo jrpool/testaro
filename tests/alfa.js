@@ -29,23 +29,29 @@
 
 // IMPORTS
 
-const {Audit} = require('@siteimprove/alfa-act');
-const {Playwright} = require('@siteimprove/alfa-playwright');
 let alfaRules = require('@siteimprove/alfa-rules').default;
-const alfaRulesData = require('@siteimprove/alfa-act-r/reports/summary-assisted.md');
+const {Audit} = require('@siteimprove/alfa-act');
+const fs = require('fs/promises');
+const path = require('path');
+const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // FUNCTIONS
 
 // Returns the identifiers and summaries of the alfa rules.
-const getRuleData = () => {
-  const ruleData = {};
+const getRuleData = async () => {
+  const rulesDataPath = path.join(
+    __dirname,
+    '../node_modules/@siteimprove/alfa-act-r/reports/summary-assisted.md'
+  );
+  const alfaRulesData = await fs.readFile(rulesDataPath, 'utf8');
+  const rulesData = {};
   const lines = alfaRulesData.split('\n');
-  const ruleLines = lines.filter(line => /^| [a-z0-9]{6} |/.test(line));
-  const ruleArrays = ruleLines.map(line => line.split(/|/).map(item => item.trim()));
+  const ruleLines = lines.filter(line => /^\| [a-z0-9]{6} \|/.test(line));
+  const ruleArrays = ruleLines.map(line => line.split(/\|/).map(item => item.trim()));
   ruleArrays.forEach(array => {
-    ruleData[array[3]] = array[2];
+    rulesData[array[3]] = array[2];
   });
-  return ruleData;
+  return rulesData;
 };
 
 // Conducts and reports the alfa tests.
