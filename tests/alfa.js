@@ -30,14 +30,13 @@
 // IMPORTS
 
 const {Audit} = require('@siteimprove/alfa-act');
-const alfaDOM = require('@siteimprove/alfa-dom');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 let alfaRules = require('@siteimprove/alfa-rules');
 
 // FUNCTIONS
 
 // Conducts and reports the alfa tests.
-exports.reporter = async (page, report, actIndex, timeLimit) => {
+exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
   const {rules} = act;
   // If only some rules are to be employed:
@@ -63,7 +62,9 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   };
   try {
     // Get the Alfa rules.
+    console.log('XXX 0');
     const response = await rulePage.goto('https://alfa.siteimprove.com/rules', {timeout: 10000});
+    console.log('XXX 1');
     let ruleData = {};
     // If they were obtained:
     if (response.status() === 200) {
@@ -87,12 +88,17 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       });
       await rulePage.close();
     }
+    console.log('XXX 5');
     // Test the page content with the specified rules.
     const doc = await page.evaluateHandle('document');
+    console.log('XXX 9');
     const alfaPage = await Playwright.toPage(doc);
+    console.log('XXX 10');
     const audit = Audit.of(alfaPage, alfaRules);
+    console.log('XXX 12');
     const outcomes = Array.from(await audit.evaluate());
     // For each failure or warning:
+    console.log('XXX 15');
     outcomes.forEach((outcome, index) => {
       const {target} = outcome;
       if (target && ! target._members) {
@@ -160,9 +166,10 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
         }
       }
     });
+    console.log('XXX 20');
   }
   catch(error) {
-    console.log(`ERROR: navigation to URL timed out (${error})`);
+    console.log(`ERROR: Navigation to URL timed out (${error})`);
     data.prevented = true;
     data.error = 'ERROR: Act failed';
   }
