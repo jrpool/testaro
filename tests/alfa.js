@@ -32,8 +32,21 @@
 const {Audit} = require('@siteimprove/alfa-act');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 let alfaRules = require('@siteimprove/alfa-rules').default;
+const alfaRulesData = require('@siteimprove/alfa-act-r/reports/summary-assisted.md');
 
 // FUNCTIONS
+
+// Returns the identifiers and summaries of the alfa rules.
+const getRuleData = () => {
+  const ruleData = {};
+  const lines = alfaRulesData.split('\n');
+  const ruleLines = lines.filter(line => /^| [a-z0-9]{6} |/.test(line));
+  const ruleArrays = ruleLines.map(line => line.split(/|/).map(item => item.trim()));
+  ruleArrays.forEach(array => {
+    ruleData[array[3]] = array[2];
+  });
+  return ruleData;
+};
 
 // Conducts and reports the alfa tests.
 exports.reporter = async (page, report, actIndex) => {
@@ -60,32 +73,9 @@ exports.reporter = async (page, report, actIndex) => {
     },
     items: []
   };
+  // Get the Alfa rules.
+  const ruleData = getRuleData();
   try {
-    // Get the Alfa rules.
-    const response = await rulePage.goto('https://alfa.siteimprove.com/rules', {timeout: 10000});
-    let ruleData = {};
-    // If they were obtained:
-    if (response.status() === 200) {
-      // Compile data on the rule IDs and summaries.
-      ruleData = await rulePage.evaluate(() => {
-        const rulePs = Array.from(document.querySelectorAll('p.h5'));
-        const ruleData = {};
-        rulePs.forEach(ruleP => {
-          const childNodes = Array.from(ruleP.childNodes);
-          const ruleID = childNodes[0].textContent.slice(4).toLowerCase();
-          const ruleText = childNodes
-          .slice(1)
-          .map(node => node.textContent)
-          .join(' ')
-          .trim()
-          .replace(/"/g, '\'')
-          .replace(/\s+/g, ' ');
-          ruleData[ruleID] = ruleText;
-        });
-        return ruleData;
-      });
-      await rulePage.close();
-    }
     // Test the page content with the specified rules.
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
@@ -102,7 +92,7 @@ exports.reporter = async (page, report, actIndex) => {
           const {rule} = outcomeJ;
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
-          const ruleSummary = ruleData[ruleID] || '';
+          const ruleSummary = ruleData[`sia-${ruleID}`] || '';
           const targetJ = outcomeJ.target;
           const codeLines = target.toString().split('\n');
           if (codeLines[0] === '#document') {

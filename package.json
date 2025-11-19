@@ -32,6 +32,7 @@
     "@qualweb/wcag-techniques": "*",
     "@qualweb/best-practices": "*",
     "@siteimprove/alfa-act": "*",
+    "@siteimprove/alfa-act-r": "github:Siteimprove/alfa-act-r",
     "@siteimprove/alfa-playwright": "*",
     "@siteimprove/alfa-rules": "*",
     "@wally-ax/wax-dev": "npm:@jrpool/wax-dev@^1.0.0",
