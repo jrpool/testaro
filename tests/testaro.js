@@ -304,6 +304,7 @@ exports.reporter = async (page, report, actIndex) => {
                 const endTime = Date.now();
                 testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
                 data.rulePreventions.push(rule);
+                data.rulePreventionMessages[rule] = 'Timeout';
                 result[rule].totals = [0, 0, 0, 0];
                 result[rule].standardInstances = [];
                 console.log(`ERROR: Test of testaro rule ${rule} timed out`);
@@ -332,6 +333,11 @@ exports.reporter = async (page, report, actIndex) => {
                 // Stop testing.
                 break;
               }
+            }
+            // Otherwise, i.e. if the test timed out:
+            else {
+              // Stop retrying the test.
+              break;
             }
           }
           // If an error is thrown by the test:
@@ -377,16 +383,14 @@ exports.reporter = async (page, report, actIndex) => {
               break;
             }
           }
-          finally {
-            // Clear the timeout and the error listeners.
-            clearTimeout(timeout);
-            if (page && ! page.isClosed() && crashHandler) {
-              page.off('crash', crashHandler);
-            }
-            if (browser && disconnectHandler) {
-              browser.off('disconnected', disconnectHandler);
-            }
-          }
+        }
+        // Clear the timeout and the error listeners.
+        clearTimeout(timeout);
+        if (page && ! page.isClosed() && crashHandler) {
+          page.off('crash', crashHandler);
+        }
+        if (browser && disconnectHandler) {
+          browser.off('disconnected', disconnectHandler);
         }
       }
       // Otherwise, i.e. if the rule is undefined or doubly defined:
