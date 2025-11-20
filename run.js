@@ -288,7 +288,7 @@ const launch = exports.launch = async (
       },
       headless: ! debug,
       slowMo: waits || 0,
-      args: ['--disable-dev-shm-usage']
+      ...(browserID === 'chromium' && {args: ['--disable-dev-shm-usage']})
     };
     try {
       // Replace the browser with a new one.
