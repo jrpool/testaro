@@ -92,6 +92,8 @@ const timeLimits = {
   ibm: 30,
   testaro: 150 + Math.round(6 * process.env.WAITS / 1000)
 };
+// Timeout multiplier.
+const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
 // Temporary directory
 const tmpDir = os.tmpdir();
@@ -721,7 +723,7 @@ const doActs = async (report, opts = {}) => {
         const actResult = await new Promise(resolve => {
           let closed = false;
           const child = fork(
-            `${__dirname}/procs/doTestAct`, [actIndex], {timeout: 1000 * timeLimits[act.which] || 15000}
+            `${__dirname}/procs/doTestAct`, [actIndex], {timeout: timeoutMultiplier * 1000 * (timeLimits[act.which] || 15)}
           );
           child.on('message', message => {
             if (! closed) {
