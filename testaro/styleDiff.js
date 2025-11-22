@@ -69,12 +69,20 @@ const linksByType = async page => await page.evaluateHandle(() => {
     }
   };
   // FUNCTION DEFINITIONS END
-  // Identify the list links in the page.
+  // Identify the lists in the page.
   const lists = Array.from(document.body.querySelectorAll('ul, ol'));
+  // Initialize an array of list links.
   const listLinks = [];
+  // For each one:
   lists.forEach(list => {
+    // If it is a list of links:
     if (isLinkList(list)) {
-      listLinks.push(... Array.from(list.querySelectorAll('a')));
+      // Choose one of the links randomly, assuming they have uniform styles.
+      const links = Array.from(list.querySelectorAll('a'));
+      const randomIndex = Math.floor(Math.random() * links.length);
+      const randomLink = links[randomIndex];
+      // Add it to the array.
+      listLinks.push(randomLink);
     }
   });
   // Identify the inline links in the page.
@@ -163,6 +171,7 @@ exports.reporter = async (page, withItems) => {
       // Add its elements to the object.
       elements.headings[tagName] = Array.from(body.getElementsByTagName(tagName));
     });
+    // FUNCTION DEFINITION START
     // Tabulates the distribution of style properties for elements of a type.
     const tallyStyles = (typeName, elements, typeStyles, withItems) => {
       // If there are any elements:
@@ -226,6 +235,7 @@ exports.reporter = async (page, withItems) => {
         }
       }
     };
+    // FUNCTION DEFINITION END
     // Report the style-property distributions for the element types.
     tallyStyles('button', elements.buttons, buttonStyles, withItems);
     tallyStyles('adjacentLink', elements.links.adjacent, [], withItems);
