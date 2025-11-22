@@ -36,6 +36,13 @@ const fs = require('fs/promises');
 require('dotenv').config({quiet: true});
 // Module to validate jobs.
 const {isBrowserID, isDeviceID, isURL, isValidJob, tools} = require('./procs/job');
+// Module to evade automation detection.
+const {chromium, webkit, firefox} = require('playwright-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+chromium.use(StealthPlugin());
+webkit.use(StealthPlugin());
+firefox.use(StealthPlugin());
+const playwrightBrowsers = {chromium, webkit, firefox};
 // Module to standardize report formats.
 const {standardize} = require('./procs/standardize');
 // Module to identify element bounding boxes.
@@ -136,6 +143,15 @@ const getNonce = async response => {
   // Return the nonce, if any.
   return nonce;
 };
+// Normalizes a file URL in case it has the Windows path format.
+const normalizeFile = u => {
+  if (!u) return u;
+  if (!u.toLowerCase().startsWith('file:')) return u;
+  // Ensure forward slashes and three slashes after file:
+  let path = u.replace(/^file:\/+/i, '');
+  path = path.replace(/\\/g, '/');
+  return 'file:///' + path.replace(/^\//, '');
+};
 // Visits a URL and returns the response of the server.
 const goTo = async (report, page, url, timeout, waitUntil) => {
   // If the URL is a file path:
@@ -154,19 +170,10 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
     const httpStatus = response.status();
     // If the response status was normal:
     if ([200, 304].includes(httpStatus) || url.startsWith('file:')) {
-      // If the browser was redirected in violation of a strictness requirement:
       const actualURL = page.url();
-      // Normalize file:// URLs for comparison (handles Windows path formats)
-      const normalizeFile = u => {
-        if (!u) return u;
-        if (!u.toLowerCase().startsWith('file:')) return u;
-        // Ensure forward slashes and three slashes after file:
-        let path = u.replace(/^file:\/+/i, '');
-        path = path.replace(/\\/g, '/');
-        return 'file:///' + path.replace(/^\//, '');
-      };
       const actualNorm = actualURL.startsWith('file:') ? normalizeFile(actualURL) : actualURL;
       const urlNorm = url.startsWith('file:') ? normalizeFile(url) : url;
+      // If the browser was redirected in violation of a strictness requirement:
       if (report.strict && deSlash(actualNorm) !== deSlash(urlNorm)) {
         // Return an error.
         console.log(`ERROR: Visit to ${url} redirected to ${actualURL}`);
@@ -185,6 +192,15 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
           response
         };
       }
+    }
+    // Otherwise, if the response status was prohibition:
+    else if (httpStatus === 403) {
+      // Return this.
+      console.log(`ERROR: Visit to ${url} prohibited (status 403)`);
+      return {
+        success: false,
+        error: 'status403'
+      };
     }
     // Otherwise, if the response status was rejection of excessive requests:
     else if (httpStatus === 429) {
@@ -275,7 +291,7 @@ const launch = exports.launch = async (
     // Replace the report target URL with this URL.
     report.target.url = url;
     // Create a browser of the specified or default type.
-    const browserType = require('playwright')[browserID];
+    const browserType = playwrightBrowsers[browserID];
     // Close the current browser, if any.
     await browserClose();
     // Define browser options.
@@ -290,17 +306,44 @@ const launch = exports.launch = async (
       },
       headless: ! debug,
       slowMo: waits || 0,
-      ...(browserID === 'chromium' && {args: ['--disable-dev-shm-usage']})
+      ...(browserID === 'chromium' && {
+        args: ['--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled']
+      })
     };
     try {
       // Replace the browser with a new one.
       browser = await browserType.launch(browserOptions);
       // Redefine the context (i.e. browser window).
-      browserContext = await browser.newContext(device.windowOptions);
+      const contextOptions = {
+        ...device.windowOptions,
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        viewport: device.windowOptions.viewport || {width: 1920, height: 1080},
+        locale: 'en-US',
+        timezoneId: 'America/Los_Angeles',
+        extraHTTPHeaders: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'DNT': '1',
+          'Upgrade-Insecure-Requests': '1'
+        }
+      };
+      browserContext = await browser.newContext(contextOptions);
       // Prevent default timeouts.
       browserContext.setDefaultTimeout(0);
-      // When a page (i.e. browser tab) is added to the browser context (i.e. browser window):
+      // When a page (i.e. tab) is added to the browser context (i.e. browser window):
       browserContext.on('page', async page => {
+        // Mask automation detection
+        await page.addInitScript(() => {
+          Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+          window.chrome = {runtime: {}};
+          Object.defineProperty(navigator, 'plugins', {
+            get: () => [1, 2, 3, 4, 5]
+          });
+          Object.defineProperty(navigator, 'languages', {
+            get: () => ['en-US', 'en']
+          });
+        });
         // Ensure the report has a jobData property.
         report.jobData ??= {};
         const {jobData} = report;

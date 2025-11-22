@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "59.3.0",
+  "version": "60.0.0",
   "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
@@ -41,7 +41,10 @@
     "dotenv": "*",
     "pixelmatch": "*",
     "playwright": "*",
-    "playwright-dompath": "*"
+    "playwright-dompath": "*",
+    "playwright-extra": "*",
+    "playwright-extra-plugin-stealth": "*",
+    "puppeteer-extra-plugin-stealth": "*"
   },
   "devDependencies": {
     "eslint": "*"

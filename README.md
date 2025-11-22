@@ -42,6 +42,7 @@ One software product that performs some such functions is [Testilo](https://www.
 
 Testaro uses:
 - [Playwright](https://playwright.dev/) to launch browsers, perform user actions in them, and perform tests
+- [playwright-extra](https://www.npmjs.com/package/playwright-extra) and [puppeteer-extra-plugin-stealth](https://www.npmjs.com/package/puppeteer-extra-plugin-stealth) to make a Playwright-controlled browser more indistinguishable from a human-operated browser and thus make their requests more likely to succeed
 - [playwright-dompath](https://www.npmjs.com/package/playwright-dompath) to retrieve XPaths of elements
 - [pixelmatch](https://www.npmjs.com/package/pixelmatch) to measure motion
 
@@ -91,7 +92,7 @@ The main directories containing code files are:
 
 ## System requirements
 
-Version 16 or later of [Node.js](https://nodejs.org/en/).
+The latest long-term-support version of [Node.js](https://nodejs.org/en/).
 
 ## Installation
 
