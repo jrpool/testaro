@@ -204,11 +204,20 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
     }
     // Otherwise, if the response status was rejection of excessive requests:
     else if (httpStatus === 429) {
+      const retryHeader = response.headers()['retry-after'];
+      let waitSeconds = 5;
+      if (retryHeader) {
+        waitSeconds = Number.isNaN(Number(retryHeader))
+        ? Math.ceil((new Date(retryHeader) - new Date()) / 1000)
+        : Number(retryHeader);
+      }
       // Return this.
-      console.log(`ERROR: Visit to ${url} prevented by request frequency limit (status 429)`);
+      console.log(
+        `ERROR: Visit to ${url} rate-limited (status 429); retry after ${waitSeconds} seconds`
+      );
       return {
         success: false,
-        error: 'status429'
+        error: `status429/retryAfterSeconds=${waitSeconds}`
       };
     }
     // Otherwise, i.e. if the response status was otherwise abnormal:
