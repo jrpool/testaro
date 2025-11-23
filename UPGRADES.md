@@ -2453,3 +2453,352 @@ describe('Database queries', () => {
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
+
+## Performance improvements
+
+### Browser-Node iteration prevention
+
+It is suspected that some Testaro tests are unnecessarily inefficient because they iterate across elements in a page, performing a browser operation on each and then returning a result for processing by Node. For example, in `lineHeight`:
+
+```
+const all = await init(100, page, 'body *', {hasText: /[^\s]/});
+// For each locator:
+for (const loc of all.allLocs) {
+  // Get whether its element violates the rule.
+  const data = await loc.evaluate(el => {
+    const styleDec = window.getComputedStyle(el);
+    const {fontSize, lineHeight} = styleDec;
+    return {
+      fontSize: Number.parseFloat(fontSize),
+      lineHeight: Number.parseFloat(lineHeight)
+    };
+  });
+```
+
+The inefficiency has necessitating sampling.
+
+However, there is evidence that moving the processing of Playwright locators into the browser and returning the final result to Node could be 1 or 2 orders of magnitude faster and eliminate the need to sample, thereby improving speed and delivering accuracy and consistency.
+
+One proposal for a rewrite of `lineHeight`, still doing sampling, was:
+
+```
+// Reports a test.
+exports.reporter = async (page, report) => {
+  // Get data on elements with potentially invalid line heights.
+  const data = await page.evaluate(() => {
+    const instances = [];
+    // Get all visible elements in the body with any text.
+    const elements = Array
+    .from(document.querySelectorAll('body *'))
+    .filter(el => {
+      const styleDec = window.getComputedStyle(el);
+      const {display, visibility} = styleDec;
+      return display !== 'none' && visibility !== 'hidden' && el.textContent.trim().length;
+    });
+    // Get a sample of them.
+    const sampleIndexes = window.getSample(elements, 100);
+    const sample = sampleIndexes.map(index => elements[index]);
+    // For each element in the sample:
+    sample.forEach(el => {
+      const styleDec = window.getComputedStyle(el);
+      const {lineHeight, fontSize} = styleDec;
+      // If the line height is absolute:
+      if (['px', 'pt'].some(unit => lineHeight.endsWith(unit))) {
+        const lhValue = parseFloat(lineHeight);
+        const fsValue = parseFloat(fontSize);
+        // If the line height is less than 1.2 times the font size:
+        if (fsValue > 0 && lhValue / fsValue < 1.2) {
+          const box = el.getBoundingClientRect();
+          // Add an instance to the result.
+          instances.push({
+            ruleID: 'lineHeight',
+            what: 'Line height is less than 1.2 times the font size',
+            ordinalSeverity: 2,
+            tagName: el.tagName,
+            id: el.id || '',
+            location: {
+              doc: 'dom',
+              type: 'box',
+              spec: {
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height
+              }
+            },
+            excerpt: el.textContent.trim().replace(/\s+/g, ' ').slice(0, 100)
+          });
+        }
+      }
+    });
+    return {
+      totals: [0, 0, instances.length, 0],
+      instances
+    };
+  });
+
+  // Add the result to the report.
+  try {
+    report.acts[report.actIndex].result.data = data;
+  }
+  catch(error) {
+    console.log(`ERROR: Could not add result to report (${error.message})`);
+  }
+};
+```
+
+To reuse a sampling (or any other) function in multiple tests, it was proposed to store the function in a file and then inject it into the page as follows:
+
+```
+const getSample = require(path.join(__dirname, 'procs/sample.js')).getSample;
+const initScript = `window.getSample = ${getSample.toString()};`;
+await browserContext.addInitScript(initScript);
+```
+
+## Version management for service
+
+Proposals:
+
+Prevent Future Conflicts
+Option 1: Don't commit package-lock.json on the server (Recommended)
+
+On the server, tell git to ignore local changes to package-lock.json:
+
+```
+# Assume package-lock.json is unchanged locally
+git update-index --assume-unchanged package-lock.json
+```
+
+This prevents git from seeing the file as modified when npm update changes it.
+
+Option 2: Exclude package-lock.json from version control
+
+If you don't need package-lock.json in your repo (since you use * for all versions in package.json), add it to .gitignore:
+
+```
+echo "package-lock.json" >> .gitignore
+git rm --cached package-lock.json
+git commit -m "Stop tracking package-lock.json"
+git push
+```
+
+Then on the server:
+
+```
+git pull
+npm update  # Will create package-lock.json locally but git won't track it
+```
+
+Option 3: Proper deployment workflow (Best Practice)
+
+On the server, use a deployment script instead of git pull:
+
+```
+#!/bin/bash
+# deploy.sh
+
+# Stash any local changes
+git stash
+
+# Fetch latest from origin
+git fetch origin
+
+# Reset to origin/main (discard all local changes)
+git reset --hard origin/main
+
+# Clean untracked files
+git clean -fd
+
+# Install dependencies
+npm ci  # Use 'ci' instead of 'update' - it's deterministic
+
+# Restart app
+pm2 restart kilotest
+```
+
+Make it executable and use it:
+
+```
+chmod +x deploy.sh
+./deploy.sh
+```
+
+Why This Happens
+
+With "testaro": "*" in your package.json:
+
+- Local dev: npm update locks to version X in package-lock.json
+- Server: npm update locks to version Y (newer) in package-lock.json
+- Git: Sees conflicting versions when you pull
+
+Recommended Approach
+
+Use exact versions to ensure consistency across environments:
+
+```
+{
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "testaro": "^2.1.0",
+    "testilo": "^1.5.0"
+  }
+}
+```
+
+Then:
+
+```
+# Lock versions
+npm install
+
+# Commit the lock file
+git add package.json package-lock.json
+git commit -m "Lock dependency versions"
+git push
+
+# On server
+git pull
+npm ci  # Install exact versions from package-lock.json
+pm2 restart kilotest
+```
+
+This ensures identical dependencies in both environments and prevents conflicts.
+
+Automate Version Updates in package.json
+
+You can use npm-check-updates (ncu) to automatically update version numbers in package.json:
+
+Installation
+
+```
+npm install -g npm-check-updates
+```
+
+Usage
+
+```
+# Check what would be updated
+ncu
+
+# Update package.json with latest versions
+ncu -u
+
+# Install the new versions
+npm install
+
+# Commit and push
+git add package.json package-lock.json
+git commit -m "chore: update dependencies"
+git push
+```
+
+Automate with a Script
+Add to your package.json:
+
+```
+{
+  "scripts": {
+    "update-deps": "ncu -u && npm install && git add package.json package-lock.json"
+  }
+}
+```
+
+Then use:
+
+```
+npm run update-deps
+git commit -m "chore: update dependencies"
+git push
+```
+
+More Control with Target Versions
+Instead of *, use caret ranges for automatic minor/patch updates:
+
+```
+{
+  "dependencies": {
+    "dotenv": "^17.2.3",      // allows 17.x.x
+    "testaro": "^2.1.0",      // allows 2.x.x
+    "testilo": "^1.5.0"       // allows 1.x.x
+  }
+}
+```
+
+Then npm update will:
+
+- Update to latest minor/patch versions within the range
+- Update package-lock.json with exact versions
+- Not change package.json unless you use ncu -u
+
+Workflow
+
+Local development:
+
+```
+# When you want to update dependencies
+ncu -u          # Update package.json to latest versions
+npm install     # Install and lock exact versions
+npm test        # Verify everything works
+git add package.json package-lock.json
+git commit -m "chore: update dependencies"
+git push
+```
+
+Server deployment:
+
+```
+git pull                    # Gets updated package.json and package-lock.json
+npm ci                      # Installs exact locked versions
+pm2 restart kilotest
+```
+
+Alternative: Use npm's Built-in Commands
+
+For major version updates with interactive prompts:
+
+```
+# Check outdated packages
+npm outdated
+
+# Update interactively (choose which to update)
+npx npm-check -u
+
+# Or update specific packages
+npm install testaro@latest
+npm install testilo@latest
+
+# Commit the changes
+git add package.json package-lock.json
+git commit -m "chore: update testaro and testilo"
+git push
+```
+
+Pre-commit Hook (Optional)
+Ensure package-lock.json is always in sync:
+
+```
+# .husky/pre-commit or .git/hooks/pre-commit
+#!/bin/sh
+if git diff --cached --name-only | grep -q "package.json"; then
+  if ! git diff --cached --name-only | grep -q "package-lock.json"; then
+    echo "Error: package.json changed but package-lock.json didn't"
+    echo "Run: npm install"
+    exit 1
+  fi
+fi
+```
+
+Recommended Setup
+1. Change * to ^ ranges in package.json
+2. Install npm-check-updates globally: npm i -g npm-check-updates
+3. Add update script to package.json
+4. Use npm ci on server (never npm update or npm install)
+
+This gives you:
+
+✅ Automatic patch/minor updates with npm update
+✅ Controlled major updates with ncu -u
+✅ Cross-environment consistency via package-lock.json
+✅ No git conflicts
+
+Claude Sonnet 4.5 • 1x
