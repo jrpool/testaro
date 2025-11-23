@@ -162,6 +162,7 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
   // Visit the URL.
   const startTime = Date.now();
   try {
+    console.log(`XXX About to visit ${url}`);
     const response = await page.goto(url, {
       timeout,
       waitUntil
@@ -213,7 +214,7 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
       }
       // Return this.
       console.log(
-        `ERROR: Visit to ${url} rate-limited (status 429); retry after ${waitSeconds} seconds`
+        `ERROR: Visit to ${url} rate-limited (status 429); retry after ${waitSeconds} sec.`
       );
       return {
         success: false,
@@ -432,11 +433,6 @@ const launch = exports.launch = async (
           report.jobData.lastScriptNonce = scriptNonce;
         }
       }
-      // Otherwise, i.e. if the navigation was prevented by a request frequency restriction:
-      else if (navResult.error === 'status429') {
-        // Report this.
-        addError(true, false, report, actIndex, 'status429');
-      }
       // Otherwise, i.e. if the launch or navigation failed for another reason:
       else {
         // Cause another attempt to launch and navigate, if retries remain.
@@ -448,7 +444,16 @@ const launch = exports.launch = async (
       // If retries remain:
       if (retries > 0) {
         console.log(`WARNING: Retrying launch (${retries} retries left)`);
-        await wait(2000);
+        // Wait 2 seconds or, if less than 10 seconds, the time requested in a 429 response.
+        let waitSeconds = 2;
+        if (error.message.includes('status429/retryAfterSeconds=')) {
+          const waitSecondsRequest = Number(error.message.replace(/^.+=/, ''));
+          if (! Number.isNaN(waitSecondsRequest) && waitSecondsRequest < 10) {
+            waitSeconds = waitSecondsRequest;
+          }
+        }
+        await wait(waitSeconds * 1000);
+        // Then retry the launch and navigation.
         return launch(report, debug, waits, tempBrowserID, tempURL, retries - 1);
       }
       // Otherwise, i.e. if no retries remain:
