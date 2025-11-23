@@ -162,7 +162,6 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
   // Visit the URL.
   const startTime = Date.now();
   try {
-    console.log(`XXX About to visit ${url}`);
     const response = await page.goto(url, {
       timeout,
       waitUntil
@@ -443,16 +442,20 @@ const launch = exports.launch = async (
     catch(error) {
       // If retries remain:
       if (retries > 0) {
-        console.log(`WARNING: Retrying launch (${retries} retries left)`);
-        // Wait 2 seconds or, if less than 10 seconds, the time requested in a 429 response.
-        let waitSeconds = 2;
+        // Prepare to wait 1 second before a retry.
+        let waitSeconds = 1;
+        // If the error was a visit failure due to rate limiting:
         if (error.message.includes('status429/retryAfterSeconds=')) {
-          const waitSecondsRequest = Number(error.message.replace(/^.+=/, ''));
+          // Change the wait to the requested time, if less than 10 seconds.
+          const waitSecondsRequest = Number(error.message.replace(/^.+=|\)$/g, ''));
           if (! Number.isNaN(waitSecondsRequest) && waitSecondsRequest < 10) {
             waitSeconds = waitSecondsRequest;
           }
         }
-        await wait(waitSeconds * 1000);
+        console.log(
+          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retries})`
+        );
+        await wait(1000 * waitSeconds + 100);
         // Then retry the launch and navigation.
         return launch(report, debug, waits, tempBrowserID, tempURL, retries - 1);
       }
@@ -818,6 +821,7 @@ const doActs = async (report, opts = {}) => {
           if (act.data && ! act.data.prevented) {
             // If standardization is required:
             if (['also', 'only'].includes(standard)) {
+              console.log('>>>>>> Standardizing');
               // Initialize the standard result.
               act.standardResult = {
                 totals: [0, 0, 0, 0],
