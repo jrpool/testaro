@@ -1496,18 +1496,15 @@ const doActs = async (report, opts = {}) => {
       // For each test act with the class:
       for (const specActIndex of launchSpecActs[specString]) {
         const act = report.acts[specActIndex];
-        // If the launch or navigation failed:
-        if (page.prevented) {
-          // Initialize the standard result.
-          act.standardResult = {
-            totals: [0, 0, 0, 0],
-            instances: []
-          };
-          // Populate it.
-          standardize(act);
-        }
-        // Otherwise, i.e. if it succeeded:
-        else {
+        // Initialize the standard result.
+        act.standardResult = {
+          totals: [0, 0, 0, 0],
+          instances: []
+        };
+        // Populate it.
+        standardize(act);
+        // If the launch and navigation succeeded:
+        if (! page.prevented) {
           // Add a box ID and a path ID to each of its standard instances if missing.
           for (const instance of act.standardResult.instances) {
             const elementID = await identify(instance, page);
@@ -1524,8 +1521,8 @@ const doActs = async (report, opts = {}) => {
           // Remove it.
           delete act.result;
         }
-      }
-    }
+      };
+    };
     console.log('>>>> Standardization completed');
   }
   // Close the browser.
