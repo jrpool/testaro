@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -705,7 +706,7 @@ const convert = (toolName, data, result, standardResult) => {
   // Round the totals of the standard result.
   standardResult.totals = standardResult.totals.map(total => Math.round(total));
 };
-// Converts the results.
+// Converts the results of a test act.
 exports.standardize = act => {
   const {which, data, result, standardResult} = act;
   if (which && result && standardResult) {
