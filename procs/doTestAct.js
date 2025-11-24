@@ -50,9 +50,10 @@ const actIndex = Number.parseInt(process.argv[2]);
 
 // FUNCTIONS
 
+// Performs the tests of the act specified by the caller.
 const doTestAct = async () => {
   const reportPath = `${tmpDir}/report.json`;
-  // Get the saved report.
+  // Get the report from the temporary directory.
   const reportJSON = await fs.readFile(reportPath, 'utf8');
   const report = JSON.parse(reportJSON);
   // Get a reference to the act in the report.
