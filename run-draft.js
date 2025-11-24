@@ -668,6 +668,11 @@ const abortActs = (report, actIndex) => {
   // Report that the job is aborted.
   console.log(`ERROR: Job aborted on act ${actIndex}`);
 };
+// Returns the combination of browser ID and target URL of an act.
+const launchSpecs = (act, report) => [
+  act.browserID || report.browserID || '',
+  act.target && act.target.url || report.target && report.target.url || ''
+];
 // Performs the acts in a report and adds the results to the report.
 const doActs = async (report, opts = {}) => {
   const {acts} = report;
@@ -752,13 +757,14 @@ const doActs = async (report, opts = {}) => {
       }
       // Otherwise, if the act is a launch:
       else if (type === 'launch') {
+        const actLaunchSpecs = launchSpecs(act, report);
         // Launch a browser, navigate to a page, and add the result to the act.
         await launch(
           report,
           debug,
           waits,
-          act.browserID || report.browserID || '',
-          act.target && act.target.url || report.target && report.target.url || ''
+          actLaunchSpecs[0],
+          actLaunchSpecs[1]
         );
         // If this failed:
         if (page.prevented) {
@@ -819,50 +825,6 @@ const doActs = async (report, opts = {}) => {
           toolTimes[act.which] += time;
           // If the act was not prevented:
           if (act.data && ! act.data.prevented) {
-            // If standardization is required:
-            if (['also', 'only'].includes(standard)) {
-              console.log('>>>>>> Standardizing');
-              // Initialize the standard result.
-              act.standardResult = {
-                totals: [0, 0, 0, 0],
-                instances: []
-              };
-              // Populate it.
-              standardize(act);
-              // Launch a browser and navigate to the page.
-              await launch(
-                report,
-                debug,
-                waits,
-                act.browserID || report.browserID || '',
-                act.target && act.target.url || report.target && report.target.url || ''
-              );
-              // If this failed:
-              if (page.prevented) {
-                // Add this to the act.
-                act.data ??= {};
-                act.data.prevented = true;
-                act.data.error = page.error || '';
-              }
-              // Otherwise, i.e. if it succeeded:
-              else {
-                // Add a box ID and a path ID to each of its standard instances if missing.
-                for (const instance of act.standardResult.instances) {
-                  const elementID = await identify(instance, page);
-                  if (! instance.boxID) {
-                    instance.boxID = elementID ? elementID.boxID : '';
-                  }
-                  if (! instance.pathID) {
-                    instance.pathID = elementID ? elementID.pathID : '';
-                  }
-                };
-              }
-              // If the original-format result is not to be included in the report:
-              if (standard === 'only') {
-                // Remove it.
-                delete act.result;
-              }
-            }
             // If the act has expectations:
             const expectations = act.expect;
             if (expectations) {
@@ -1501,6 +1463,82 @@ const doActs = async (report, opts = {}) => {
     }
   }
   console.log('Acts completed');
+  // If standardization is required:
+  if (['also', 'only'].includes(standard)) {
+    console.log('>>>> Standardizing results of test acts');
+    // Tally the unique browser ID/target URL combinations of test acts and their act indices.
+    const launchSpecActs = {};
+    report.acts.forEach((act, index) => {
+      if (act.type === 'test') {
+        const specs = launchSpecs(act, report);
+        const specString = `${specs[0]}>${specs[1]}`;
+        if (! launchSpecActs[specString]) {
+          launchSpecActs[specString] = [index];
+        }
+        else {
+          launchSpecActs[specString].push(index);
+        }
+      }
+    });
+      if (act.type === 'test') {
+        const specs = launchSpecs(act, report);
+    report.acts.filter(act => act.type === 'test').forEach(act => {
+      const specs = launchSpecs(act, report);
+      const specString = `${specs[0]}>${specs[1]}`;
+      actSpecs.push(specString);
+      jobLaunchSpecs.add(specString);
+    });
+    // For each unique combination:
+    for (const spec of jobLaunchSpecs) {
+      const [browserID, targetURL] = spec.split('>');
+      // Launch a browser and navigate to the page.
+      await launch(
+        report,
+        debug,
+        waits,
+        browserID,
+        targetURL
+      );
+      // If the launch or navigation failed:
+      if (page.prevented) {
+        const specActs =
+        // For each test act with this combination:
+        for (const [actIndex, actSpec] of actSpecs.entries()) {
+          if (actSpec === spec) {
+        for (const act of report.acts.filter(act => act.type === 'test')) {
+          // Initialize the standard result.
+          act.standardResult = {
+            totals: [0, 0, 0, 0],
+            instances: []
+          };
+          // Populate it.
+          standardize(act);
+            // Add this to the act.
+            act.data ??= {};
+            act.data.prevented = true;
+            act.data.error = page.error || '';
+          }
+          // Otherwise, i.e. if it succeeded:
+          else {
+            // Add a box ID and a path ID to each of its standard instances if missing.
+            for (const instance of act.standardResult.instances) {
+              const elementID = await identify(instance, page);
+              if (! instance.boxID) {
+                instance.boxID = elementID ? elementID.boxID : '';
+              }
+              if (! instance.pathID) {
+                instance.pathID = elementID ? elementID.pathID : '';
+              }
+            };
+          }
+          // If the original-format result is not to be included in the report:
+          if (standard === 'only') {
+            // Remove it.
+            delete act.result;
+          }
+        }
+    console.log('>>>> Standardization completed');
+  }
   await browserClose();
   await fs.rm(reportPath, {force: true});
   return report;
