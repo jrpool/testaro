@@ -1,5 +1,6 @@
 /*
-  © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2023–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -25,37 +26,18 @@
 /*
   visChange
   This procedure reports a change in the visible content of a page between two times, optionally
-  hovering over a locator-defined element immediately after the first time.
-
-  WARNING: This test uses the Playwright page.screenshot method, which produces incorrect results
-  when the browser type is chromium and is not implemented for the firefox browser type. The only
-  browser type usable with this test is webkit.
+  hovering over a locator-defined element immediately after the first time. This test uses the
+  Playwright page.screenshot method, which is not implemented for the firefox browser type.
 */
 
 // IMPORTS
 
 const pixelmatch = require('pixelmatch').default;
 const {PNG} = require('pngjs');
+const {shoot} = require('./shoot');
 
 // FUNCTIONS
 
-// Creates and returns a screenshot.
-const shoot = async (page, exclusion = null) => {
-  // Make a screenshot as a buffer.
-  const options = {
-    fullPage: true,
-    omitBackground: true,
-    timeout: 2000
-  };
-  if (exclusion) {
-    options.mask = [exclusion];
-  }
-  return await page.screenshot(options)
-  .catch(error => {
-    console.log(`ERROR: Screenshot failed (${error.message})`);
-    return '';
-  });
-};
 exports.visChange = async (page, options = {}) => {
   const {delayBefore, delayBetween, exclusion} = options;
   // Wait, if required.

@@ -1,0 +1,32 @@
+/*
+  © 2023–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
+  Licensed under the MIT License. See LICENSE file for details.
+*/
+
+/*
+  shoot
+  This procedure creates and returns a full-page screenshot, optionally with an exclused element.
+  This procedure uses the Playwright page.screenshot method, which is not implemented for the
+  firefox browser type.
+*/
+
+// FUNCTIONS
+
+// Creates and returns a screenshot.
+exports.shoot = async (page, exclusion = null) => {
+  // Make a screenshot as a buffer.
+  const options = {
+    fullPage: true,
+    omitBackground: true,
+    timeout: 2000
+  };
+  if (exclusion) {
+    options.mask = [exclusion];
+  }
+  return await page.screenshot(options)
+  .catch(error => {
+    console.log(`ERROR: Screenshot failed (${error.message})`);
+    return '';
+  });
+};

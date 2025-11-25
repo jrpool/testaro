@@ -36,103 +36,441 @@ const {init, report} = require('../procs/testaro');
 const {launch} = require('../run');
 // Module to handle files.
 const fs = require('fs/promises');
+// Module to make screenshots.
+const {shoot} = require('../procs/shoot');
 
 // CONSTANTS
 
-// The validation job data for the tests listed below are in the pending directory.
-const futureRules = new Set([]);
-const evalRules = {
-  adbID: 'elements with ambiguous or missing referenced descriptions',
-  allCaps: 'leaf elements with entirely upper-case text longer than 7 characters',
-  allHidden: 'page that is entirely or mostly hidden',
-  allSlanted: 'leaf elements with entirely italic or oblique text longer than 39 characters',
-  altScheme: 'img elements with alt attributes having URLs as their entire values',
-  attVal: 'duplicate attribute values',
-  autocomplete: 'name and email inputs without autocomplete attributes',
-  bulk: 'large count of visible elements',
-  buttonMenu: 'nonstandard keyboard navigation between items of button-controlled menus',
-  captionLoc: 'caption elements that are not first children of table elements',
-  datalistRef: 'elements with ambiguous or missing referenced datalist elements',
-  distortion: 'distorted text',
-  docType: 'document without a doctype property',
-  dupAtt: 'elements with duplicate attributes',
-  embAc: 'active elements embedded in links or buttons',
-  focAll: 'discrepancies between focusable and Tab-focused elements',
-  focInd: 'missing and nonstandard focus indicators',
-  focOp: 'Tab-focusable elements that are not operable',
-  focVis: 'links that are not entirely visible when focused',
-  headEl: 'invalid elements within the head',
-  headingAmb: 'same-level sibling headings with identical texts',
-  hover: 'hover-caused content changes',
-  hovInd: 'hover indication nonstandard',
-  hr: 'hr element instead of styles used for vertical segmentation',
-  imageLink: 'links with image files as their destinations',
-  labClash: 'labeling inconsistencies',
-  legendLoc: 'legend elements that are not first children of fieldset elements',
-  lineHeight: 'text with a line height less than 1.5 times its font size',
-  linkAmb: 'links with identical texts but different destinations',
-  linkExt: 'links that automatically open new windows',
-  linkOldAtt: 'links with deprecated attributes',
-  linkTitle: 'links with title attributes repeating text content',
-  linkTo: 'links without destinations',
-  linkUl: 'missing underlines on inline links',
-  miniText: 'text smaller than 11 pixels',
-  motion: 'motion without user request',
-  nonTable: 'table elements used for layout',
-  opFoc: 'operable elements that are not Tab-focusable',
-  optRoleSel: 'Non-option elements with option roles that have no aria-selected attributes',
-  phOnly: 'input elements with placeholders but no accessible names',
-  pseudoP: 'adjacent br elements suspected of nonsemantically simulating p elements',
-  radioSet: 'radio buttons not grouped into standard field sets',
-  role: 'native-replacing explicit roles',
-  secHeading: 'headings that violate the logical level order in their sectioning containers',
-  styleDiff: 'style inconsistencies',
-  tabNav: 'nonstandard keyboard navigation between elements with the tab role',
-  targetSmall: 'buttons, inputs, and non-inline links smaller than 44 pixels wide and high',
-  targetTiny: 'buttons, inputs, and non-inline links smaller than 24 pixels wide and high',
-  textSem: 'semantically vague elements i, b, and/or small',
-  titledEl: 'title attributes on inappropriate elements',
-  zIndex: 'non-default Z indexes'
-};
-const etcRules = {
-  attVal: 'elements with attributes having illicit values',
-  elements: 'data on specified elements',
-  textNodes: 'data on specified text nodes',
-  title: 'page title',
-};
-// Tests that modify the page.
-const contaminators = [
-  'buttonMenu',
-  'elements',
-  'focAll',
-  'focOp',
-  'focInd',
-  'hover',
-  'hovInd',
-  'motion',
-  'opFoc',
-  'tabNav',
-  'textNodes'
+// Metadata of all rules in default execution order.
+const allRules = [
+  {
+    id: 'shoot',
+    what: 'page screenshot',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'adbID',
+    what: 'elements with ambiguous or missing referenced descriptions',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'allCaps',
+    what: 'leaf elements with entirely upper-case text longer than 7 characters',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'allHidden',
+    what: 'page that is entirely or mostly hidden',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'allSlanted',
+    what: 'leaf elements with entirely italic or oblique text longer than 39 characters',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'altScheme',
+    what: 'img elements with alt attributes having URLs as their entire values',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'attVal',
+    what: 'elements with attributes having illicit values',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: false
+  },
+  {
+    id: 'dupAtt',
+    what: 'duplicate attribute values',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'autocomplete',
+    what: 'name and email inputs without autocomplete attributes',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'bulk',
+    what: 'large count of visible elements',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'captionLoc',
+    what: 'caption elements that are not first children of table elements',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'datalistRef',
+    what: 'elements with ambiguous or missing referenced datalist elements',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'distortion',
+    what: 'distorted text',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'docType',
+    what: 'document without a doctype property',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'dupAtt',
+    what: 'elements with duplicate attributes',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'embAc',
+    what: 'active elements embedded in links or buttons',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'headEl',
+    what: 'invalid elements within the head',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'headingAmb',
+    what: 'same-level sibling headings with identical texts',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'hr',
+    what: 'hr element instead of styles used for vertical segmentation',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'imageLink',
+    what: 'links with image files as their destinations',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'labClash',
+    what: 'labeling inconsistencies',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'legendLoc',
+    what: 'legend elements that are not first children of fieldset elements',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'lineHeight',
+    what: 'text with a line height less than 1.5 times its font size',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'linkAmb',
+    what: 'links with identical texts but different destinations',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'linkExt',
+    what: 'links that automatically open new windows',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'linkOldAtt',
+    what: 'links with deprecated attributes',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'linkTitle',
+    what: 'links with title attributes repeating text content',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'linkTo',
+    what: 'links without destinations',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'linkUl',
+    what: 'missing underlines on inline links',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'miniText',
+    what: 'text smaller than 11 pixels',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'navAmb',
+    what: 'navigation landmarks with identical texts',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'navEmpty',
+    what: 'empty navigation landmarks',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'navSkip',
+    what: 'missing skip navigation links',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'nonTable',
+    what: 'table elements used for layout',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'optRoleSel',
+    what: 'Non-option elements with option roles that have no aria-selected attributes',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'phOnly',
+    what: 'input elements with placeholders but no accessible names',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'pseudoP',
+    what: 'adjacent br elements suspected of nonsemantically simulating p elements',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'radioSet',
+    what: 'radio buttons not grouped into standard field sets',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'role',
+    what: 'native-replacing explicit roles',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'secHeading',
+    what: 'headings that violate the logical level order in their sectioning containers',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'styleDiff',
+    what: 'style inconsistencies',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'targetSmall',
+    what: 'buttons, inputs, and non-inline links smaller than 44 pixels wide and high',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'targetTiny',
+    what: 'buttons, inputs, and non-inline links smaller than 24 pixels wide and high',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'textSem',
+    what: 'semantically vague elements i, b, and/or small',
+    contaminator: false,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'title',
+    what: 'page title',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: false
+  },
+  {
+    id: 'titledEl',
+    what: 'title attributes on inappropriate elements',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'zIndex',
+    what: 'non-default Z indexes',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'shoot',
+    what: 'page screenshot',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'motion',
+    what: 'motion without user request, measured across tests',
+    contaminator: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'buttonMenu',
+    what: 'nonstandard keyboard navigation between items of button-controlled menus',
+    contaminator: true,
+    timeOut: 15,
+    defaultOn: true
+  },
+  {
+    id: 'elements',
+    what: 'data on specified elements',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: false
+  },
+  {
+    id: 'focAll',
+    what: 'discrepancies between focusable and Tab-focused elements',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'focInd',
+    what: 'missing and nonstandard focus indicators',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'focOp',
+    what: 'Tab-focusable elements that are not operable',
+    contaminator: true,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'focVis',
+    what: 'links that are not entirely visible when focused',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'hover',
+    what: 'hover-caused content changes',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'hovInd',
+    what: 'hover indication nonstandard',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'motionSolo',
+    what: 'motion without user request, measured within this test',
+    contaminator: true,
+    timeOut: 15,
+    defaultOn: false
+  },
+  {
+    id: 'opFoc',
+    what: 'operable elements that are not Tab-focusable',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'tabNav',
+    what: 'nonstandard keyboard navigation between elements with the tab role',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: true
+  },
+  {
+    id: 'textNodes',
+    what: 'data on specified text nodes',
+    contaminator: true,
+    timeOut: 10,
+    defaultOn: false
+  }
 ];
-// Extraordinary time limits on rules.
-const slowTestLimits = {
-  allCaps: 10,
-  buttonMenu: 15,
-  distortion: 10,
-  docType: 10,
-  focAll: 10,
-  focInd: 10,
-  focVis: 10,
-  hover: 10,
-  hovInd: 10,
-  labClash: 10,
-  lineHeight: 10,
-  linkUl: 10,
-  motion: 15,
-  opFoc: 10,
-  tabNav: 10,
-  textSem: 10
-};
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
 // ERROR HANDLER
@@ -170,13 +508,16 @@ const wait = ms => {
 };
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
-  // Report page crashes.
   const url = await page.url();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;
+  const launchOptions = act.launch;
+  const browserID = launchOptions ? launchOptions.browserID || report.browserID : report.browserID;
   const argRules = args ? Object.keys(args) : null;
-  const rules = act.rules || ['y', ... Object.keys(evalRules)];
-  // Initialize the act report.
+  // Get the specification of rules to be tested for.
+  const ruleSpec = act.rules
+  || ['y', ... allRules.filter(rule => rule.defaultOn).map(rule => rule.id)];
+  // Initialize the act data and result.
   const data = {
     prevented: false,
     error: '',
@@ -186,53 +527,52 @@ exports.reporter = async (page, report, actIndex) => {
     ruleTestTimes: {}
   };
   const result = {};
-  // If the rule specification is valid:
-  if (
-    rules.length > 1
-    && ['y', 'n'].includes(rules[0])
-    && rules.slice(1).every(rule => {
-      if (evalRules[rule] || etcRules[rule] || futureRules.has(rule)) {
-        return true;
+  const allRuleIDs = allRules.map(rule => rule.id);
+  // If the rule specification is invalid:
+  if (! (
+    ruleSpec.length > 1
+    && ['y', 'n'].includes(ruleSpec[0])
+    && ruleSpec.slice(1).every(ruleID => allRuleIDs.includes(ruleID))
+  )) {
+    // Report this and stop testing.
+    data.prevented = true;
+    data.error = 'ERROR: Testaro rule specification invalid';
+    console.log('ERROR: Testaro rule specification invalid');
+    return {
+      data,
+      result
+    };
+  }
+  // Wait 1 second to prevent out-of-order logging with granular reporting.
+  await wait(1000);
+  // Get the rules to be tested for and their execution order.
+  const jobRuleIDs = ruleSpec[0] === 'y'
+  ? rules.slice(1)
+  : allRules.filter(rule => rule.defaultOn && ! allRuleIDs.includes(rule.id));
+  const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
+  const testTimes = [];
+  let contaminatorsStarted = false;
+  // For each rule to be tested for:
+  for (const rule of jobRules) {
+    console.log(`Starting rule ${rule.id}`);
+    const pageClosed = page ? page.isClosed() : true;
+    const isContaminator = rule.contaminator;
+    // If it is a contaminator other than the first one or the page has closed:
+    if (contaminatorsStarted || pageClosed) {
+      // If the page has closed:
+      if (pageClosed) {
+        // Report this.
+        console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
       }
-      else {
-        console.log(`ERROR: Testaro rule ${rule} invalid`);
-        return false;
-      }
-    })
-  ) {
-    // Wait 1 second to prevent out-of-order logging with granular reporting.
-    await wait(1000);
-    let calledRules = rules[0] === 'y'
-      ? rules.slice(1)
-      : Object.keys(evalRules).filter(ruleID => ! rules.slice(1).includes(ruleID));
-    const calledContaminators = calledRules.filter(rule => contaminators.includes(rule));
-    const firstCalledContaminator = calledContaminators[0];
-    const calledBenignRules = calledRules.filter(rule => ! contaminators.includes(rule));
-    const testTimes = [];
-    let contaminatorsStarted = false;
-    // Starting with the noncontaminators, for each rule invoked:
-    for (const rule of calledBenignRules.concat(calledContaminators)) {
-      const contaminatorSuffix = rule === firstCalledContaminator ? ' (first contaminator)' : '';
-      console.log(`Starting rule ${rule}${contaminatorSuffix}`);
-      const pageClosed = page ? page.isClosed() : true;
-      const isContaminator = contaminators.includes(rule);
-      // If it is a contaminator other than the first one or the page has closed:
-      if (contaminatorsStarted || pageClosed) {
-        // If the page has closed:
-        if (pageClosed) {
-          // Report this.
-          console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
-        }
-        // Replace the browser and the page and navigate to the target.
-        await launch(
-          report,
-          process.env.DEBUG === 'true',
-          Number.parseInt(process.env.WAITS) || 0,
-          report.browserID,
-          url
-        );
-        page = require('../run').page;
-      }
+      // Replace the browser and the page and navigate to the target.
+      await launch(
+        report,
+        process.env.DEBUG === 'true',
+        Number.parseInt(process.env.WAITS) || 0,
+        browserID,
+        url
+      );
+      page = require('../run').page;
       // If it is a contaminator, ensure that future tests use new browsers.
       if (isContaminator) {
         contaminatorsStarted = true;
@@ -265,12 +605,9 @@ exports.reporter = async (page, report, actIndex) => {
           // Add them to the argument array.
           ruleArgs.push(... args[rule]);
         }
-        // Test the page.
-        if (! result[rule]) {
-          result[rule] = {};
-        }
-        const what = evalRules[rule] || etcRules[rule];
-        result[rule].what = what;
+        result[rule] ??= {};
+        const {what} = rule;
+        result[rule].what = what || '';
         const startTime = Date.now();
         let timeout;
         let testRetries = 2;
@@ -393,14 +730,7 @@ exports.reporter = async (page, report, actIndex) => {
     testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
       data.ruleTestTimes[pair[0]] = pair[1];
     });
-  }
-  // Otherwise, i.e. if the rule specification is invalid:
-  else {
-    const message = 'ERROR: Testaro rule specification invalid';
-    console.log(message);
-    data.prevented = true;
-    data.error = message;
-  }
+  };
   return {
     data,
     result
