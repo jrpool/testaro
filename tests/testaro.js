@@ -32,12 +32,12 @@
 
 // Module to perform common operations.
 const {init, report} = require('../procs/testaro');
+// Export the report for use by tests (e.g., motion).
+exports.report = report;
 // Function to launch a browser.
 const {launch} = require('../run');
 // Module to handle files.
 const fs = require('fs/promises');
-// Module to make screenshots.
-const {shoot} = require('../procs/shoot');
 
 // CONSTANTS
 
@@ -644,7 +644,11 @@ exports.reporter = async (page, report, actIndex) => {
               Object.keys(ruleOrTimeoutReport).forEach(key => {
                 result[rule][key] = ruleOrTimeoutReport[key];
               });
-              result[rule].totals = result[rule].totals.map(total => Math.round(total));
+              // If the result includes totals:
+              if (result[rule].totals) {
+                // Round them.
+                result[rule].totals = result[rule].totals.map(total => Math.round(total));
+              }
               // Prevent a retry of the test.
               testSuccess = true;
               // If testing is to stop after a failure and the page failed the test:

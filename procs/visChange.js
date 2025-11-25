@@ -34,7 +34,7 @@
 
 const pixelmatch = require('pixelmatch').default;
 const {PNG} = require('pngjs');
-const {shoot} = require('./shoot');
+const {screenShot} = require('./screenShot');
 
 // FUNCTIONS
 
@@ -56,7 +56,7 @@ exports.visChange = async (page, options = {}) => {
     });
   }
   // Make and get a screenshot, excluding an element if specified.
-  const shot0 = await shoot(page, exclusion);
+  const shot0 = await screenShot(page, exclusion);
   // If it succeeded:
   if (shot0.length) {
     // If an exclusion was specified:
@@ -78,7 +78,7 @@ exports.visChange = async (page, options = {}) => {
     // Wait as specified, or 3 seconds.
     await page.waitForTimeout(delayBetween || 3000);
     // Make and get another screenshot.
-    const shot1 = await shoot(page, exclusion);
+    const shot1 = await screenShot(page, exclusion);
     // If it succeeded:
     if (shot1.length) {
       // Get the shots as PNG images.

@@ -5,7 +5,7 @@
 */
 
 /*
-  shoot
+  screenShot
   This procedure creates and returns a full-page screenshot, optionally with an exclused element.
   This procedure uses the Playwright page.screenshot method, which is not implemented for the
   firefox browser type.
@@ -14,7 +14,7 @@
 // FUNCTIONS
 
 // Creates and returns a screenshot.
-exports.shoot = async (page, exclusion = null) => {
+exports.screenShot = async (page, exclusion = null) => {
   // Make a screenshot as a buffer.
   const options = {
     fullPage: true,
