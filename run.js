@@ -1465,7 +1465,31 @@ const doActs = async (report, opts = {}) => {
   console.log('Acts completed');
   // If standardization is required:
   if (['also', 'only'].includes(standard)) {
-    console.log('>>>> Standardizing results of test acts');
+    // If granular reporting has been specified:
+    if (report.observe) {
+      // If a progress callback has been provided:
+      if (onProgress) {
+        // Notify the observer of the start of standardization.
+        try {
+          onProgress({
+            type: 'standardization',
+            which: 'start'
+          });
+          console.log(`${'Standardization started'} (observer notified)`);
+        }
+        catch (error) {
+          console.log(`${message} (observer notification failed: ${errorStart(error)})`);
+        }
+      }
+      // Otherwise, i.e. if no progress callback has been provided:
+      else {
+        // Notify the observer of the act and log it.
+        tellServer(report, messageParams, message);
+      }
+
+    // Notify the observer and log the start of standardization.
+    tellServer(report, '', 'Starting result standardization');
+    }
     const launchSpecActs = {};
     // For each act:
     report.acts.forEach((act, index) => {
