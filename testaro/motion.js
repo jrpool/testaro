@@ -20,7 +20,7 @@
 // IMPORTS
 
 // Module to make a screenshot.
-const {screenShot} = require('../procs/screenShot');
+const pixelmatch = require('pixelmatch');
 const {report} = require('../run');
 
 // FUNCTIONS
@@ -28,45 +28,31 @@ const {report} = require('../run');
 // Reports motion in a page.
 exports.reporter = async page => {
   // Get the screenshots made by the shoot test.
-  const thisAct = report.acts.filter(act => act.type === 'test' && act.which === 'testaro');
-  const shootData = thisAct.result.shoot
-  // Initialize the totals and standard instances.
-  const totals = [0, 0, 0, 0];
-  const standardInstances = [];
-  // Make screenshots and get the result.
-  const data = await visChange(page, {
-    delayBefore: 2000,
-    delayBetween: 3000
-  });
-  // If the screenshots succeeded:
-  if (data.success) {
-    // If any pixels were changed:
-    if (data.pixelChanges) {
-      // Get the ordinal severity from the fractional pixel change.
-      const ordinalSeverity = Math.floor(Math.min(3, 0.4 * Math.sqrt(data.changePercent)));
-      // Add to the totals.
-      totals[ordinalSeverity] = 1;
-      // Get a summary standard instance.
-      standardInstances.push({
-        ruleID: 'motion',
-        what: 'Content moves or changes without user request',
-        count: 1,
-        ordinalSeverity,
-        tagName: 'HTML',
-        id: '',
-        location: {
-          doc: '',
-          type: '',
-          spec: ''
-        },
-        excerpt: ''
-      });
-    }
+  const thisAct = report.acts.filter(act => act.type === 'test' && act.which === 'testaro')[0];
+  const thisResult = thisAct.result.shoot;
+  const {pngs} = thisResult;
+  // Choose the first and last of them for comparison.
+  const pngPair = [pngs[0], pngs[pngs.length - 1]];
+  // Get their dimensions.
+  const {width, height} = pngPair[0];
+  // If their dimensions differ:
+  if (width !== pngPair[1].width || height !== pngPair[1].height) {
+    // Return a failure.
+    return {
+      success: false,
+      error: 'Screenshots have differing dimensions'
+    };
   }
-  // Return the result.
+  // Otherwise, get the count of differing pixels between the shots.
+  const pixelChanges = pixelmatch(pngPair[0].data, pngPair[1].data, null, width, height);
+  // Get the ratio of differing to all pixels as a percentage.
+  const changePercent = 100 * pixelChanges / (width * height);
+  // Return the data.
   return {
-    data,
-    totals,
-    standardInstances
+    success: true,
+    width,
+    height,
+    pixelChanges,
+    changePercent
   };
 };
