@@ -28,7 +28,7 @@
   Report inputs whose list attribute references a missing or ambiguous datalist
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   const all = await init(100, page, 'input[list]');
@@ -45,5 +45,5 @@ exports.reporter = async (page, withItems) => {
     'list attribute of the element references an ambiguous or missing datalist element',
     'list attributes of elements reference ambiguous or missing datalist elements'
   ];
-  return await report(withItems, all, 'datalistRef', whats, 3, 'INPUT');
+  return await getRuleResult(withItems, all, 'datalistRef', whats, 3, 'INPUT');
 };

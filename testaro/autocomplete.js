@@ -30,7 +30,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 // Module to get locator data.
 const {getLocatorData} = require('../procs/getLocatorData');
 
@@ -81,5 +81,5 @@ exports.reporter = async (
     'Input is missing an autocomplete attribute with value __param__',
     'Inputs are missing applicable autocomplete attributes'
   ];
-  return await report(withItems, all, 'autocomplete', whats, 2);
+  return await getRuleResult(withItems, all, 'autocomplete', whats, 2);
 };

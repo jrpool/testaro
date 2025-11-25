@@ -28,7 +28,7 @@
   Report caption elements that are not the first child of their table element.
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   const all = await init(100, page, 'caption');
@@ -44,5 +44,5 @@ exports.reporter = async (page, withItems) => {
     'Element is not the first child of a table element',
     'caption elements are not the first children of table elements'
   ];
-  return await report(withItems, all, 'captionLoc', whats, 3, 'CAPTION');
+  return await getRuleResult(withItems, all, 'captionLoc', whats, 3, 'CAPTION');
 };

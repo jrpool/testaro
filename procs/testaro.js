@@ -68,7 +68,9 @@ const init = exports.init = async (sampleMax, page, locAllSelector, options = {}
 };
 
 // Populates and returns a result.
-const report = exports.report = async (withItems, all, ruleID, whats, ordinalSeverity, tagName = '') => {
+const getRuleResult = exports.getRuleResult = async (
+  withItems, all, ruleID, whats, ordinalSeverity, tagName = ''
+) => {
   const {locs, result} = all;
   const {data, totals, standardInstances} = result;
   // For each violation locator:
@@ -149,7 +151,7 @@ exports.simplify = async (page, withItems, ruleData) => {
     complaints.instance,
     complaints.summary
   ];
-  const result = await report(withItems, all, ruleID, whats, ordinalSeverity, summaryTagName);
+  const result = await getRuleResult(withItems, all, ruleID, whats, ordinalSeverity, summaryTagName);
   // Return the result.
   return result;
 };

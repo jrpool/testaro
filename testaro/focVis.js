@@ -32,7 +32,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -69,5 +69,5 @@ exports.reporter = async (page, withItems) => {
     'Visible link is __param__ the display',
     'Visible links are above or to the left of the display'
   ];
-  return await report(withItems, all, 'focVis', whats, 2);
+  return await getRuleResult(withItems, all, 'focVis', whats, 2);
 };

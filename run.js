@@ -109,12 +109,12 @@ const tmpDir = os.tmpdir();
 
 // Facts about the current session.
 let actCount = 0;
-let browserCloseIntentional = false;
 // Facts about the current act.
 let actIndex = 0;
 let browser;
 let browserContext;
 let page;
+let report;
 let requestedURL = '';
 
 // FUNCTIONS
@@ -854,7 +854,7 @@ const doActs = async (report, opts = {}) => {
       // Otherwise, if a current page exists:
       else if (page) {
         // If the act is navigation to a url:
-        if (act.type === 'url') {
+        if (type === 'url') {
           // Identify the URL.
           const resolved = act.which.replace('__dirname', __dirname);
           requestedURL = resolved;
@@ -888,7 +888,7 @@ const doActs = async (report, opts = {}) => {
           }
         }
         // Otherwise, if the act is a wait for text:
-        else if (act.type === 'wait') {
+        else if (type === 'wait') {
           const {what, which} = act;
           console.log(`>> ${what}`);
           const result = act.result = {};
@@ -956,7 +956,7 @@ const doActs = async (report, opts = {}) => {
           }
         }
         // Otherwise, if the act is a wait for a state:
-        else if (act.type === 'state') {
+        else if (type === 'state') {
           // Wait for it.
           const stateIndex = ['loaded', 'idle'].indexOf(act.which);
           await page.waitForLoadState(
@@ -978,7 +978,7 @@ const doActs = async (report, opts = {}) => {
           }
         }
         // Otherwise, if the act is a page switch:
-        else if (act.type === 'page') {
+        else if (type === 'page') {
           // Wait for a page to be created and identify it as current.
           page = await browserContext.waitForEvent('page');
           // Wait until it is idle.
@@ -995,7 +995,7 @@ const doActs = async (report, opts = {}) => {
           // Add the URL to the act.
           act.actualURL = url;
           // If the act is a revelation:
-          if (act.type === 'reveal') {
+          if (type === 'reveal') {
             act.result = {
               success: true
             };
@@ -1017,8 +1017,8 @@ const doActs = async (report, opts = {}) => {
             });
           }
           // Otherwise, if the act is a move:
-          else if (moves[act.type]) {
-            const selector = typeof moves[act.type] === 'string' ? moves[act.type] : act.what;
+          else if (moves[type]) {
+            const selector = typeof moves[type] === 'string' ? moves[type] : act.what;
             // Try up to 5 times to:
             act.result = {found: false};
             let selection = {};
@@ -1127,18 +1127,18 @@ const doActs = async (report, opts = {}) => {
               };
               // FUNCTION DEFINITION END
               // If the move is a button click, perform it.
-              if (act.type === 'button') {
+              if (type === 'button') {
                 await selection.click({timeout: 3000});
                 act.result.success = true;
                 act.result.move = 'clicked';
               }
               // Otherwise, if it is checking a radio button or checkbox, perform it.
-              else if (['checkbox', 'radio'].includes(act.type)) {
+              else if (['checkbox', 'radio'].includes(type)) {
                 await selection.waitForElementState('stable', {timeout: 2000})
                 .catch(error => {
-                  console.log(`ERROR waiting for stable ${act.type} (${error.message})`);
+                  console.log(`ERROR waiting for stable ${type} (${error.message})`);
                   act.result.success = false;
-                  act.result.error = `ERROR waiting for stable ${act.type}`;
+                  act.result.error = `ERROR waiting for stable ${type}`;
                 });
                 if (! act.result.error) {
                   const isEnabled = await selection.isEnabled();
@@ -1148,9 +1148,9 @@ const doActs = async (report, opts = {}) => {
                       timeout: 2000
                     })
                     .catch(error => {
-                      console.log(`ERROR checking ${act.type} (${error.message})`);
+                      console.log(`ERROR checking ${type} (${error.message})`);
                       act.result.success = false;
-                      act.result.error = `ERROR checking ${act.type}`;
+                      act.result.error = `ERROR checking ${type}`;
                     });
                     if (! act.result.error) {
                       act.result.success = true;
@@ -1158,20 +1158,20 @@ const doActs = async (report, opts = {}) => {
                     }
                   }
                   else {
-                    const report = `ERROR: could not check ${act.type} because disabled`;
+                    const report = `ERROR: could not check ${type} because disabled`;
                     act.result.success = false;
                     act.result.error = report;
                   }
                 }
               }
               // Otherwise, if it is focusing the element, perform it.
-              else if (act.type === 'focus') {
+              else if (type === 'focus') {
                 await selection.focus({timeout: 2000});
                 act.result.success = true;
                 act.result.move = 'focused';
               }
               // Otherwise, if it is clicking a link:
-              else if (act.type === 'link') {
+              else if (type === 'link') {
                 const href = await selection.getAttribute('href');
                 const target = await selection.getAttribute('target');
                 act.result.href = href || 'NONE';
@@ -1210,7 +1210,7 @@ const doActs = async (report, opts = {}) => {
                 }
               }
               // Otherwise, if it is selecting an option in a select list, perform it.
-              else if (act.type === 'select') {
+              else if (type === 'select') {
                 const options = await selection.$$('option');
                 let optionText = '';
                 if (options && Array.isArray(options) && options.length) {
@@ -1233,7 +1233,7 @@ const doActs = async (report, opts = {}) => {
                 act.result.option = optionText;
               }
               // Otherwise, if it is entering text in an input element:
-              else if (['text', 'search'].includes(act.type)) {
+              else if (['text', 'search'].includes(type)) {
                 act.result.attributes = {};
                 const {attributes} = act.result;
                 const type = await selection.getAttribute('type');
@@ -1256,7 +1256,7 @@ const doActs = async (report, opts = {}) => {
                 act.result.success = true;
                 act.result.move = 'entered';
                 // If the input is a search input:
-                if (act.type === 'search') {
+                if (type === 'search') {
                   // Press the Enter key and wait for a network to be idle.
                   doAndWait(false);
                 }
@@ -1280,7 +1280,7 @@ const doActs = async (report, opts = {}) => {
             }
           }
           // Otherwise, if the act is a keypress:
-          else if (act.type === 'press') {
+          else if (type === 'press') {
             // Identify the number of times to press the key.
             let times = 1 + (act.again || 0);
             report.jobData.presses += times;
@@ -1296,7 +1296,7 @@ const doActs = async (report, opts = {}) => {
             };
           }
           // Otherwise, if it is a repetitive keyboard navigation:
-          else if (act.type === 'presses') {
+          else if (type === 'presses') {
             const {navKey, what, which, withItems} = act;
             const matchTexts = which ? which.map(text => debloat(text)) : [];
             // Initialize the loop variables.
@@ -1558,7 +1558,7 @@ const doActs = async (report, opts = {}) => {
 // Runs a job and returns a report.
 exports.doJob = async (job, opts = {}) => {
   // Make a report as a copy of the job.
-  let report = JSON.parse(JSON.stringify(job));
+  report = JSON.parse(JSON.stringify(job));
   const jobData = report.jobData = {};
   // Get whether the job is valid and, if not, why.
   const jobInvalidity = isValidJob(job);

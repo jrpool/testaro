@@ -30,7 +30,7 @@
 */
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -66,5 +66,5 @@ exports.reporter = async (page, withItems) => {
   const whats = [
     'Element has inconsistent label types (__param__)', 'Elements have inconsistent label types'
   ];
-  return await report(withItems, all, 'labClash', whats, 2);
+  return await getRuleResult(withItems, all, 'labClash', whats, 2);
 };

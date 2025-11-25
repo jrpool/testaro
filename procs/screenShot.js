@@ -15,7 +15,6 @@
 
 // Creates and returns a screenshot.
 exports.screenShot = async (page, exclusion = null) => {
-  // Make a screenshot as a buffer.
   const options = {
     fullPage: true,
     omitBackground: true,
@@ -24,6 +23,7 @@ exports.screenShot = async (page, exclusion = null) => {
   if (exclusion) {
     options.mask = [exclusion];
   }
+  // Make and return a screenshot as a buffer.
   return await page.screenshot(options)
   .catch(error => {
     console.log(`ERROR: Screenshot failed (${error.message})`);

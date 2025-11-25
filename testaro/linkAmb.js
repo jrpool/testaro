@@ -31,7 +31,7 @@
 */
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 // Module to get locator data.
 const {getLocatorData} = require('../procs/getLocatorData');
 
@@ -71,5 +71,5 @@ exports.reporter = async (page, withItems) => {
     'Link has the same text as, but a different destination from, another',
     'Links have the same texts but different destinations'
   ];
-  return await report(withItems, all, 'linkAmb', whats, 2);
+  return await getRuleResult(withItems, all, 'linkAmb', whats, 2);
 };

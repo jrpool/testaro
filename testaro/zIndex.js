@@ -35,7 +35,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -61,5 +61,5 @@ exports.reporter = async (page, withItems) => {
   const whats = [
     'Element has a non-default Z index (__param__)', 'Elements have non-default Z indexes'
   ];
-  return await report(withItems, all, 'zIndex', whats, 0);
+  return await getRuleResult(withItems, all, 'zIndex', whats, 0);
 };

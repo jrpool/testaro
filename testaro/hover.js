@@ -36,7 +36,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -105,5 +105,5 @@ exports.reporter = async (page, withItems) => {
     'Hovering over the element __param__',
     'Hovering over elements adds elements to or subtracts elements from the page'
   ];
-  return await report(withItems, all, 'hover', whats, 0);
+  return await getRuleResult(withItems, all, 'hover', whats, 0);
 };

@@ -31,7 +31,7 @@
 // IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // CONSTANTS
 
@@ -100,5 +100,5 @@ exports.reporter = async (page, withItems) => {
     'Element has an explicit __param__ role, which is also an implicit HTML element role',
     'Elements have roles assigned that are also implicit roles of HTML elements'
   ];
-  return await report(withItems, all, 'role', whats, 0);
+  return await getRuleResult(withItems, all, 'role', whats, 0);
 };

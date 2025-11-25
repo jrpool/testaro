@@ -32,7 +32,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -62,5 +62,5 @@ exports.reporter = async (page, withItems) => {
     'Adjacent BR elements within a __param__ element may be pseudo-paragraphs',
     'Elements contain 2 or more adjacent br elements that may be pseudo-paragraphs'
   ];
-  return await report(withItems, all, 'pseudoP', whats, 0, 'br');
+  return await getRuleResult(withItems, all, 'pseudoP', whats, 0, 'br');
 };

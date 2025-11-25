@@ -33,7 +33,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 // Module to classify links.
 const {isTooSmall} = require('../procs/target');
 
@@ -58,5 +58,5 @@ exports.reporter = async (page, withItems) => {
     'Interactive element pixel size (__param__) is less than 44 by 44',
     'Interactive elements are smaller than 44 pixels wide and high'
   ];
-  return await report(withItems, all, 'targetSmall', whats, 0);
+  return await getRuleResult(withItems, all, 'targetSmall', whats, 0);
 };

@@ -31,9 +31,7 @@
 // IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
-// Export the report for use by tests (e.g., motion).
-exports.report = report;
+const {init, getRuleResult} = require('../procs/testaro');
 // Function to launch a browser.
 const {launch} = require('../run');
 // Module to handle files.
@@ -494,7 +492,7 @@ const jsonTest = async (ruleID, ruleArgs) => {
     ruleObj.complaints.instance,
     ruleObj.complaints.summary
   ];
-  return await report(
+  return await getRuleResult(
     withItems, all, ruleObj.ruleID, whats, ruleObj.ordinalSeverity, ruleObj.summaryTagName
   );
 };
@@ -526,7 +524,7 @@ exports.reporter = async (page, report, actIndex) => {
     rulesInvalid: [],
     ruleTestTimes: {}
   };
-  const result = {};
+  const result = exports.result = {};
   const allRuleIDs = allRules.map(rule => rule.id);
   // If the rule specification is invalid:
   if (! (
@@ -547,14 +545,15 @@ exports.reporter = async (page, report, actIndex) => {
   await wait(1000);
   // Get the rules to be tested for and their execution order.
   const jobRuleIDs = ruleSpec[0] === 'y'
-  ? rules.slice(1)
+  ? ruleSpec.slice(1)
   : allRules.filter(rule => rule.defaultOn && ! allRuleIDs.includes(rule.id));
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
   let contaminatorsStarted = false;
   // For each rule to be tested for:
   for (const rule of jobRules) {
-    console.log(`Starting rule ${rule.id}`);
+    const ruleID = rule.id;
+    console.log(`Starting rule ${ruleID}`);
     const pageClosed = page ? page.isClosed() : true;
     const isContaminator = rule.contaminator;
     // If it is a contaminator other than the first one or the page has closed:
@@ -573,168 +572,168 @@ exports.reporter = async (page, report, actIndex) => {
         url
       );
       page = require('../run').page;
-      // If it is a contaminator, ensure that future tests use new browsers.
-      if (isContaminator) {
-        contaminatorsStarted = true;
+    }
+    // If the rule is a contaminator, ensure that future tests use new browsers.
+    if (isContaminator) {
+      contaminatorsStarted = true;
+    }
+    // Report crashes and disconnections during this test.
+    let crashHandler;
+    let disconnectHandler;
+    const {browser} = require('../run');
+    if (page && ! page.isClosed()) {
+      crashHandler = () => {
+        console.log(`ERROR: Page crashed during ${rule} test`);
+      };
+      page.on('crash', crashHandler);
+    }
+    if (browser) {
+      disconnectHandler = () => {
+        console.log(`ERROR: Browser disconnected during ${rule} test`);
+      };
+      browser.on('disconnected', disconnectHandler);
+    }
+    // Initialize an argument array.
+    const ruleArgs = [page, withItems];
+    const ruleFileNames = await fs.readdir(`${__dirname}/../testaro`);
+    const isJS = ruleFileNames.includes(`${ruleID}.js`);
+    const isJSON = ruleFileNames.includes(`${ruleID}.json`);
+    // If the rule is defined with JavaScript or JSON but not both:
+    if ((isJS || isJSON) && ! (isJS && isJSON)) {
+      // If with JavaScript and it has extra arguments:
+      if (isJS && argRules && argRules.includes(ruleID)) {
+        // Add them to the argument array.
+        ruleArgs.push(... args[ruleID]);
       }
-      // Report crashes and disconnections during this test.
-      let crashHandler;
-      let disconnectHandler;
-      const {browser} = require('../run');
-      if (page && ! page.isClosed()) {
-        crashHandler = () => {
-          console.log(`ERROR: Page crashed during ${rule} test`);
-        };
-        page.on('crash', crashHandler);
-      }
-      if (browser) {
-        disconnectHandler = () => {
-          console.log(`ERROR: Browser disconnected during ${rule} test`);
-        };
-        browser.on('disconnected', disconnectHandler);
-      }
-      // Initialize an argument array.
-      const ruleArgs = [page, withItems];
-      const ruleFileNames = await fs.readdir(`${__dirname}/../testaro`);
-      const isJS = ruleFileNames.includes(`${rule}.js`);
-      const isJSON = ruleFileNames.includes(`${rule}.json`);
-      // If the rule is defined with JavaScript or JSON but not both:
-      if ((isJS || isJSON) && ! (isJS && isJSON)) {
-        // If with JavaScript and it has extra arguments:
-        if (isJS && argRules && argRules.includes(rule)) {
-          // Add them to the argument array.
-          ruleArgs.push(... args[rule]);
-        }
-        result[rule] ??= {};
-        const {what} = rule;
-        result[rule].what = what || '';
-        const startTime = Date.now();
-        let timeout;
-        let testRetries = 2;
-        let testSuccess = false;
-        while (testRetries > 0 && ! testSuccess) {
-          try {
-            // Apply a time limit to the test.
-            const timeLimit = 1000 * timeoutMultiplier * (slowTestLimits[rule] ?? 5);
-            // If the time limit expires during the test:
-            const timer = new Promise(resolve => {
-              timeout = setTimeout(() => {
-                // Add data about the test, including its prevention, to the result.
-                const endTime = Date.now();
-                testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
-                data.rulePreventions.push(rule);
-                data.rulePreventionMessages[rule] = 'Timeout';
-                result[rule].totals = [0, 0, 0, 0];
-                result[rule].standardInstances = [];
-                console.log(`ERROR: Test of testaro rule ${rule} timed out`);
-                resolve({timedOut: true});
-              }, timeLimit);
-            });
-            // Perform the test, subject to the time limit.
-            const ruleReport = isJS
-              ? require(`../testaro/${rule}`).reporter(... ruleArgs)
-              : jsonTest(rule, ruleArgs);
-            // Get the test result or a timeout result.
-            const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
-            // If the test was completed:
-            if (! ruleOrTimeoutReport.timedOut) {
-              // Add data from the test to the result.
+      result[ruleID] ??= {};
+      const {what} = rule;
+      result[ruleID].what = what || '';
+      const startTime = Date.now();
+      let timeout;
+      let testRetries = 2;
+      let testSuccess = false;
+      while (testRetries > 0 && ! testSuccess) {
+        try {
+          // Apply a time limit to the test.
+          const timeLimit = 1000 * timeoutMultiplier * rule.timeOut;
+          // If the time limit expires during the test:
+          const timer = new Promise(resolve => {
+            timeout = setTimeout(() => {
+              // Add data about the test, including its prevention, to the result.
               const endTime = Date.now();
               testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
-              Object.keys(ruleOrTimeoutReport).forEach(key => {
-                result[rule][key] = ruleOrTimeoutReport[key];
-              });
-              // If the result includes totals:
-              if (result[rule].totals) {
-                // Round them.
-                result[rule].totals = result[rule].totals.map(total => Math.round(total));
-              }
-              // Prevent a retry of the test.
-              testSuccess = true;
-              // If testing is to stop after a failure and the page failed the test:
-              if (stopOnFail && ruleOrTimeoutReport.totals.some(total => total)) {
-                // Stop testing.
-                break;
-              }
+              data.rulePreventions.push(rule);
+              data.rulePreventionMessages[ruleID] = 'Timeout';
+              result[ruleID].totals = [0, 0, 0, 0];
+              result[ruleID].standardInstances = [];
+              console.log(`ERROR: Test of testaro rule ${ruleID} timed out`);
+              resolve({timedOut: true});
+            }, timeLimit);
+          });
+          // Perform the test, subject to the time limit.
+          const ruleReport = isJS
+            ? require(`../testaro/${ruleID}`).reporter(... ruleArgs)
+            : jsonTest(ruleID, ruleArgs);
+          // Get the test result or a timeout result.
+          const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
+          // If the test was completed:
+          if (! ruleOrTimeoutReport.timedOut) {
+            // Add data from the test to the result.
+            const endTime = Date.now();
+            testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
+            Object.keys(ruleOrTimeoutReport).forEach(key => {
+              result[ruleID][key] = ruleOrTimeoutReport[key];
+            });
+            // If the result includes totals:
+            if (result[ruleID].totals) {
+              // Round them.
+              result[ruleID].totals = result[ruleID].totals.map(total => Math.round(total));
             }
-            // Otherwise, i.e. if the test timed out:
-            else {
+            // Prevent a retry of the test.
+            testSuccess = true;
+            // If testing is to stop after a failure and the page failed the test:
+            if (stopOnFail && ruleOrTimeoutReport.totals.some(total => total)) {
+              // Stop testing.
+              break;
+            }
+          }
+          // Otherwise, i.e. if the test timed out:
+          else {
+            // Stop retrying the test.
+            break;
+          }
+        }
+        // If an error is thrown by the test:
+        catch(error) {
+          const isPageClosed = ['closed', 'Protocol error', 'Target page'].some(phrase =>
+            error.message.includes(phrase)
+          );
+          // If the page has closed and there are retries left:
+          if (isPageClosed && testRetries) {
+            // Report this and decrement the allowed retry count.
+            console.log(
+              `WARNING: Retry ${3 - testRetries--} of test ${ruleID} starting after page closed`
+            );
+            await wait(2000);
+            // Replace the browser and the page and navigate to the target.
+            await launch(
+              report,
+              process.env.DEBUG === 'true',
+              Number.parseInt(process.env.WAITS) || 0,
+              report.browserID,
+              url
+            );
+            page = require('../run').page;
+            // If the page replacement failed:
+            if (! page) {
+              // Report this.
+              console.log(`ERROR: Browser relaunch to retry test ${ruleID} failed`);
+              data.rulePreventions.push(ruleID);
+              data.rulePreventionMessages[ruleID] = 'Retry failure due to browser relaunch failure';
               // Stop retrying the test.
               break;
             }
+            // Update the rule arguments with the current page.
+            ruleArgs[0] = page;
           }
-          // If an error is thrown by the test:
-          catch(error) {
-            const isPageClosed = ['closed', 'Protocol error', 'Target page'].some(phrase =>
-              error.message.includes(phrase)
-            );
-            // If the page has closed and there are retries left:
-            if (isPageClosed && testRetries) {
-              // Report this and decrement the allowed retry count.
-              console.log(
-                `WARNING: Retry ${3 - testRetries--} of test ${rule} starting after page closed`
-              );
-              await wait(2000);
-              // Replace the browser and the page and navigate to the target.
-              await launch(
-                report,
-                process.env.DEBUG === 'true',
-                Number.parseInt(process.env.WAITS) || 0,
-                report.browserID,
-                url
-              );
-              page = require('../run').page;
-              // If the page replacement failed:
-              if (! page) {
-                // Report this.
-                console.log(`ERROR: Browser relaunch to retry test ${rule} failed`);
-                data.rulePreventions.push(rule);
-                data.rulePreventionMessages[rule] = 'Retry failure due to browser relaunch failure';
-                // Stop retrying the test.
-                break;
-              }
-              // Update the rule arguments with the current page.
-              ruleArgs[0] = page;
-            }
-            // Otherwise, i.e. if the page is open or it is closed but no retries are left:
-            else {
-              // Treat the test as prevented.
-              data.rulePreventions.push(rule);
-              data.rulePreventionMessages[rule] = error.message;
-              console.log(`ERROR: Test of testaro rule ${rule} prevented (${error.message})`);
-              // Do not retry the test even if retries are left.
-              break;
-            }
-          }
-          finally {
-            // Clear the timeout.
-            clearTimeout(timeout);
+          // Otherwise, i.e. if the page is open or it is closed but no retries are left:
+          else {
+            // Treat the test as prevented.
+            data.rulePreventions.push(ruleID);
+            data.rulePreventionMessages[ruleID] = error.message;
+            console.log(`ERROR: Test of testaro rule ${ruleID} prevented (${error.message})`);
+            // Do not retry the test even if retries are left.
+            break;
           }
         }
-        // Clear the error listeners.
-        if (page && ! page.isClosed() && crashHandler) {
-          page.off('crash', crashHandler);
-        }
-        if (browser && disconnectHandler) {
-          browser.off('disconnected', disconnectHandler);
+        finally {
+          // Clear the timeout.
+          clearTimeout(timeout);
         }
       }
-      // Otherwise, i.e. if the rule is undefined or doubly defined:
-      else {
-        // Report this.
-        data.rulesInvalid.push(rule);
-        console.log(`ERROR: Rule ${rule} not validly defined`);
-        // Clear the crash listener.
-        if (page && ! page.isClosed()) {
-          page.off('crash', crashHandler);
-        }
+      // Clear the error listeners.
+      if (page && ! page.isClosed() && crashHandler) {
+        page.off('crash', crashHandler);
+      }
+      if (browser && disconnectHandler) {
+        browser.off('disconnected', disconnectHandler);
       }
     }
-    // Record the test times in descending order.
-    testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
-      data.ruleTestTimes[pair[0]] = pair[1];
-    });
+    // Otherwise, i.e. if the rule is undefined or doubly defined:
+    else {
+      // Report this.
+      data.rulesInvalid.push(rule);
+      console.log(`ERROR: Rule ${rule.id} not validly defined`);
+      // Clear the crash listener.
+      if (page && ! page.isClosed()) {
+        page.off('crash', crashHandler);
+      }
+    }
   };
+  // Record the test times in descending order.
+  testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
+    data.ruleTestTimes[pair[0]] = pair[1];
+  });
   return {
     data,
     result

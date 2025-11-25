@@ -44,7 +44,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -126,5 +126,5 @@ exports.reporter = async (page, withItems) => {
   }
   // Populate and return the result.
   const whats = ['Element has __param__', 'Elements fail to have standard focus indicators'];
-  return await report(withItems, all, 'focInd', whats, 1);
+  return await getRuleResult(withItems, all, 'focInd', whats, 1);
 };

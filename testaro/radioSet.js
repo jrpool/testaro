@@ -32,7 +32,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -120,5 +120,5 @@ exports.reporter = async (page, withItems) => {
   const whats = [
     'Radio button __param__', 'Radio buttons are not validly grouped in fieldsets with legends'
   ];
-  return await report(withItems, all, 'radioSet', whats, 2, 'INPUT');
+  return await getRuleResult(withItems, all, 'radioSet', whats, 2, 'INPUT');
 };

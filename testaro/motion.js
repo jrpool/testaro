@@ -20,39 +20,76 @@
 // IMPORTS
 
 // Module to make a screenshot.
-const pixelmatch = require('pixelmatch');
-const {report} = require('../run');
+const pixelmatch = require('pixelmatch').default;
+const {result} = require('../tests/testaro');
 
 // FUNCTIONS
 
 // Reports motion in a page.
 exports.reporter = async page => {
+  // Initialize the totals and standard instances.
+  const data = {};
+  const totals = [0, 0, 0, 0];
+  const standardInstances = [];
   // Get the screenshots made by the shoot test.
-  const thisAct = report.acts.filter(act => act.type === 'test' && act.which === 'testaro')[0];
-  const thisResult = thisAct.result.shoot;
-  const {pngs} = thisResult;
-  // Choose the first and last of them for comparison.
-  const pngPair = [pngs[0], pngs[pngs.length - 1]];
-  // Get their dimensions.
-  const {width, height} = pngPair[0];
-  // If their dimensions differ:
-  if (width !== pngPair[1].width || height !== pngPair[1].height) {
-    // Return a failure.
-    return {
-      success: false,
-      error: 'Screenshots have differing dimensions'
-    };
+  const shootResult = result ? result.shoot || {} : {};
+  // If there are at least 2 of them:
+  if (shootResult.pngs && shootResult.pngs.length > 1) {
+    let {pngs} = shootResult;
+    // Choose the first and last of them for comparison.
+    const pngPair = [pngs[0], pngs[pngs.length - 1]];
+    // Get their dimensions.
+    const {width, height} = pngPair[0];
+    console.log(`XXX Screenshot dimensions: ${width}x${height}`);
+    // If their dimensions differ:
+    if (width !== pngPair[1].width || height !== pngPair[1].height) {
+      // Report this.
+      data.prevented = true;
+      data.error = 'Screenshots have differing dimensions';
+    }
+    // Otherwise, i.e. if their dimensions are identical:
+    else {
+      // Get the count of differing pixels between the shots.
+      const pixelChanges = pixelmatch(pngPair[0].data, pngPair[1].data, null, width, height);
+      // Get the ratio of differing to all pixels as a percentage.
+      const changePercent = 100 * pixelChanges / (width * height);
+      console.log(`XXX Pixel changes: ${pixelChanges} (${changePercent.toFixed(4)}%)`);
+      // Free the memory used by screenshots.
+      pngs = [];
+      // If any pixels were changed:
+      if (pixelChanges) {
+        // Get the ordinal severity from the fractional pixel change.
+        const ordinalSeverity = Math.floor(Math.min(3, 0.4 * Math.sqrt(changePercent)));
+        // Add to the totals.
+        totals[ordinalSeverity] = 1;
+        // Get a summary standard instance.
+        standardInstances.push({
+          ruleID: 'motion',
+          what: 'Content moves or changes without user request',
+          count: 1,
+          ordinalSeverity,
+          tagName: 'HTML',
+          id: '',
+          location: {
+            doc: '',
+            type: '',
+            spec: ''
+          },
+          excerpt: ''
+        });
+      }
+    }
   }
-  // Otherwise, get the count of differing pixels between the shots.
-  const pixelChanges = pixelmatch(pngPair[0].data, pngPair[1].data, null, width, height);
-  // Get the ratio of differing to all pixels as a percentage.
-  const changePercent = 100 * pixelChanges / (width * height);
-  // Return the data.
+  // Otherwise, i.e. if there are not at least 2 of them
+  else {
+    // Report this.
+    data.prevented = true;
+    data.error = 'Fewer than 2 screenshots recorded';
+  }
+  // Return the result.
   return {
-    success: true,
-    width,
-    height,
-    pixelChanges,
-    changePercent
+    data,
+    totals,
+    standardInstances
   };
 };

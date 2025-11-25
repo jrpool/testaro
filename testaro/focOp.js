@@ -38,7 +38,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 // Module to get operabilities.
 const {isOperable} = require('../procs/operable');
 
@@ -70,6 +70,6 @@ exports.reporter = async (page, withItems) => {
   const whats = [
     'Element is Tab-focusable but not operable', 'Elements are Tab-focusable but not operable'
   ];
-  const result = await report(withItems, all, 'focOp', whats, 2);
+  const result = await getRuleResult(withItems, all, 'focOp', whats, 2);
   return result;
 };

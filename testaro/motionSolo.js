@@ -63,7 +63,7 @@ exports.reporter = async page => {
       totals[ordinalSeverity] = 1;
       // Get a summary standard instance.
       standardInstances.push({
-        ruleID: 'motion',
+        ruleID: 'motionSolo',
         what: 'Content moves or changes without user request',
         count: 1,
         ordinalSeverity,

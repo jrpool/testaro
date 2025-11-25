@@ -28,7 +28,7 @@
   Clean-room rule: report elements that reference aria-describedby targets that are missing or ambiguous (duplicate ids).
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   // elements that reference aria-describedby
@@ -63,5 +63,5 @@ exports.reporter = async (page, withItems) => {
     'Referenced description of the element is ambiguous or missing',
     'Referenced descriptions of elements are ambiguous or missing'
   ];
-  return await report(withItems, all, 'adbID', whats, 3);
+  return await getRuleResult(withItems, all, 'adbID', whats, 3);
 };

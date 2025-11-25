@@ -35,7 +35,7 @@
 // IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // FUNCTIONS
 
@@ -66,5 +66,5 @@ exports.reporter = async (page, withItems) => {
     'Element line height is less than 1.5 times its font size (__param__)',
     'Elements have line heights less than 1.5 times their font sizes'
   ];
-  return await report(withItems, all, 'lineHeight', whats, 1);
+  return await getRuleResult(withItems, all, 'lineHeight', whats, 1);
 };

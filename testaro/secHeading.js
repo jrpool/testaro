@@ -29,7 +29,7 @@
   immediately preceding heading within the same sectioning container.
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   const all = await init(200, page, 'h1,h2,h3,h4,h5,h6');
@@ -55,5 +55,5 @@ exports.reporter = async (page, withItems) => {
     'Element violates the logical level order in its sectioning container',
     'Heading elements violate the logical level order in their sectioning containers'
   ];
-  return await report(withItems, all, 'secHeading', whats, 1);
+  return await getRuleResult(withItems, all, 'secHeading', whats, 1);
 };

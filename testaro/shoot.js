@@ -12,16 +12,15 @@
 
 const {PNG} = require('pngjs');
 const {screenShot} = require('../procs/screenShot');
-const {report} = require('../run');
+const {result} = require('../tests/testaro');
 
 // FUNCTIONS
 
 exports.reporter = async page => {
   // Get the result of the previous iterations of this test, if any.
-  const thisAct = report.acts.filter(act => act.type === 'test' && act.which === 'testaro');
-  const thisTestResult = thisAct.result.shoot;
+  const shootResult = result ? result.shoot || {} : {};
   // If any previous failure occurred:
-  if (thisTestResult && ! thisTestResult.success) {
+  if (shootResult && shootResult.success === false) {
     // Return a failure without making a screenshot.
     return {
       success: false,
@@ -35,8 +34,10 @@ exports.reporter = async page => {
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
     const png = PNG.sync.read(shot);
+    shootResult.pngs ??= [];
+    const {pngs} = shootResult;
     // Add it to the test result.
-    thisTestResult.pngs.push(png);
+    pngs.push(png);
     // Return the updated result.
     return {
       success: true,

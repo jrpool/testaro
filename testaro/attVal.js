@@ -30,7 +30,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -54,5 +54,5 @@ exports.reporter = async (page, withItems, attributeName, areLicit, values) => {
     `Element has attribute ${attributeName} with illicit value “__param__”`,
     `Elements have attribute ${attributeName} with illicit values`
   ];
-  return await report(withItems, all, 'attVal', whats, 2);
+  return await getRuleResult(withItems, all, 'attVal', whats, 2);
 };

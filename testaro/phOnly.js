@@ -28,7 +28,7 @@
   Clean-room rule: input elements that have a placeholder but no accessible name (no label/title/aria-label/aria-labelledby)
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 const hasAccessibleName = async (loc) => {
   return await loc.evaluate(el => {
@@ -62,5 +62,5 @@ exports.reporter = async (page, withItems) => {
     'Element has a placeholder but no accessible name',
     'input elements have placeholders but no accessible names'
   ];
-  return await report(withItems, all, 'phOnly', whats, 2, 'INPUT');
+  return await getRuleResult(withItems, all, 'phOnly', whats, 2, 'INPUT');
 };

@@ -28,7 +28,7 @@
   Identify img elements whose alt attribute is an entire URL or clearly a file name (favicon).
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   // Candidate images: any img with an alt attribute (including empty)
@@ -54,5 +54,5 @@ exports.reporter = async (page, withItems) => {
     'Element has an alt attribute with a URL as its entire value',
     'img elements have alt attributes with URLs as their entire values'
   ];
-  return await report(withItems, all, 'altScheme', whats, 2);
+  return await getRuleResult(withItems, all, 'altScheme', whats, 2);
 };

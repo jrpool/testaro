@@ -33,7 +33,7 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
@@ -66,5 +66,5 @@ exports.reporter = async (page, withItems) => {
     'Interactive element is embedded in __param__',
     'Interactive elements are contained by links or buttons'
   ];
-  return await report(withItems, all, 'embAc', whats, 2);
+  return await getRuleResult(withItems, all, 'embAc', whats, 2);
 };

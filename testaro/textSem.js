@@ -28,7 +28,7 @@
   Report semantically vague inline elements: i, b, small
 */
 
-const {init, report} = require('../procs/testaro');
+const {init, getRuleResult} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   const all = await init(100, page, 'i, b, small');
@@ -44,5 +44,5 @@ exports.reporter = async (page, withItems) => {
     'Element is semantically vague',
     'Semantically vague elements i, b, and/or small are used'
   ];
-  return await report(withItems, all, 'textSem', whats, 0);
+  return await getRuleResult(withItems, all, 'textSem', whats, 0);
 };
