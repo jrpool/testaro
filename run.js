@@ -34,6 +34,8 @@
 const fs = require('fs/promises');
 // Module to keep secrets.
 require('dotenv').config({quiet: true});
+// Module to execute shell commands.
+const {execSync} = require('child_process');
 // Module to validate jobs.
 const {isBrowserID, isDeviceID, isURL, isValidJob, tools} = require('./procs/job');
 // Module to evade automation detection.
@@ -241,25 +243,6 @@ const goTo = async (report, page, url, timeout, waitUntil) => {
     };
   }
 };
-// Closes the current browser.
-const browserClose = async () => {
-  if (browser) {
-    browserCloseIntentional = true;
-    for (const context of browser.contexts()) {
-      try {
-        await context.close();
-      }
-      catch(error) {
-        console.log(
-          `ERROR trying to close context: ${error.message.slice(0, 200).replace(/\n.+/s, '')}`
-        );
-      }
-    }
-    await browser.close();
-    browserCloseIntentional = false;
-    browser = null;
-  }
-};
 // Adds an error result to an act.
 const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
   // If the error is to be logged:
@@ -284,6 +267,25 @@ const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
   if (alsoAbort) {
     // Add this to the report.
     abortActs(report, actIndex);
+  }
+};
+// Closes the current browser.
+const browserClose = async () => {
+  if (browser) {
+    browserCloseIntentional = true;
+    for (const context of browser.contexts()) {
+      try {
+        await context.close();
+      }
+      catch(error) {
+        console.log(
+          `ERROR trying to close context: ${error.message.slice(0, 200).replace(/\n.+/s, '')}`
+        );
+      }
+    }
+    await browser.close();
+    browserCloseIntentional = false;
+    browser = null;
   }
 };
 // Launches a browser and navigates to a URL.
@@ -1618,3 +1620,52 @@ exports.doJob = async (job, opts = {}) => {
   // Return the report.
   return report;
 };
+
+// CLEANUP HANDLERS
+
+// Track whether cleanup is in progress.
+let cleanupInProgress = false;
+let browserCloseIntentional = false;
+
+// Force-kills any Playwright browser processes synchronously.
+const forceKillBrowsers = () => {
+  if (cleanupInProgress) {
+    return;
+  }
+  cleanupInProgress = true;
+  try {
+    // Kill any Chromium headless shell processes.
+    execSync('pkill -9 -f "chromium_headless_shell.*headless_shell"', {stdio: 'ignore'});
+  }
+  catch(error) {}
+};
+// Force-kills any headless shell processes synchronously on process exit.
+process.on('exit', () => {
+  forceKillBrowsers();
+});
+// Force-kills any headless shell processes synchronously on beforeExit.
+process.on('beforeExit', async () => {
+  if (!browserCloseIntentional) {
+    await browserClose();
+  }
+  forceKillBrowsers();
+});
+// Force-kills any headless shell processes synchronously on uncaught exceptions.
+process.on('uncaughtException', async error => {
+  console.error('Uncaught exception:', error);
+  await browserClose();
+  forceKillBrowsers();
+  process.exit(1);
+});
+// Force-kills any headless shell processes synchronously on SIGINT.
+process.on('SIGINT', async () => {
+  await browserClose();
+  forceKillBrowsers();
+  process.exit(0);
+});
+// Force-kills any headless shell processes synchronously on SIGTERM.
+process.on('SIGTERM', async () => {
+  await browserClose();
+  forceKillBrowsers();
+  process.exit(0);
+});

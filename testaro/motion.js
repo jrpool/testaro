@@ -40,7 +40,6 @@ exports.reporter = async page => {
     const pngPair = [pngs[0], pngs[pngs.length - 1]];
     // Get their dimensions.
     const {width, height} = pngPair[0];
-    console.log(`XXX Screenshot dimensions: ${width}x${height}`);
     // If their dimensions differ:
     if (width !== pngPair[1].width || height !== pngPair[1].height) {
       // Report this.
@@ -53,7 +52,6 @@ exports.reporter = async page => {
       const pixelChanges = pixelmatch(pngPair[0].data, pngPair[1].data, null, width, height);
       // Get the ratio of differing to all pixels as a percentage.
       const changePercent = 100 * pixelChanges / (width * height);
-      console.log(`XXX Pixel changes: ${pixelChanges} (${changePercent.toFixed(4)}%)`);
       // Free the memory used by screenshots.
       pngs = [];
       // If any pixels were changed:

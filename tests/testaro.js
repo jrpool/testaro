@@ -252,27 +252,6 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'navAmb',
-    what: 'navigation landmarks with identical texts',
-    contaminator: false,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
-    id: 'navEmpty',
-    what: 'empty navigation landmarks',
-    contaminator: false,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
-    id: 'navSkip',
-    what: 'missing skip navigation links',
-    contaminator: false,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
     id: 'nonTable',
     what: 'table elements used for layout',
     contaminator: false,
