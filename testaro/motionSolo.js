@@ -1,5 +1,6 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -31,6 +32,12 @@
   test compares two screen shots of the viewport 2 seconds and 6 seconds after page load. It
   reports a rule violation if any pixels change. The larger the change fraction, the greater the
   ordinal severity.
+
+  This test is an alternative to the motion test. Whereas the motion test relies on screenshots made
+  earlier in the same job by the shoot test, this test makes its own screenshots. MotionSolo waits
+  several seconds between its screenshots to allow time for motion to occur. That mait makes
+  motionSolo, and any job containing it, take longer than the combination of shoot tests and the
+  motion test.
 
   WARNING: This test uses the procs/visChange module. See the warning in that module about browser
   types.
