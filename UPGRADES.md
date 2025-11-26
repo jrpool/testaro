@@ -2802,3 +2802,113 @@ This gives you:
 ✅ No git conflicts
 
 Claude Sonnet 4.5 • 1x
+
+## Cleanup synchronization
+
+Claude Sonnet 4.5 recommendation to handle already-closed error messages on server (but not the local host) after end of a job:
+
+The issue is that forceKillBrowsers() is killing the browser processes immediately, but the async browserClose() calls in the signal handlers are still trying to close already-dead browsers, causing repeated errors.
+
+Solution: Coordinate Async and Sync Cleanup
+Replace the cleanup handlers in run.js:
+
+```
+// CLEANUP HANDLERS
+
+// Track cleanup state.
+let cleanupInProgress = false;
+let forceKillScheduled = false;
+
+// Force kills all Playwright browser processes synchronously.
+const forceKillBrowsers = () => {
+  if (cleanupInProgress) {
+    return;
+  }
+  cleanupInProgress = true;
+
+  const {execSync} = require('child_process');
+  try {
+    // Kill Chromium headless shell processes.
+    execSync('pkill -9 -f "chromium_headless_shell.*headless_shell"', {stdio: 'ignore'});
+  }
+  catch(error) {
+    // Ignore errors - processes may not exist.
+  }
+};
+
+// Graceful cleanup with timeout fallback.
+const gracefulCleanup = async (timeoutMs = 2000) => {
+  if (forceKillScheduled) {
+    return;
+  }
+  forceKillScheduled = true;
+
+  // Try graceful close with timeout.
+  const closePromise = browserClose();
+  const timeoutPromise = new Promise(resolve => setTimeout(resolve, timeoutMs));
+
+  await Promise.race([closePromise, timeoutPromise]);
+
+  // Force kill any remaining processes.
+  forceKillBrowsers();
+};
+
+// Synchronous cleanup on process exit (last resort).
+process.on('exit', () => {
+  if (!cleanupInProgress) {
+    forceKillBrowsers();
+  }
+});
+
+// Graceful cleanup on SIGINT (Ctrl+C).
+process.on('SIGINT', async () => {
+  console.log('\nReceived SIGINT, cleaning up...');
+  await gracefulCleanup();
+  process.exit(130);
+});
+
+// Graceful cleanup on SIGTERM.
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, cleaning up...');
+  await gracefulCleanup();
+  process.exit(143);
+});
+
+// Cleanup on uncaught exceptions.
+process.on('uncaughtException', async error => {
+  console.error('Uncaught exception:', error);
+  await gracefulCleanup(1000);
+  process.exit(1);
+});
+```
+
+And in `doActs`, replace the cleanup:
+
+```
+  console.log('Acts completed');
+  // If standardization is required:
+  if (['also', 'only'].includes(standard)) {
+    // ... existing standardization code ...
+  }
+  // Close the browser gracefully.
+  await gracefulCleanup();
+  // Delete the temporary report file.
+  await fs.rm(reportPath, {force: true});
+  return report;
+  ```
+
+Key changes:
+
+gracefulCleanup(): Attempts async browserClose() but races it against a timeout, then force-kills
+Guard flags: Prevent multiple simultaneous cleanup attempts that cause the error messages
+Timeout: Gives browserClose 2 seconds to complete before forcing kill
+No redundant calls: Only gracefulCleanup() calls both browserClose() and forceKillBrowsers()
+process.on('exit') as fallback: Only runs if other cleanup didn't complete
+This approach:
+
+Tries graceful closure first (avoiding the errors)
+Falls back to force-kill after timeout
+Prevents the async cleanup from running after force-kill
+Works consistently on both macOS and Ubuntu
+
+The above recommendation seems complex. Meanwhile the error message has been suppressed on the basis that context closure is not necessarily an error.

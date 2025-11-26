@@ -35,7 +35,7 @@ const agent = process.env.AGENT;
 
 // FUNCTIONS
 
-// Sends a notification to an observer.
+// Sends a notice to an observer.
 exports.tellServer = (report, messageParams, logMessage) => {
   const {serverID} = report.sources;
   const observerURL = typeof serverID === 'number' ? process.env[`NETWATCH_URL_${serverID}_OBSERVE`] : '';

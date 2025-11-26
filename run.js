@@ -114,6 +114,8 @@ let actCount = 0;
 // Facts about the current act.
 let actIndex = 0;
 let browser;
+let cleanupInProgress = false;
+let browserCloseIntentional = false;
 let browserContext;
 let page;
 let report;
@@ -269,20 +271,19 @@ const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
     abortActs(report, actIndex);
   }
 };
-// Closes the current browser.
+// Closes any current browser.
 const browserClose = async () => {
+  // If a browser exists:
   if (browser) {
     browserCloseIntentional = true;
+    // Try to close all its contexts and ignore any messages that they are already closed.
     for (const context of browser.contexts()) {
       try {
         await context.close();
       }
-      catch(error) {
-        console.log(
-          `ERROR trying to close context: ${error.message.slice(0, 200).replace(/\n.+/s, '')}`
-        );
-      }
+      catch(error) {}
     }
+    // Close the browser.
     await browser.close();
     browserCloseIntentional = false;
     browser = null;
@@ -303,7 +304,7 @@ const launch = exports.launch = async (
     report.target.url = url;
     // Create a browser of the specified or default type.
     const browserType = playwrightBrowsers[browserID];
-    // Close the current browser, if any.
+    // Close any current browser.
     await browserClose();
     // Define browser options.
     const browserOptions = {
@@ -678,6 +679,7 @@ const launchSpecs = (act, report) => [
 // Performs the acts in a report and adds the results to the report.
 const doActs = async (report, opts = {}) => {
   const {acts} = report;
+  // Get the granular observation options, if any.
   const {onProgress = null, signal = null} = opts;
   // Get the standardization specification.
   const standard = report.standard || 'only';
@@ -696,7 +698,7 @@ const doActs = async (report, opts = {}) => {
       if (report.observe) {
         const whichParam = which ? `&which=${which}` : '';
         const messageParams = `act=${type}${whichParam}`;
-        // If a progress callback has been provided:
+        // If a progress callback has been provided by a caller on this host:
         if (onProgress) {
           // Notify the observer of the act.
           try {
@@ -712,7 +714,7 @@ const doActs = async (report, opts = {}) => {
         }
         // Otherwise, i.e. if no progress callback has been provided:
         else {
-          // Notify the observer of the act and log it.
+          // Notify the remote observer of the act and log it.
           tellServer(report, messageParams, message);
         }
       }
@@ -1598,7 +1600,7 @@ exports.doJob = async (job, opts = {}) => {
         process.exit();
       }
     });
-    // Perform the acts and get a report.
+    // Perform the acts with any specified same-host observation options and get a report.
     report = await doActs(report, opts);
     // Add the end time and duration to the report.
     const endTime = new Date();
@@ -1622,10 +1624,6 @@ exports.doJob = async (job, opts = {}) => {
 };
 
 // CLEANUP HANDLERS
-
-// Track whether cleanup is in progress.
-let cleanupInProgress = false;
-let browserCloseIntentional = false;
 
 // Force-kills any Playwright browser processes synchronously.
 const forceKillBrowsers = () => {
