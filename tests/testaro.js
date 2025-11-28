@@ -450,12 +450,31 @@ const allRules = [
 ];
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
+// MEMORY LEAK DIAGNOSIS
+
+const memorySnapshots = [];
+const logMemory = (label) => {
+  const usage = process.memoryUsage();
+  const snapshot = {
+    label,
+    heapUsed: Math.round(usage.heapUsed / 1024 / 1024),
+    heapTotal: Math.round(usage.heapTotal / 1024 / 1024),
+    external: Math.round(usage.external / 1024 / 1024),
+    rss: Math.round(usage.rss / 1024 / 1024)
+  };
+  memorySnapshots.push(snapshot);
+  const {heapUsed, heapTotal, external, rss} = snapshot;
+  console.log(
+    `XXX MEMORY [${label}]: heap ${heapUsed}/${heapTotal}MB, ext ${external}MB, RSS ${rss}MB`
+  );
+};
+
 // ERROR HANDLER
 process.on('unhandledRejection', reason => {
   console.error(`ERROR: Unhandled Promise Rejection (${reason})`);
 });
 
-// ######## FUNCTIONS
+// FUNCTIONS
 
 // Conducts a JSON-defined test.
 const jsonTest = async (ruleID, ruleArgs) => {
@@ -485,6 +504,7 @@ const wait = ms => {
 };
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
+  logMemory('XXX Testaro start');
   const url = await page.url();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;
@@ -503,7 +523,7 @@ exports.reporter = async (page, report, actIndex) => {
     rulesInvalid: [],
     ruleTestTimes: {}
   };
-  const result = exports.result = {};
+  const result = {};
   const allRuleIDs = allRules.map(rule => rule.id);
   // If the rule specification is invalid:
   if (! (
@@ -529,10 +549,12 @@ exports.reporter = async (page, report, actIndex) => {
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
   let contaminatorsStarted = false;
+  logMemory('XXX Before rule loop');
   // For each rule to be tested for:
   for (const rule of jobRules) {
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
+    logMemory(`XXX Before rule ${ruleID}`);
     const pageClosed = page ? page.isClosed() : true;
     const isContaminator = rule.contaminator;
     // If it is a contaminator other than the first one or the page has closed:
@@ -543,6 +565,7 @@ exports.reporter = async (page, report, actIndex) => {
         console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
       }
       // Replace the browser and the page and navigate to the target.
+      console.log(`XXX About to call launch() for rule ${ruleID}`);
       await launch(
         report,
         process.env.DEBUG === 'true',
@@ -559,6 +582,7 @@ exports.reporter = async (page, report, actIndex) => {
     // Report crashes and disconnections during this test.
     let crashHandler;
     let disconnectHandler;
+    // Get the current browser.
     const {browser} = require('../run');
     if (page && ! page.isClosed()) {
       crashHandler = () => {
@@ -631,7 +655,10 @@ exports.reporter = async (page, report, actIndex) => {
             // Prevent a retry of the test.
             testSuccess = true;
             // If testing is to stop after a failure and the page failed the test:
-            if (stopOnFail && ruleOrTimeoutReport.totals.some(total => total)) {
+            if (
+              stopOnFail
+              && ruleOrTimeoutReport.totals
+              && ruleOrTimeoutReport.totals.some(total => total)) {
               // Stop testing.
               break;
             }
@@ -693,9 +720,11 @@ exports.reporter = async (page, report, actIndex) => {
       // Clear the error listeners.
       if (page && ! page.isClosed() && crashHandler) {
         page.off('crash', crashHandler);
+        crashHandler = null;
       }
       if (browser && disconnectHandler) {
         browser.off('disconnected', disconnectHandler);
+        disconnectHandler = null;
       }
     }
     // Otherwise, i.e. if the rule is undefined or doubly defined:
@@ -704,14 +733,42 @@ exports.reporter = async (page, report, actIndex) => {
       data.rulesInvalid.push(rule);
       console.log(`ERROR: Rule ${rule.id} not validly defined`);
       // Clear the crash listener.
-      if (page && ! page.isClosed()) {
+      if (page && ! page.isClosed() && crashHandler) {
         page.off('crash', crashHandler);
+        crashHandler = null;
+      }
+      if (browser && disconnectHandler) {
+        browser.off('disconnected', disconnectHandler);
+        disconnectHandler = null;
       }
     }
+    // Force a garbage collection.
+    try {
+      if (global.gc) {
+        global.gc();
+      }
+      logMemory(`XXX After ${ruleID} garbage collection`);
+      // XXX Check for memory growth.
+      if (memorySnapshots.length > 1) {
+        const current = memorySnapshots[memorySnapshots.length - 1];
+        const previous = memorySnapshots[memorySnapshots.length - 2];
+        const heapGrowth = current.heapUsed - previous.heapUsed;
+        if (heapGrowth > 10) {
+          console.log(`XXX WARNING: Heap grew ${heapGrowth}MB during ${ruleID}`);
+        }
+      }
+    }
+    catch(error) {}
   };
+  logMemory(`XXX After all rules`);
   // Record the test times in descending order.
   testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
     data.ruleTestTimes[pair[0]] = pair[1];
+  });
+  logMemory('XXX Memory snapshots at end of Testaro');
+  memorySnapshots.forEach(snapshot => {
+    const {label, heapUsed, heapTotal} = snapshot;
+    console.log(`XXX [${label}]: heap ${heapUsed}/${heapTotal} MB`);
   });
   return {
     data,

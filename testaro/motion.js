@@ -6,7 +6,7 @@
 /*
   motion
   This test reports motion in a page by comparing the first and last of the screenshots previously
-  made by the shoot test.
+  made by the shoot0 and shoot1 tests.
 
   For minimal accessibility, standards require motion to be brief, or else stoppable by the user.
   But stopping motion can be difficult or impossible, and, by the time a user manages to stop
@@ -21,9 +21,10 @@
 
 // IMPORTS
 
-// Module to make a screenshot.
+// Module to process files.
+const fs = require('fs/promises');
+// Module to compare screenshots.
 const pixelmatch = require('pixelmatch').default;
-const {result} = require('../tests/testaro');
 
 // FUNCTIONS
 
@@ -33,11 +34,12 @@ exports.reporter = async page => {
   const data = {};
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
-  // Get the screenshots made by the shoot test.
-  const shootResult = result ? result.shoot || {} : {};
+  // Get the screenshots made by the shoot0 and shoot1 tests.
+  const shoot0Result = result ? result.shoot0 || {} : {};
+  const shoot1Result = result ? result.shoot1 || {} : {};
   // If there are at least 2 of them:
-  if (shootResult.pngs && shootResult.pngs.length > 1) {
-    let {pngs} = shootResult;
+  if (shoot0Result.pngs && shoot0Result.pngs.length > 1) {
+    let {pngs} = shoot0Result;
     // Choose the first and last of them for comparison.
     const pngPair = [pngs[0], pngs[pngs.length - 1]];
     // Get their dimensions.

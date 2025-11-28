@@ -272,27 +272,84 @@ const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
   }
 };
 // Closes any current browser.
-const browserClose = async () => {
+const browserClose = exports.browserClose = async () => {
   // If a browser exists:
   if (browser) {
+    console.log('XXX Browser exists for browserClose() to close');
+    console.log(`XXX Count of browser contexts: ${browser.contexts().length}`);
+    // XXX Capture process info BEFORE closing
+    try {
+      const beforeResult = execSync(
+        'ps axo pid,ppid,pgid,comm | grep chrome-headless-shell | grep -v grep',
+        {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore']
+        }
+      );
+      console.log('XXX Processes BEFORE browser.close():');
+      console.log(beforeResult.trim().split('\n').map(line => `XXX   ${line}`).join('\n'));
+    }
+    catch(error) {
+      console.log('XXX No chrome-headless-shell processes found before close');
+    }
     browserCloseIntentional = true;
     // Try to close all its contexts and ignore any messages that they are already closed.
     for (const context of browser.contexts()) {
       try {
+        console.log('XXX About to execute context.close()');
         await context.close();
+        console.log('XXX Executed it');
       }
-      catch(error) {}
+      catch(error) {
+        console.log(`XXX Context closing failed (${error.message.slice(0, 200)})`);
+      }
     }
     // Close the browser.
+    console.log('XXX About to execute browser.close()');
+    const browserPID = browser.process ? browser.process().pid || 'none' : 'unknown';
+    console.log(`XXX Browser process PID: ${browserPID}`);
     await browser.close();
+    console.log('XXX Executed browser.close()');
     browserCloseIntentional = false;
     browser = null;
+    // XXX Wait and check remaining processes
+    await wait(2000);
+    console.log('XXX About to check for remaining chrome-headless-shell processes');
+    try {
+      const afterResult = execSync(
+        'ps axo pid,ppid,pgid,state,comm | grep chrome-headless-shell | grep -v grep',
+        {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore']
+        }
+      );
+      const lines = afterResult.trim().split('\n').filter(line => line.length > 0);
+      console.log(
+        `XXX Found ${lines.length} chrome-headless-shell processes after browser.close()`
+      );
+      // Check whether they are zombies.
+      const zombies = lines.filter(line => line.includes(' Z '));
+      if (zombies.length > 0) {
+        console.log(`XXX ${zombies.length} are zombie processes (Z state)`);
+      }
+      if (lines.length > 0) {
+        console.log('XXX Processes:');
+        lines.forEach(line => console.log(`XXX   ${line.slice(0, 150)}`));
+      }
+    }
+    catch(error) {
+      console.log('XXX No chrome-headless-shell processes found (or grep failed)');
+    }
+  }
+  else {
+    console.log('XXX No browser to close in browserClose() function');
   }
 };
 // Launches a browser and navigates to a URL.
 const launch = exports.launch = async (
   report, debug, waits, tempBrowserID, tempURL, retries = 2
 ) => {
+  console.log('XXX Starting to execute launch()');
   const act = report.acts[actIndex];
   const {device} = report;
   const deviceID = device && device.id;
@@ -305,7 +362,9 @@ const launch = exports.launch = async (
     // Create a browser of the specified or default type.
     const browserType = playwrightBrowsers[browserID];
     // Close any current browser.
+    console.log('XXX About to call browserClose() in launch()');
     await browserClose();
+    console.log('XXX Called browserClose() in launch()');
     // Define browser options.
     const browserOptions = {
       logger: {
@@ -324,7 +383,9 @@ const launch = exports.launch = async (
     };
     try {
       // Replace the browser with a new one.
+      console.log('XXX About to launch a browser in launch()');
       browser = await browserType.launch(browserOptions);
+      console.log('XXX Launched a browser and assigned it to the module variable browser');
       // Redefine the context (i.e. browser window).
       const contextOptions = {
         ...device.windowOptions,
@@ -415,7 +476,7 @@ const launch = exports.launch = async (
           }
         });
       });
-      // Replace the page with the first page (tab) of the context (window).
+      // Reassign the page variable to a new page (tab) of the context (window).
       page = await browserContext.newPage();
       // Wait until it is stable.
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
@@ -763,6 +824,7 @@ const doActs = async (report, opts = {}) => {
       else if (type === 'launch') {
         const actLaunchSpecs = launchSpecs(act, report);
         // Launch a browser, navigate to a page, and add the result to the act.
+        console.log('XXX About to launch a browser for a launch act');
         await launch(
           report,
           debug,
@@ -771,7 +833,7 @@ const doActs = async (report, opts = {}) => {
           actLaunchSpecs[1]
         );
         // If this failed:
-        if (page.prevented) {
+        if (! page) {
           // Add this to the act.
           act.data ??= {};
           act.data.prevented = true;
@@ -790,6 +852,7 @@ const doActs = async (report, opts = {}) => {
         let reportJSON = JSON.stringify(report);
         await fs.writeFile(reportPath, reportJSON);
         // Create a process to perform the act and add the result to the saved report.
+        console.log(`XXX About to fork doTestAct for tool ${act.which}`);
         const actResult = await new Promise(resolve => {
           let closed = false;
           const child = fork(
@@ -808,6 +871,7 @@ const doActs = async (report, opts = {}) => {
             }
           });
         });
+        console.log(`XXX Forked doTestAct for tool ${act.which} completed`);
         // Get the revised report.
         reportJSON = await fs.readFile(reportPath, 'utf8');
         report = JSON.parse(reportJSON);
@@ -1513,7 +1577,8 @@ const doActs = async (report, opts = {}) => {
     // For each browser ID/target URL class:
     for (const specString of Object.keys(launchSpecActs)) {
       const specs = specString.split('>');
-      // Launch a browser and navigate to the page.
+      // Replace the browser and navigate to the URL.
+      console.log('XXX About to call launch() for standardization:');
       await launch(
         report,
         debug,
@@ -1521,18 +1586,18 @@ const doActs = async (report, opts = {}) => {
         specs[0],
         specs[1]
       );
-      // For each test act with the class:
-      for (const specActIndex of launchSpecActs[specString]) {
-        const act = report.acts[specActIndex];
-        // Initialize the standard result.
-        act.standardResult = {
-          totals: [0, 0, 0, 0],
-          instances: []
-        };
-        // Populate it.
-        standardize(act);
-        // If the launch and navigation succeeded:
-        if (! page.prevented) {
+      // If the launch and navigation succeeded:
+      if (page) {
+        // For each test act in the class:
+        for (const specActIndex of launchSpecActs[specString]) {
+          const act = report.acts[specActIndex];
+          // Initialize the standard result.
+          act.standardResult = {
+            totals: [0, 0, 0, 0],
+            instances: []
+          };
+          // Populate it.
+          standardize(act);
           // Add a box ID and a path ID to each of its standard instances if missing.
           for (const instance of act.standardResult.instances) {
             const elementID = await identify(instance, page);
@@ -1543,18 +1608,30 @@ const doActs = async (report, opts = {}) => {
               instance.pathID = elementID ? elementID.pathID : '';
             }
           };
-        }
-        // If the original-format result is not to be included in the report:
-        if (standard === 'only') {
-          // Remove it.
-          delete act.result;
-        }
-      };
+          // If the original-format result is not to be included in the report:
+          if (standard === 'only') {
+            // Remove it.
+            delete act.result;
+          }
+        };
+      }
+      // Otherwise, i.e. if the launch or navigation failed:
+      else {
+        console.log(`ERROR: Launch or navigation to standardize ${specString} acts failed`);
+      }
     };
-    console.log('>>>> Standardization completed');
+    // Close the last browser launched for standardization.
+    console.log('XXX About to call browserClose() after standardization');
+    await browserClose();
+    console.log('XXX Called browserClose() after standardization');
+    console.log('Standardization completed');
   }
+  /*
   // Close the browser.
+  console.log('XXX About to call browserClose() at the end of the doActs() function');
   await browserClose();
+  console.log('XXX Called browserClose() at the end of the doActs() function');
+  */
   // Delete the temporary report file.
   await fs.rm(reportPath, {force: true});
   return report;
