@@ -7,10 +7,12 @@ Ensemble testing for web accessibility
 Testaro is an application for automated web accessibility testing.
 
 The purposes of Testaro are to:
+
 - provide programmatic access to accessibility tests defined by several tools
 - facilitate the integration of the reports of the tools into a unified report
 
 Testaro is described in two papers:
+
 - [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3)
 - [Testaro: Efficient Ensemble Testing for Web Accessibility](https://arxiv.org/abs/2309.10167)
 
@@ -23,6 +25,7 @@ Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating sys
 Testaro accepts _jobs_, performs them, and returns _reports_.
 
 Other software, located on the same or a different host, can make use of Testaro, performing functions such as:
+
 - Job preparation
 - Converting user specifications into jobs
 - Job scheduling
@@ -41,12 +44,14 @@ One software product that performs some such functions is [Testilo](https://www.
 ## Dependencies
 
 Testaro uses:
+
 - [Playwright](https://playwright.dev/) to launch browsers, perform user actions in them, and perform tests
 - [playwright-extra](https://www.npmjs.com/package/playwright-extra) and [puppeteer-extra-plugin-stealth](https://www.npmjs.com/package/puppeteer-extra-plugin-stealth) to make a Playwright-controlled browser more indistinguishable from a human-operated browser and thus make their requests more likely to succeed
 - [playwright-dompath](https://www.npmjs.com/package/playwright-dompath) to retrieve XPaths of elements
 - [pixelmatch](https://www.npmjs.com/package/pixelmatch) to measure motion
 
 Testaro performs tests of these _tools_:
+
 - [Accessibility Checker](https://www.npmjs.com/package/accessibility-checker) (IBM)
 - [Alfa](https://alfa.siteimprove.com/) (Siteimprove)
 - [ASLint](https://www.npmjs.com/package/@essentialaccessibility/aslint) (eSSENTIAL Accessibility)
@@ -65,7 +70,7 @@ Some of the tests of Testaro are designed to act as approximate alternatives to 
 
 Each tool accessed with Testaro defines _rules_ and tests _targets_ for compliance with its rules. Testilo has classified the rules into _issues_ and deprecated some rules as poorly implemented. If the deprecated rules are excluded, the counts are:
 
-```
+```text
 Accessibility Checker: 93
 Alfa: 64
 ASLint: 129
@@ -85,6 +90,7 @@ This tabulation may not be exact, because some of the tools are under active dev
 ## Code organization
 
 The main directories containing code files are:
+
 - package root: main code files
 - `tests`: files containing the code defining particular tests
 - `procs`: shared procedures
@@ -134,9 +140,9 @@ All of the tests that Testaro can perform are free of cost, except those perform
 
 ## Jobs
 
-A _job_ is an object that specifies what Testaro is to do. As Testaro performs a job, Testaro reports results by adding data to the job.
+A _job_ is an object that specifies what Testaro is to do. As Testaro performs a job, Testaro reports results by adding data to the job and making that enhanced object available as a _report_.
 
-### Example
+### Example of a job
 
 Here is an example of a job:
 
@@ -201,6 +207,7 @@ This job tells Testaro to perform two _acts_. One performs one test of the Axe t
 Each act includes a `launch` property with a default value. That instructs Testaro, before performing those tests, to launch a new Webkit browser, open a context (window) with some properties of an iPhone 8 and without a reduced-motion setting, create a page (tab), and navigate to a particular page of the `abccorp.com` website.
 
 Job properties:
+
 - `id`: a string uniquely identifying the job.
 - `what`: a description of the job.
 - `strict`: `true` or `false`, indicating whether _substantive redirections_ should be treated as failures. These are redirections that do more than add or subtract a final slash.
@@ -216,7 +223,7 @@ Job properties:
 
 ## Acts
 
-### Introduction
+### Introduction to acts
 
 Each act object has a `type` property and optionally has a `name` property (used in branching, described below). It must or may have other properties, depending on the value of `type`.
 
@@ -294,9 +301,9 @@ This act checks the result of the previous act to determine whether its `result.
 
 A `next` act can use a `next` property instead of a `jump` property. The value of the `next` property is an act name. It tells Testaro to continue performing acts starting with the act having that value as the value of its `name` property.
 
-#### Tests
+#### Tools
 
-##### Introduction
+##### Introduction to tools
 
 An act of type `test` performs the tests of a tool and reports a result. The result may indicate that a page passes or fails requirements. Typically, accessibility tests report successes and failures. But a test in Testaro is defined less restrictively, so it can report any result. As one example, the Testaro `elements` test reports facts about certain elements on a page, without asserting that those facts are successes or failures.
 
@@ -305,6 +312,7 @@ The `which` property of a `test` act identifies a tool, such as `alfa` or `testa
 ##### Configuration
 
 Every tool invoked by Testaro must have:
+
 - a property in the `tests` object defined in the `run.js` file, where the property name is the ID representing the tool and the value is the name of the tool
 - a `.js` file, defining the operation of the tool, in the `tests` directory, whose name base is the name of the tool
 
@@ -330,7 +338,7 @@ When you include a `rules` property, you limit the tests of the tool that are pe
 
 The `nuVal`, `qualWeb`, and `testaro` tools require specific formats for the `rules` property. Those formats are described below in the sections about those tools.
 
-##### Examples
+##### Examples of test acts
 
 An example of a `test` act is:
 
@@ -393,6 +401,7 @@ The first item in each array is an identifier of a property of the act. The item
 If there is only 1 item in an array, it states the expectation that the specified property does not exist. Otherwise, there are 3 items in the array.
 
 The second item in each array, if there are 3 items, is an operator, drawn from:
+
 - `<`: less than
 - `=`: equal to
 - `>`: greater than
@@ -490,6 +499,7 @@ QualWeb allows specification of rules for 3 modules: `act-rules`, `wcag-techniqu
 ```
 
 In that format:
+
 - Replace `mod` with `act`, `wcag`, or `best`.
 - Replace `m`, `n`, `o`, `p`, etc. with the 0 or more integers that identify rules.
 
@@ -553,7 +563,7 @@ Together, they get all tests of the tool performed. Before each test act, you ca
 
 ### `actSpecs` file
 
-#### Introduction
+#### Introduction to the `actSpecs` file
 
 The `actSpecs.js` file contains rules governing acts. The rules determine whether an act is valid.
 
@@ -588,12 +598,14 @@ The rule is an array with two elements: a string ('Click a link') describing the
 The requirement `which: [true, 'string', 'hasLength', 'substring of the link text']` specifies what is required for the `which` property of a `link`-type act. The requirement is an array.
 
 In most cases, the array has length 4:
-- 0. Is the property (here `which`) required (`true` or `false`)? The value `true` here means that every `link`-type act **must** contain a `which` property.
-- 1. What format must the property value have (`'string'`, `'array'`, `'boolean'`, `'number'`, or `'object'`)?
-- 2. What other validity criterion applies (if any)? (Empty string if none.) The `hasLength` criterion means that the string must be at least 1 character long.
-- 3. Description of the property. In this example, the description says that the value of `which` must be a substring of the text content of the link that is to be clicked. Thus, a `link` act tells Testaro to find the first link whose text content has this substring and click it.
+
+- Item 0. Is the property (here `which`) required (`true` or `false`)? The value `true` here means that every `link`-type act **must** contain a `which` property.
+- Item 1. What format must the property value have (`'string'`, `'array'`, `'boolean'`, `'number'`, or `'object'`)?
+- Item 2. What other validity criterion applies (if any)? (Empty string if none.) The `hasLength` criterion means that the string must be at least 1 character long.
+- Item 3. Description of the property. In this example, the description says that the value of `which` must be a substring of the text content of the link that is to be clicked. Thus, a `link` act tells Testaro to find the first link whose text content has this substring and click it.
 
 The validity criterion named in item 2 may be any of these:
+
 - `'hasLength'`: is not a blank string
 - `'isURL`': is a string starting with `http`, `https`, or `file`, then `://`, then ending with 1 or more non-whitespace characters
 - `'isBrowserType'`: is `'chromium'`, `'firefox'`, or `'webkit'`
@@ -605,20 +617,48 @@ The validity criterion named in item 2 may be any of these:
 
 ## Reports
 
-### Introduction
+### Introduction to reports
 
-Each tool produces a _tool report_ of the results of its tests. Testaro prunes the tool reports for brevity, removing content that is judged unlikely to be useful. Testaro then appends each tool report to the test act that invoked the tool.
+Any Testaro job produces a report, which is a copy of the job with additional data produced by Testaro as it performed the job. Like a job, a report is an object that can be serialized to JSON for file storage.
 
-Testaro also generates some data about the job and adds those data to the job, in a `jobData` property.
+### Job-level data
+
+The data that Testaro adds to a job to create a report include job-level data: data describing the how the job as a whole was performed. For example, when it was completed and how long it took to run.
+
+Properties that were in a job when it was given to Testaro remain unchanged in the report. New data produced by Testaro during its performance of a job are inserted into a new `jobData` property in the report.
+
+### Act-level data
+
+#### Act-level data in general
+
+Testaro also adds act-level data to each job. Among the new act-level data are two additional properties added to each `act` object in the report: `data` and `result`.
+
+#### Act-level data from `test` acts
+
+The new properties added to `test` acts, in addition to `data` and `result`, include:
+
+- `what`: the name of the tool
+- `actualURL`: the URL of the visited page, after any redirections
+- `startTime`: when the tool was started
+- `endTime`: when the tool reported its results
+- `expectations`: the results of validations specified by the act in `expect` properties
+- `expectationFailures`: the count of failed validations
+- `standardResult`: if requested, the `result` property converted to a Testaro-standard structure
+
+For any `test` act, the values of the `data` and `result` properties are specific to the tool that the act invokes, but are subject to some constraints that facilitate the integration of the tool reports into a standardized uniform report.
+
+The `data` object can have these properties:
+
+- `success`: `true` or `false`, depending on whether a tool report was delivered
+- `error`: a string characterizing the failure, if any
+- `prevented`: `true` or `false`, depending on whether the page prevented the tool from performing its tests
+
+In order to make its reports user-friendly, Testaro removes irrelevant data from the native reporting of each tool and coerces the remaining data into some uniformity. Testaro does this by using a module of its own to run each tool. Those modules are files located in the `tests` directory. Each module runs the corresponding tool, gets a tool-native report from the tool, prunes it, and coerces what remains into a _tool report_, which is subject to some format constraints.
+
+The `data` object can have any properties that might be useful to Testaro, and the names of these properties can differ from one tool to another. The `result` object, however, is constrained.
 
 ### Contents
 
-A report discloses:
-- results of tests conducted by tools
-- process data, including statistics on:
-    - latency (how long a time each tool takes to run its tests)
-    - test prevention (the failure of tools to run on particular targets)
-    - logging (browser messaging, including about document errors, during testing)
 
 ### Formats
 
@@ -627,6 +667,7 @@ A report discloses:
 The tools listed above as dependencies write their tool reports in various formats. They differ in how they organize multiple instances of the same problem, how they classify severity and certainty, how they point to the locations of problems, how they name problems, etc.
 
 A Testaro report can include, for each tool, either or both of these properties:
+
 - `result`: the result in the native tool format.
 - `standardResult`: the result in a standard format identical for all tools.
 
@@ -635,6 +676,7 @@ A Testaro report can include, for each tool, either or both of these properties:
 ##### Properties
 
 The standard result includes three properties:
+
 - `prevented`: a boolean (`true` or `false`) value, stating whether the page prevented the tool from performing its tests.
 - `totals`: an array of numbers representing how many instances of rule violations at each level of severity the tool reported. There are 4 ordinal severity levels. For example, the array `[3, 0, 14, 10]` would report that there were 3 violations at level 0, 0 at level 1, 14 at level 2, and 10 at level 3.
 - `instances`: an array of objects describing the rule violations. An instance can describe a single violation, usually by one element in the page, or can summarize multiple violations of the same rule.
@@ -667,6 +709,7 @@ Here is an example of a standard instance:
 This instance describes a violation of a rule named `rule01` by a `button` element.
 
 The element has no `id` attribute to distinguish it from other `button` elements, but the tool describes its location. This tool uses an XPath to do that. Tools use various methods for location description, namely:
+
 - `line` (line number in the code of the page): Nu Html Checker
 - `selector` (CSS selector): Axe, QualWeb, WAVE
 - `xpath`: Alfa, ASLint, Equal Access
@@ -678,6 +721,7 @@ The tool also reproduces an excerpt of the element code.
 ##### Element identification
 
 While the above properties can help you find the offending element, Testaro makes this easier by adding, where practical, two standard element identifiers to each standard instance:
+
 - `boxID`: a compact representation of the x, y, width, and height of the element bounding box, if the element can be identified and is visible.
 - `pathID`: the XPath of the element, if the element can be identified.
 
@@ -692,6 +736,7 @@ Testing can change the pages being tested, and such changes can cause a particul
 ##### Standardization configuration
 
 Each job specifies how Testaro is to handle report standardization. A job contains a `standard` property, with one of the following values to determine which results the report will include:
+
 - `'also'`: original and standard.
 - `'only'`: standard only.
 - `'no'`: original only.
@@ -701,6 +746,7 @@ If a tool has the option to be used without itemization and is being so used, th
 ##### Standardization opinionation
 
 This standard format reflects some judgments. For example:
+
 - The `ordinalSeverity` property of an instance involves interpretation. Tools may report severity, certainty, priority, or some combination of those. They may use ordinal or metric quantifications. If they quantify ordinally, their scales may have more or fewer than 4 ranks. Testaro coerces each tool’s severity, certainty, and/or priority classification into a 4-rank ordinal classification. This classification is deemed to express the most common pattern among the tools.
 - The `tagName` property of an instance may not always be obvious, because in some cases the rule being tested for requires a relationship among more than one element (e.g., “An X element may not have a Y element as its parent”).
 - The `ruleID` property of an instance is a matching rule if the tool issues a message but no rule identifier for each instance. The `nuVal` tool does this. In this case, Testaro is classifying the messages into rules.
@@ -755,7 +801,7 @@ In watch mode, Testaro periodically checks for a job to run and, when a job is o
 
 Testaro can watch for a job in a directory of the filesystem where Testaro or your application is located, with the `dirWatch` function.
 
-#### By a module
+#### Directory watching by a module
 
 ```javaScript
 const {dirWatch} = require('testaro/dirWatch');
@@ -768,7 +814,7 @@ Testaro checks for jobs in the `todo` subdirectory of `JOBDIR`. When it has perf
 
 Testaro creates a report for each job and saves the report in the `raw` subdirectory of `REPORTDIR`.
 
-#### By a user
+#### Directory watching by a user
 
 ```javaScript
 node call dirWatch true 300
@@ -809,7 +855,7 @@ Network watching can be repeated or 1-job. 1-job watching stops after 1 job has 
 
 After checking all the URLs in succession without getting a job from any of them, Testaro waits for the prescribed time before continuing to check.
 
-#### By a module
+#### Network watching by a module
 
 ```javaScript
 const {netWatch} = require('testaro/netWatch');
@@ -820,7 +866,7 @@ In this example, a module of your application asks Testaro to check the servers 
 
 The third argument specifies whether Testaro should be certificate-tolerant. A `true` value makes Testaro accept SSL certificates that fail verification against a list of certificate authorities. This allows testing of `https` targets that, for example, use self-signed certificates. If the third argument is omitted, the default for that argument is implemented. The default is `true`.
 
-#### By a user
+#### Network watching by a user
 
 ```javaScript
 node call netWatch true 300 true
@@ -904,12 +950,14 @@ Some targets prohibit the execution of alien scripts unless the client can demon
 ### Tool duplicativity
 
 Tools sometimes do redundant testing, in that two or more tools test for the same defects, although such duplications are not necessarily perfect. This fact creates problems:
+
 - One cannot be confident in excluding some tests of some tools on the assumption that they perfectly duplicate tests of other tools.
 - The Testaro report from a job documents each tool’s results separately, so a single defect may be documented in multiple locations within the report, making the direct consumption of the report inefficient.
 - An effort to aggregate the results into a single score may distort the scores by inflating the weights of defects that happen to be discovered by multiple tools.
 - It is difficult to identify duplicate instances, in part because, as described above, tools use four different methods for identifying the locations of elements that violate tool rules.
 
 To deal with the above problems, you can:
+
 - configure `test` acts for tools to exclude tests that you consider duplicative
 - create derivative reports that organize results by defect types rather than by tool
 - take duplication into account when defining scoring rules
@@ -935,6 +983,7 @@ The files in the `temp` directory are presumed ephemeral and are not tracked by 
 ### Testilo
 
 [Testilo](https://www.npmjs.com/package/testilo) is an application that:
+
 - converts lists of targets and lists of issues into jobs
 - produces scores and adds them to the raw reports of Testaro
 - produces human-oriented HTML digests from scored reports

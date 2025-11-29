@@ -23,8 +23,14 @@
 
 // Module to process files.
 const fs = require('fs/promises');
+// Module to get operating-system properties.
+const os = require('os');
 // Module to compare screenshots.
 const pixelmatch = require('pixelmatch').default;
+
+// CONSTANTS
+
+const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
@@ -34,30 +40,29 @@ exports.reporter = async page => {
   const data = {};
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
-  // Get the screenshots made by the shoot0 and shoot1 tests.
-  const shoot0Result = result ? result.shoot0 || {} : {};
-  const shoot1Result = result ? result.shoot1 || {} : {};
-  // If there are at least 2 of them:
-  if (shoot0Result.pngs && shoot0Result.pngs.length > 1) {
-    let {pngs} = shoot0Result;
-    // Choose the first and last of them for comparison.
-    const pngPair = [pngs[0], pngs[pngs.length - 1]];
-    // Get their dimensions.
-    const {width, height} = pngPair[0];
+  // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
+  const shoot0PNGBuffer = await fs.readFile('testaro-shoot-0.png');
+  const shoot1PNGBuffer = await fs.readFile('testaro-shoot-1.png');
+  // If they both exist:
+  if (shoot0PNGBuffer && shoot1PNGBuffer) {
+    // Parse the PNG buffers into PNG objects.
+    const shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
+    const shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
     // If their dimensions differ:
-    if (width !== pngPair[1].width || height !== pngPair[1].height) {
+    if (shoot1PNG.width !== shoot0PNG.width || shoot1PNG.height !== shoot0PNG.height) {
       // Report this.
       data.prevented = true;
-      data.error = 'Screenshots have differing dimensions';
+      data.error = 'Screenshot dimensions differ';
     }
     // Otherwise, i.e. if their dimensions are identical:
     else {
+      const {width, height} = shoot0PNG;
       // Get the count of differing pixels between the shots.
-      const pixelChanges = pixelmatch(pngPair[0].data, pngPair[1].data, null, width, height);
+      const pixelChanges = pixelmatch(shoot0PNG.data, shoot1PNG.data, null, width, height);
       // Get the ratio of differing to all pixels as a percentage.
       const changePercent = 100 * pixelChanges / (width * height);
       // Free the memory used by screenshots.
-      pngs = [];
+      shoot0PNG = shoot1PNG = shoot0PNGBuffer = shoot1PNGBuffer = null;
       // If any pixels were changed:
       if (pixelChanges) {
         // Get the ordinal severity from the fractional pixel change.
@@ -82,11 +87,11 @@ exports.reporter = async page => {
       }
     }
   }
-  // Otherwise, i.e. if there are not at least 2 of them
+  // Otherwise, i.e. if they do not both exist:
   else {
     // Report this.
     data.prevented = true;
-    data.error = 'Fewer than 2 screenshots recorded';
+    data.error = 'At least 1 screenshot missing';
   }
   // Return the result.
   return {

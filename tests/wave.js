@@ -75,9 +75,10 @@ exports.reporter = async (page, report, actIndex) => {
           });
           // When they arrive:
           response.on('end', async () => {
+            let actResult = {};
             // Delete unnecessary properties.
             try {
-              const actResult = JSON.parse(rawReport);
+              actResult = JSON.parse(rawReport);
               const {categories, statistics} = actResult;
               delete categories.feature;
               delete categories.structure;
@@ -141,7 +142,7 @@ exports.reporter = async (page, report, actIndex) => {
             catch(error) {
               data.prevented = true;
               data.error = error.message;
-              resolve(result);
+              resolve(actResult);
             };
           });
         }

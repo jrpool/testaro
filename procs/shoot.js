@@ -22,21 +22,21 @@ const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
-exports.shoot = async page => {
+exports.shoot = async (page, index) => {
   // Make and get a screenshot as a buffer.
   let shot = await screenShot(page);
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
     const png = PNG.sync.read(shot);
-    const pngBuffer = PNG.sync.write(png);
-    // Free the buffer memory.
     shot = null;
+    const pngBuffer = PNG.sync.write(png);
+    png = null;
     // Force garbage collection if available and if --expose-gc was a node option.
     if (global.gc) {
       global.gc();
     }
-    const fileName = `testaro-shoot-${Date.now()}.png`;
+    const fileName = `testaro-shoot-${index}.png`;
     const pngPath = path.join(tmpDir, fileName);
     // Save the PNG buffer.
     await fs.writeFile(pngPath, pngBuffer);
@@ -46,6 +46,6 @@ exports.shoot = async page => {
   // Otherwise, i.e. if it failed:
   else {
     // Return this.
-    return false;
+    return '';
   }
 };

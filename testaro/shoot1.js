@@ -16,7 +16,7 @@ const {shoot} = require('../procs/shoot');
 
 exports.reporter = async page => {
   // Make and save the second screenshot.
-  const pngPath = await shoot(page);
+  const pngPath = await shoot(page, 1);
   // Return the file path or a failure result.
   return pngPath ? {pngPath} : {prevented: true};
 };
