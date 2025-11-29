@@ -27,6 +27,8 @@ const fs = require('fs/promises');
 const os = require('os');
 // Module to compare screenshots.
 const pixelmatch = require('pixelmatch').default;
+// Module to parse PNGs.
+const {PNG} = require('pngjs');
 
 // CONSTANTS
 
