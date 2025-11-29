@@ -43,16 +43,16 @@ exports.reporter = async page => {
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
   // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
-  const shoot0PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-0.png`);
-  const shoot1PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-1.png`);
+  let shoot0PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-0.png`);
+  let shoot1PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-1.png`);
   // Delete the buffers files.
   await fs.unlink(`${tmpDir}/testaro-shoot-0.png`);
   await fs.unlink(`${tmpDir}/testaro-shoot-1.png`);
   // If both buffers exist:
   if (shoot0PNGBuffer && shoot1PNGBuffer) {
     // Parse them into PNG objects.
-    const shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
-    const shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
+    let shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
+    let shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
     // If their dimensions differ:
     if (shoot1PNG.width !== shoot0PNG.width || shoot1PNG.height !== shoot0PNG.height) {
       // Report this.
@@ -77,7 +77,7 @@ exports.reporter = async page => {
         // Get a summary standard instance.
         standardInstances.push({
           ruleID: 'motion',
-          what: 'Content moves or changes without user request',
+          what: `Content moves or changes spontaneously (${changePercent}% of pixels changed)`,
           count: 1,
           ordinalSeverity,
           tagName: 'HTML',
