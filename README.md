@@ -617,75 +617,73 @@ The validity criterion named in item 2 may be any of these:
 
 ## Reports
 
-### Introduction to reports
-
-Any Testaro job produces a report, which is a copy of the job with additional data produced by Testaro as it performed the job. Like a job, a report is an object that can be serialized to JSON for file storage.
+Any Testaro job produces a report, which is a copy of the job with additional data produced by Testaro as it performed the job. Like a job, a report is an object that can be serialized to JSON for file storage and network transmission.
 
 ### Job-level data
 
-The data that Testaro adds to a job to create a report include job-level data: data describing the how the job as a whole was performed. For example, when it was completed and how long it took to run.
+The data that Testaro adds to a job to create a report include job-level data: data describing the how the job as a whole was performed. Examples: when it was completed and how long it took to run.
 
 Properties that were in a job when it was given to Testaro remain unchanged in the report. New data produced by Testaro during its performance of a job are inserted into a new `jobData` property in the report.
 
 ### Act-level data
 
-#### Act-level data in general
-
-Testaro also adds act-level data to each job. Among the new act-level data are two additional properties added to each `act` object in the report: `data` and `result`.
+Testaro also adds act-level data to each job. The new act-level data are properties added to each `act` object.
 
 #### Act-level data from `test` acts
 
-The new properties added to `test` acts, in addition to `data` and `result`, include:
+In a `test` act, one of the 11 tools performs tests and reports the results. Testaro manages this performance with the `reporter` function of a file located in the `tests` directory. Each tool has a corresponding file, such as `alfa.js` for the `alfa` tool.
 
-- `what`: the name of the tool
-- `actualURL`: the URL of the visited page, after any redirections
-- `startTime`: when the tool was started
-- `endTime`: when the tool reported its results
-- `expectations`: the results of validations specified by the act in `expect` properties
-- `expectationFailures`: the count of failed validations
-- `standardResult`: if requested, the `result` property converted to a Testaro-standard structure
+The `reporter` function returns an object with this structure:
 
-For any `test` act, the values of the `data` and `result` properties are specific to the tool that the act invokes, but are subject to some constraints that facilitate the integration of the tool reports into a standardized uniform report.
+```js
+{
+  data: {
+    prevented: boolean (whether the tool failed to perform its tests on the page),
+    error: string (if `prevented` is `true`, a description of the error)
+    … (other tool-specific data)
+  },
+  result: object (the results of the tests performed by the tool)
+}
+```
 
-The `data` object can have these properties:
+On the completion of a job, Testaro has added these properties to each `test` act to produce a report:
 
-- `success`: `true` or `false`, depending on whether a tool report was delivered
-- `error`: a string characterizing the failure, if any
-- `prevented`: `true` or `false`, depending on whether the page prevented the tool from performing its tests
+- `what` (string): the name of the tool
+- `actualURL` (string): the URL of the visited page, after any redirections
+- `startTime` (string): when the tool was started
+- `endTime` (string): when the tool reported its results
+- `data` (object): other tool-specific data:
+  - `prevented` (boolean): whether the tool failed to perform its tests
+  - `error` (string): a description of the failure, if any
+  - other tool-specific data, if any
 
-In order to make its reports user-friendly, Testaro removes irrelevant data from the native reporting of each tool and coerces the remaining data into some uniformity. Testaro does this by using a module of its own to run each tool. Those modules are files located in the `tests` directory. Each module runs the corresponding tool, gets a tool-native report from the tool, prunes it, and coerces what remains into a _tool report_, which is subject to some format constraints.
+Testaro may also add these properties to any `test` act:
 
-The `data` object can have any properties that might be useful to Testaro, and the names of these properties can differ from one tool to another. The `result` object, however, is constrained.
+- `expectations` (object): the results of validations specified by the act in `expect` properties
+- `expectationFailures` (number): the count of failed validations
 
-### Contents
+Testaro also adds one or both of these properties to each `test` act:
 
+- `result` (object): the results of the tests performed by the tool, in the native format of the tool
+- `standardResult` (object): the `result` property converted to a Testaro-standard structure
 
-### Formats
-
-#### Tool-report formats
-
-The tools listed above as dependencies write their tool reports in various formats. They differ in how they organize multiple instances of the same problem, how they classify severity and certainty, how they point to the locations of problems, how they name problems, etc.
-
-A Testaro report can include, for each tool, either or both of these properties:
-
-- `result`: the result in the native tool format.
-- `standardResult`: the result in a standard format identical for all tools.
+A job specifies whether the report should include, for each `test` act, the `result` property, the `standardResult` property, or both.
 
 #### Standard result
 
 ##### Properties
 
-The standard result includes three properties:
+The `standardResult` property, when added to a `test` act, includes three properties:
 
-- `prevented`: a boolean (`true` or `false`) value, stating whether the page prevented the tool from performing its tests.
-- `totals`: an array of numbers representing how many instances of rule violations at each level of severity the tool reported. There are 4 ordinal severity levels. For example, the array `[3, 0, 14, 10]` would report that there were 3 violations at level 0, 0 at level 1, 14 at level 2, and 10 at level 3.
-- `instances`: an array of objects describing the rule violations. An instance can describe a single violation, usually by one element in the page, or can summarize multiple violations of the same rule.
+- `prevented` (boolean): whether the tool failed to perform its tests on the page.
+- `totals` (array of numbers): counts of rule violations at 4 ordinal severity levels. For example, the array `[3, 0, 14, 10]` reports that there were 3 violations at level 0, 0 at level 1, 14 at level 2, and 10 at level 3.
+- `instances` (array of objects): descriptions of rule violations reported. An instance can describe a single violation, usually by one element in the page, or can summarize multiple violations of the same rule.
 
 If the value of `prevented` is `true`, the standard result also includes an `error` property describing the reason for the failure.
 
 ##### Instances
 
-Here is an example of a standard instance:
+Here is an example of an instance in a standard result:
 
 ```javascript
 {
@@ -706,7 +704,7 @@ Here is an example of a standard instance:
 }
 ```
 
-This instance describes a violation of a rule named `rule01` by a `button` element.
+This instance says that a `button` element violates a rule named `rule01`.
 
 The element has no `id` attribute to distinguish it from other `button` elements, but the tool describes its location. This tool uses an XPath to do that. Tools use various methods for location description, namely:
 
@@ -728,6 +726,7 @@ While the above properties can help you find the offending element, Testaro make
 These standard identifiers can help you determine whether violations reported by different tools belong to the same element or different elements. The `boxID` property can also support the making of images of the violating elements.
 
 Some tools limit the efficacy of the current algorithm for standard identifiers:
+
 - HTML CodeSniffer does not report element locations, and the reported code excerpts exclude all text content.
 - Nu Html Checker reports line and column boundaries of element start tags and truncates element text content in reported code excerpts.
 
@@ -752,7 +751,7 @@ This standard format reflects some judgments. For example:
 - The `ruleID` property of an instance is a matching rule if the tool issues a message but no rule identifier for each instance. The `nuVal` tool does this. In this case, Testaro is classifying the messages into rules.
 - The `ruleID` property of an instance may reclassify tool rules. For example, if a tool rule covers multiple situations that are dissimilar, that rule may be split into multiple rules with distinct `ruleID` properties.
 
-You are not dependent on the judgments incorporated into the standard format, because Testaro can give you the original reports from the tools.
+You are not dependent on the judgments incorporated into the standard format, because Testaro can give you the original reports from the tools as the `result` property of a `test` act.
 
 The standard format does not express opinions on issue classification. A rule ID identifies something deemed to be an issue by a tool. Useful reporting from multi-tool testing still requires the classification of tool **rules** into **issues**. If tool `A` has `alt-incomplete` as a rule ID and tool `B` has `image_alt_stub` as a rule ID, Testaro does not decide whether those are really the same issue or different issues. That decision belongs to you. The standardization of tool reports by Testaro eliminates some of the drudgery in issue classification, but not any of the judgment required for issue classification.
 
