@@ -259,7 +259,6 @@ const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
   act.result.error ??= message;
   if (act.type === 'test') {
     act.data ??= {};
-    act.data.success = false;
     act.data.prevented = true;
     act.data.error = message;
     // Add prevention data to the job data.

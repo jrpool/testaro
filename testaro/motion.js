@@ -41,11 +41,14 @@ exports.reporter = async page => {
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
   // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
-  const shoot0PNGBuffer = await fs.readFile('testaro-shoot-0.png');
-  const shoot1PNGBuffer = await fs.readFile('testaro-shoot-1.png');
-  // If they both exist:
+  const shoot0PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-0.png`);
+  const shoot1PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-1.png`);
+  // Delete the buffers files.
+  await fs.unlink(`${tmpDir}/testaro-shoot-0.png`);
+  await fs.unlink(`${tmpDir}/testaro-shoot-1.png`);
+  // If both buffers exist:
   if (shoot0PNGBuffer && shoot1PNGBuffer) {
-    // Parse the PNG buffers into PNG objects.
+    // Parse them into PNG objects.
     const shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
     const shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
     // If their dimensions differ:
@@ -78,11 +81,16 @@ exports.reporter = async page => {
           tagName: 'HTML',
           id: '',
           location: {
-            doc: '',
-            type: '',
-            spec: ''
+            doc: 'dom',
+            type: 'box',
+            spec: {
+              x: 0,
+              y: 0,
+              width,
+              height
+            }
           },
-          excerpt: ''
+          excerpt: '<html>…</html>'
         });
       }
     }

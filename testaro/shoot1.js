@@ -18,5 +18,9 @@ exports.reporter = async page => {
   // Make and save the second screenshot.
   const pngPath = await shoot(page, 1);
   // Return the file path or a failure result.
-  return pngPath ? {pngPath} : {prevented: true};
+  return {
+    data: {
+      prevented: ! pngPath
+    }
+  };
 };

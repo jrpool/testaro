@@ -70,7 +70,7 @@ exports.visChange = async (page, options = {}) => {
       }
       catch(error) {
         return {
-          success: false,
+          prevented: true,
           error: 'Hovering failed'
         };
       }
@@ -91,7 +91,7 @@ exports.visChange = async (page, options = {}) => {
       const changePercent = 100 * pixelChanges / (width * height);
       // Return this.
       return {
-        success: true,
+        prevented: false,
         width,
         height,
         pixelChanges,
@@ -102,7 +102,6 @@ exports.visChange = async (page, options = {}) => {
     else {
       // Return this.
       return {
-        success: false,
         prevented: true,
         error: 'Second screenshot failed'
       };
@@ -112,7 +111,6 @@ exports.visChange = async (page, options = {}) => {
   else {
     // Return this.
     return {
-      success: false,
       prevented: true,
       error: 'First screenshot failed'
     };

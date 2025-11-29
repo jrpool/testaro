@@ -223,6 +223,8 @@ Job properties:
 
 ## Acts
 
+As shown above, `acts` is a property of a job and has an array value. Each item in the array is an object that specifies an _act_.
+
 ### Introduction to acts
 
 Each act object has a `type` property and optionally has a `name` property (used in branching, described below). It must or may have other properties, depending on the value of `type`.
@@ -230,6 +232,7 @@ Each act object has a `type` property and optionally has a `name` property (used
 ### Act types
 
 The acts can tell Testaro to perform any of:
+
 - _navigations_ (browser launches, visits to URLs, waits for page conditions, etc.)
 - _moves_ (clicks, text inputs, hovers, etc.)
 - _alterations_ (changes to the page)
@@ -413,9 +416,7 @@ The third item in each array, if there are 3 items in the array, is the criterio
 
 A typical use for an `expect` property is checking the correctness of a Testaro test. Thus, the validation jobs in the `validation/tests/jobs` directory all contain `test` acts with `expect` properties. See the “Validation” section below.
 
-When a `test` act has an `expect` property, the result for that act has an `expectations` property reporting whether the expectations were satisfied. The value of `expectations` is an array of objects, one object per expectation. Each object includes a `property` property identifying the expectation, and a `passed` property with `true` or `false` value reporting whether the expectation was satisfied. If applicable, it also has other properties identifying what was expected and what was actually reported.
-
-### Tools
+### Tool details
 
 The tools whose tests Testaro performs have particularities described below.
 
@@ -515,23 +516,23 @@ The target can be provided to QualWeb either as an existing page or as a URL. Ex
 
 #### Testaro
 
-If you do not specify rules when using the `testaro` tool, Testaro will test for the rules listed in the `evalRules` object of the `tests/testaro.js` file.
+The rules that Testaro can test for are implemented in files within the `testaro` directory.
 
-The `rules` argument for a `testaro` test act is an array whose first item is either `'y'` or `'n'` and whose remaining items are rule IDs. If `'y'`, then only the specified rules’ tests are performed. If `'n'`, then all the evaluative tests are performed, **except** for the specified rules.
+If you do not specify rules when using the `testaro` tool, Testaro will test for its default rules, namely the rules that have `true` values on the `defaultOn` property in the `allRules` object defined in the `tests/testaro.js` file.
+
+The optional `rules` argument for a `testaro` test act is an array whose first item is either `'y'` or `'n'` and whose remaining items are rule IDs. If `'y'`, then only the specified rules’ tests are performed. If `'n'`, then all the default rules are tested for, **except** for the specified rules.
 
 The `testaro` tool (like the `ibm` tool) has a `withItems` property. If you set it to `false`, the `standardResult` object will contain an `instances` property with summaries that identify issues and instance counts. If you set it to `true`, some of the instances will be itemized.
 
 Unlike any other tool, the `testaro` tool requires a `stopOnFail` property, which specifies whether a failure to conform to any rule (i.e. any value of `totals` other than `[0, 0, 0, 0]`) should terminate the execution of tests for the remaining rules.
 
-Warnings in the `testaro/hover.js`, `testaro/motion.js`, and `procs/visChange.js` files advise you to avoid launching particular browser types for the performance of particular Testaro tests.
+Some Testaro tests make use of the `init()` function in the `procs/testaro` module. That function samples elements if the population of elements to be tested is larger than 100. The purpose is to achieve reasonable performance. The sampling overweights elements near the beginning of a page, because of the tendency of that location to have important and atypical elements.
 
-Several Testaro tests make use of the `init()` function in the `procs/testaro` module. That function samples elements if the population of elements to be tested is larger than 100. The purpose is to achieve reasonable performance. The sampling overweights elements near the beginning of a page, because of the tendency of that location to have important and atypical elements.
-
-You can add custom rules to the rules of any tool. Testaro provides a template, `data/template.js`, for the definition of a rule to be added. Once you have created a copy of the template with revisions, you can move the copy into the `testaro` directory and add an entry for your custom rule to the `evalRules` object in the `tests/testaro.js` file. Then your custom rule will act as a Testaro rule. Some `testaro` rules are simple enough to be fully specified in JSON files. You can use any of those as a template if you want to create a sufficiently simple custom rule, namely a rule whose prohibited elements are all and only the elements matching a CSS selector. More details about rule creation are in the `CONTRIBUTING.md` file.
+You can add custom rules to the rules of any tool. Testaro provides a template, `data/template.js`, for the definition of a rule to be added. Once you have created a copy of the template with revisions, you can move the copy into the `testaro` directory and add an entry for your custom rule to the `allRules` object in the `tests/testaro.js` file. Then your custom rule will act as a Testaro rule. Some `testaro` rules are simple enough to be fully specified in JSON files. You can use any of those as a template if you want to create a sufficiently simple custom rule, namely a rule whose prohibited elements are all and only the elements matching a CSS selector. More details about rule creation are in the `CONTRIBUTING.md` file.
 
 #### WallyAX
 
-If a `wax` test act is included in the job, an environment variable named `WAX_KEY` must exist, with your WallyAX API key as its value. You can request it from [WallyAX](mailto:technology@wallyax.com).
+If a `wax` test act is included in the job, an environment variable named `WAX_KEY` must exist, with your WallyAX API key as its value. You can obtain it from [WallyAX](https://account.wallyax.com/?ref_app=Developer&app_type=npm).
 
 The `wax` tool imposes a limit on the size of a page to be tested. If the page exceeds the limit, Testaro treats the page as preventing `wax` from performing its tests. The limit is less than 500,000 characters.
 
@@ -544,8 +545,6 @@ If you want the subscription API to perform the tests, you must get a WAVE API k
 If you want the stand-alone API to perform the tests, you need to have that API installed and running, and the `wave` test act needs to define the URL of your stand-alone API. The test act can also define a `prescript` script and/or a `postscript` script.
 
 ### Browser types
-
-The warning comments in the `testaro/hover.js` and `testaro/motion.js` files state that those tests operate correctly only with the `webkit` browser type. The warning comment in the `testaro/focInd.js` file states that that test operates incorrectly with the `firefox` browser type.
 
 When you want to run some tests of a tool with one browser type and other tests of the same tool with another browser type, you can do so by splitting the rules into two test acts. For example, one test act can specify the rules as
 
@@ -662,12 +661,18 @@ Testaro may also add these properties to any `test` act:
 - `expectations` (object): the results of validations specified by the act in `expect` properties
 - `expectationFailures` (number): the count of failed validations
 
+The value of `expectations` is an array of objects, one object per expectation. Each object includes a `property` property identifying the expectation, and a `passed` property with `true` or `false` value reporting whether the expectation was satisfied. If applicable, it also has other properties identifying what was expected and what was actually reported.
+
 Testaro also adds one or both of these properties to each `test` act:
 
 - `result` (object): the results of the tests performed by the tool, in the native format of the tool
 - `standardResult` (object): the `result` property converted to a Testaro-standard structure
 
 A job specifies whether the report should include, for each `test` act, the `result` property, the `standardResult` property, or both.
+
+#### Act-level data from `testaro` test acts
+
+Each Testaro rule module exports a `reporter` function, which returns an object with `data`, `totals`, and `standardInstances` properties. Testaro combines the values of those properties with the corresponding values of the same properties from the other `testaro` tests to create the `data` and `result` properties added to `testaro` test acts.
 
 #### Standard result
 

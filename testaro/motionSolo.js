@@ -61,7 +61,7 @@ exports.reporter = async page => {
     delayBetween: 3000
   });
   // If the screenshots succeeded:
-  if (data.success) {
+  if (! data.prevented) {
     // If any pixels were changed:
     if (data.pixelChanges) {
       // Get the ordinal severity from the fractional pixel change.
