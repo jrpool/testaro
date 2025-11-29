@@ -45,15 +45,6 @@ const debug = process.env.DEBUG === 'true';
 const waits = Number.parseInt(process.env.WAITS) || 0;
 const tmpDir = os.tmpdir();
 
-// DEBUGGING
-
-const logMemory = label => {
-  const usage = process.memoryUsage();
-  console.log(
-    `XXX CHILD MEMORY [${label}]: heap ${Math.round(usage.heapUsed / 1024 / 1024)}/${Math.round(usage.heapTotal / 1024 / 1024)}MB, ext ${Math.round(usage.external / 1024 / 1024)}MB, RSS ${Math.round(usage.rss / 1024 / 1024)}MB`
-  );
-};
-
 // VARIABLES
 
 const actIndex = Number.parseInt(process.argv[2]);
@@ -65,14 +56,12 @@ const doTestAct = async () => {
   const reportPath = `${tmpDir}/report.json`;
   // Get the report from the temporary directory.
   const reportJSON = await fs.readFile(reportPath, 'utf8');
-  logMemory('XXX After parsing report');
   const report = JSON.parse(reportJSON);
   // Get a reference to the act in the report.
   const act = report.acts[actIndex];
   // Get the tool name.
   const {which} = act;
   // Launch a browser, navigate to the URL, and update the page export of the run module.
-  console.log('XXX About to call launch() in the doTestAct() function');
   await launch(
     report,
     debug,
@@ -80,17 +69,13 @@ const doTestAct = async () => {
     act.launch && act.launch.browserID || report.browserID,
     act.launch && act.launch.target && act.launch.target.url || report.target.url
   );
-  logMemory('XXX After launch');
   // If the launch aborted the job:
   if (report.jobData && report.jobData.aborted) {
     // Close any existing browser.
     await browserClose();
-    logMemory('XXX After browser close (aborted)');
     // Save the revised report.
     const reportJSON = JSON.stringify(report);
-    logMemory('XXX After report stringified (aborted)');
     await fs.writeFile(reportPath, reportJSON);
-    logMemory('XXX After report written (aborted)');
     // Report this.
     process.send('ERROR: Job aborted');
   }
@@ -103,11 +88,9 @@ const doTestAct = async () => {
       try {
         // Make the act reporter perform the specified tests of the tool.
         const actReport = await require(`../tests/${which}`).reporter(page, report, actIndex, 65);
-        logMemory('XXX After act reporter');
         // Add the data and result to the act.
         act.data = actReport.data;
         act.result = actReport.result;
-        logMemory('XXX After act data and result assigned');
         // If the tool reported that the page prevented testing:
         if (act.data && act.data.prevented) {
           // Add prevention data to the job data.
@@ -115,20 +98,14 @@ const doTestAct = async () => {
         }
         // Close any existing browser.
         await browserClose();
-        logMemory('XXX After browser closed');
-        console.log('XXX About to stringify the report');
         const reportJSON = JSON.stringify(report);
-        logMemory('XXX After report stringified');
-        console.log(`XXX JSON report size: ${Math.round(reportJSON.length / 1024 / 1024)}MB`);
         // Save the revised report.
         await fs.writeFile(reportPath, reportJSON);
-        logMemory('XXX After report written');
         // Send a completion message.
         process.send('Act completed');
       }
       // If the tool invocation failed:
       catch(error) {
-        logMemory('XXX In catch block');
         // Close any existing browser.
         await browserClose();
         // Save the revised report.

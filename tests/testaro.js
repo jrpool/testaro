@@ -42,8 +42,8 @@ const fs = require('fs/promises');
 // Metadata of all rules in default execution order.
 const allRules = [
   {
-    id: 'shoot',
-    what: 'page screenshot',
+    id: 'shoot0',
+    what: 'first page screenshot',
     contaminator: false,
     timeOut: 5,
     defaultOn: true
@@ -350,8 +350,8 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'shoot',
-    what: 'page screenshot',
+    id: 'shoot1',
+    what: 'second page screenshot',
     contaminator: false,
     timeOut: 5,
     defaultOn: true
@@ -450,25 +450,6 @@ const allRules = [
 ];
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
-// MEMORY LEAK DIAGNOSIS
-
-const memorySnapshots = [];
-const logMemory = (label) => {
-  const usage = process.memoryUsage();
-  const snapshot = {
-    label,
-    heapUsed: Math.round(usage.heapUsed / 1024 / 1024),
-    heapTotal: Math.round(usage.heapTotal / 1024 / 1024),
-    external: Math.round(usage.external / 1024 / 1024),
-    rss: Math.round(usage.rss / 1024 / 1024)
-  };
-  memorySnapshots.push(snapshot);
-  const {heapUsed, heapTotal, external, rss} = snapshot;
-  console.log(
-    `XXX MEMORY [${label}]: heap ${heapUsed}/${heapTotal}MB, ext ${external}MB, RSS ${rss}MB`
-  );
-};
-
 // ERROR HANDLER
 process.on('unhandledRejection', reason => {
   console.error(`ERROR: Unhandled Promise Rejection (${reason})`);
@@ -504,7 +485,6 @@ const wait = ms => {
 };
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
-  logMemory('XXX Testaro start');
   const url = await page.url();
   const act = report.acts[actIndex];
   const {args, stopOnFail, withItems} = act;
@@ -549,12 +529,10 @@ exports.reporter = async (page, report, actIndex) => {
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
   let contaminatorsStarted = false;
-  logMemory('XXX Before rule loop');
   // For each rule to be tested for:
   for (const rule of jobRules) {
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
-    logMemory(`XXX Before rule ${ruleID}`);
     const pageClosed = page ? page.isClosed() : true;
     const isContaminator = rule.contaminator;
     // If it is a contaminator other than the first one or the page has closed:
@@ -565,7 +543,6 @@ exports.reporter = async (page, report, actIndex) => {
         console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
       }
       // Replace the browser and the page and navigate to the target.
-      console.log(`XXX About to call launch() for rule ${ruleID}`);
       await launch(
         report,
         process.env.DEBUG === 'true',
@@ -747,28 +724,12 @@ exports.reporter = async (page, report, actIndex) => {
       if (global.gc) {
         global.gc();
       }
-      logMemory(`XXX After ${ruleID} garbage collection`);
-      // XXX Check for memory growth.
-      if (memorySnapshots.length > 1) {
-        const current = memorySnapshots[memorySnapshots.length - 1];
-        const previous = memorySnapshots[memorySnapshots.length - 2];
-        const heapGrowth = current.heapUsed - previous.heapUsed;
-        if (heapGrowth > 10) {
-          console.log(`XXX WARNING: Heap grew ${heapGrowth}MB during ${ruleID}`);
-        }
-      }
     }
     catch(error) {}
   };
-  logMemory(`XXX After all rules`);
   // Record the test times in descending order.
   testTimes.sort((a, b) => b[1] - a[1]).forEach(pair => {
     data.ruleTestTimes[pair[0]] = pair[1];
-  });
-  logMemory('XXX Memory snapshots at end of Testaro');
-  memorySnapshots.forEach(snapshot => {
-    const {label, heapUsed, heapTotal} = snapshot;
-    console.log(`XXX [${label}]: heap ${heapUsed}/${heapTotal} MB`);
   });
   return {
     data,

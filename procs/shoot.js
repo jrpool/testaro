@@ -28,7 +28,7 @@ exports.shoot = async (page, index) => {
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
-    const png = PNG.sync.read(shot);
+    let png = PNG.sync.read(shot);
     shot = null;
     const pngBuffer = PNG.sync.write(png);
     png = null;

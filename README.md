@@ -477,7 +477,7 @@ In `node_modules/accessibility-checker/lib/reporters/ACReporterJSON.js`, add the
 results.label = results.label.replace(/:/g, '-');
 ```
 
-These changes were proposed as pull requests 1333 and 1334 (https://github.com/IBMa/equal-access/pulls).
+These changes were proposed as [pull requests 1333 and 1334](https://github.com/IBMa/equal-access/pulls).
 
 The `ibm` tool is one of two tools (`testaro` is the other) with a `withItems` property. If you set `withItems` to `false`, the result includes the counts of “violations” and “recommendations”, but no information about the rules that gave rise to them.
 
@@ -518,7 +518,7 @@ The target can be provided to QualWeb either as an existing page or as a URL. Ex
 
 The rules that Testaro can test for are implemented in files within the `testaro` directory.
 
-If you do not specify rules when using the `testaro` tool, Testaro will test for its default rules, namely the rules that have `true` values on the `defaultOn` property in the `allRules` object defined in the `tests/testaro.js` file.
+If you do not specify rules when using the `testaro` tool, Testaro will test for its default rules, namely the rules that have `true` values on the `defaultOn` property in the `allRules` array defined in the `tests/testaro.js` file. It will test for these rules in the order in which they appear in the array.
 
 The optional `rules` argument for a `testaro` test act is an array whose first item is either `'y'` or `'n'` and whose remaining items are rule IDs. If `'y'`, then only the specified rules’ tests are performed. If `'n'`, then all the default rules are tested for, **except** for the specified rules.
 

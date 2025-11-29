@@ -274,81 +274,25 @@ const addError = (alsoLog, alsoAbort, report, actIndex, message) => {
 const browserClose = exports.browserClose = async () => {
   // If a browser exists:
   if (browser) {
-    console.log('XXX Browser exists for browserClose() to close');
-    console.log(`XXX Count of browser contexts: ${browser.contexts().length}`);
-    // XXX Capture process info BEFORE closing
-    try {
-      const beforeResult = execSync(
-        'ps axo pid,ppid,pgid,comm | grep chrome-headless-shell | grep -v grep',
-        {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'ignore']
-        }
-      );
-      console.log('XXX Processes BEFORE browser.close():');
-      console.log(beforeResult.trim().split('\n').map(line => `XXX   ${line}`).join('\n'));
-    }
-    catch(error) {
-      console.log('XXX No chrome-headless-shell processes found before close');
-    }
     browserCloseIntentional = true;
     // Try to close all its contexts and ignore any messages that they are already closed.
     for (const context of browser.contexts()) {
       try {
-        console.log('XXX About to execute context.close()');
         await context.close();
-        console.log('XXX Executed it');
       }
       catch(error) {
-        console.log(`XXX Context closing failed (${error.message.slice(0, 200)})`);
       }
     }
     // Close the browser.
-    console.log('XXX About to execute browser.close()');
-    const browserPID = browser.process ? browser.process().pid || 'none' : 'unknown';
-    console.log(`XXX Browser process PID: ${browserPID}`);
     await browser.close();
-    console.log('XXX Executed browser.close()');
     browserCloseIntentional = false;
     browser = null;
-    // XXX Wait and check remaining processes
-    await wait(2000);
-    console.log('XXX About to check for remaining chrome-headless-shell processes');
-    try {
-      const afterResult = execSync(
-        'ps axo pid,ppid,pgid,state,comm | grep chrome-headless-shell | grep -v grep',
-        {
-          encoding: 'utf8',
-          stdio: ['pipe', 'pipe', 'ignore']
-        }
-      );
-      const lines = afterResult.trim().split('\n').filter(line => line.length > 0);
-      console.log(
-        `XXX Found ${lines.length} chrome-headless-shell processes after browser.close()`
-      );
-      // Check whether they are zombies.
-      const zombies = lines.filter(line => line.includes(' Z '));
-      if (zombies.length > 0) {
-        console.log(`XXX ${zombies.length} are zombie processes (Z state)`);
-      }
-      if (lines.length > 0) {
-        console.log('XXX Processes:');
-        lines.forEach(line => console.log(`XXX   ${line.slice(0, 150)}`));
-      }
-    }
-    catch(error) {
-      console.log('XXX No chrome-headless-shell processes found (or grep failed)');
-    }
-  }
-  else {
-    console.log('XXX No browser to close in browserClose() function');
   }
 };
 // Launches a browser and navigates to a URL.
 const launch = exports.launch = async (
   report, debug, waits, tempBrowserID, tempURL, retries = 2
 ) => {
-  console.log('XXX Starting to execute launch()');
   const act = report.acts[actIndex];
   const {device} = report;
   const deviceID = device && device.id;
@@ -361,9 +305,7 @@ const launch = exports.launch = async (
     // Create a browser of the specified or default type.
     const browserType = playwrightBrowsers[browserID];
     // Close any current browser.
-    console.log('XXX About to call browserClose() in launch()');
     await browserClose();
-    console.log('XXX Called browserClose() in launch()');
     // Define browser options.
     const browserOptions = {
       logger: {
@@ -382,9 +324,7 @@ const launch = exports.launch = async (
     };
     try {
       // Replace the browser with a new one.
-      console.log('XXX About to launch a browser in launch()');
       browser = await browserType.launch(browserOptions);
-      console.log('XXX Launched a browser and assigned it to the module variable browser');
       // Redefine the context (i.e. browser window).
       const contextOptions = {
         ...device.windowOptions,
@@ -823,7 +763,6 @@ const doActs = async (report, opts = {}) => {
       else if (type === 'launch') {
         const actLaunchSpecs = launchSpecs(act, report);
         // Launch a browser, navigate to a page, and add the result to the act.
-        console.log('XXX About to launch a browser for a launch act');
         await launch(
           report,
           debug,
@@ -851,7 +790,6 @@ const doActs = async (report, opts = {}) => {
         let reportJSON = JSON.stringify(report);
         await fs.writeFile(reportPath, reportJSON);
         // Create a process to perform the act and add the result to the saved report.
-        console.log(`XXX About to fork doTestAct for tool ${act.which}`);
         const actResult = await new Promise(resolve => {
           let closed = false;
           const child = fork(
@@ -870,7 +808,6 @@ const doActs = async (report, opts = {}) => {
             }
           });
         });
-        console.log(`XXX Forked doTestAct for tool ${act.which} completed`);
         // Get the revised report.
         reportJSON = await fs.readFile(reportPath, 'utf8');
         report = JSON.parse(reportJSON);
@@ -1577,7 +1514,6 @@ const doActs = async (report, opts = {}) => {
     for (const specString of Object.keys(launchSpecActs)) {
       const specs = specString.split('>');
       // Replace the browser and navigate to the URL.
-      console.log('XXX About to call launch() for standardization:');
       await launch(
         report,
         debug,
@@ -1620,17 +1556,9 @@ const doActs = async (report, opts = {}) => {
       }
     };
     // Close the last browser launched for standardization.
-    console.log('XXX About to call browserClose() after standardization');
     await browserClose();
-    console.log('XXX Called browserClose() after standardization');
     console.log('Standardization completed');
   }
-  /*
-  // Close the browser.
-  console.log('XXX About to call browserClose() at the end of the doActs() function');
-  await browserClose();
-  console.log('XXX Called browserClose() at the end of the doActs() function');
-  */
   // Delete the temporary report file.
   await fs.rm(reportPath, {force: true});
   return report;
