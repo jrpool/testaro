@@ -44,406 +44,406 @@ const allRules = [
   {
     id: 'shoot0',
     what: 'first page screenshot',
-    contaminator: true,
+    launchRole: 'owner',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'adbID',
     what: 'elements with ambiguous or missing referenced descriptions',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allCaps',
     what: 'leaf elements with entirely upper-case text longer than 7 characters',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'allHidden',
     what: 'page that is entirely or mostly hidden',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allSlanted',
     what: 'leaf elements with entirely italic or oblique text longer than 39 characters',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'altScheme',
     what: 'img elements with alt attributes having URLs as their entire values',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'attVal',
     what: 'elements with attributes having illicit values',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: false
   },
   {
     id: 'dupAtt',
     what: 'duplicate attribute values',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'autocomplete',
     what: 'name and email inputs without autocomplete attributes',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'bulk',
     what: 'large count of visible elements',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'captionLoc',
     what: 'caption elements that are not first children of table elements',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'datalistRef',
     what: 'elements with ambiguous or missing referenced datalist elements',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'distortion',
     what: 'distorted text',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'docType',
     what: 'document without a doctype property',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'dupAtt',
     what: 'elements with duplicate attributes',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'embAc',
     what: 'active elements embedded in links or buttons',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'headEl',
     what: 'invalid elements within the head',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'headingAmb',
     what: 'same-level sibling headings with identical texts',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'hr',
     what: 'hr element instead of styles used for vertical segmentation',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'imageLink',
     what: 'links with image files as their destinations',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'labClash',
     what: 'labeling inconsistencies',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'legendLoc',
     what: 'legend elements that are not first children of fieldset elements',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'lineHeight',
     what: 'text with a line height less than 1.5 times its font size',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'linkAmb',
     what: 'links with identical texts but different destinations',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkExt',
     what: 'links that automatically open new windows',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkOldAtt',
     what: 'links with deprecated attributes',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkTitle',
     what: 'links with title attributes repeating text content',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkTo',
     what: 'links without destinations',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkUl',
     what: 'missing underlines on inline links',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'miniText',
     what: 'text smaller than 11 pixels',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'nonTable',
     what: 'table elements used for layout',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'optRoleSel',
     what: 'Non-option elements with option roles that have no aria-selected attributes',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'phOnly',
     what: 'input elements with placeholders but no accessible names',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'pseudoP',
     what: 'adjacent br elements suspected of nonsemantically simulating p elements',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'radioSet',
     what: 'radio buttons not grouped into standard field sets',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'role',
     what: 'native-replacing explicit roles',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'secHeading',
     what: 'headings that violate the logical level order in their sectioning containers',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'styleDiff',
     what: 'style inconsistencies',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'targetSmall',
     what: 'buttons, inputs, and non-inline links smaller than 44 pixels wide and high',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'targetTiny',
     what: 'buttons, inputs, and non-inline links smaller than 24 pixels wide and high',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'textSem',
     what: 'semantically vague elements i, b, and/or small',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'title',
     what: 'page title',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: false
   },
   {
     id: 'titledEl',
     what: 'title attributes on inappropriate elements',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'zIndex',
     what: 'non-default Z indexes',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'shoot1',
     what: 'second page screenshot',
-    contaminator: true,
+    launchRole: 'owner',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'motion',
     what: 'motion without user request, measured across tests',
-    contaminator: false,
+    launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'buttonMenu',
     what: 'nonstandard keyboard navigation between items of button-controlled menus',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 15,
     defaultOn: true
   },
   {
     id: 'elements',
     what: 'data on specified elements',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: false
   },
   {
     id: 'focAll',
     what: 'discrepancies between focusable and Tab-focused elements',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'focInd',
     what: 'missing and nonstandard focus indicators',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'focOp',
     what: 'Tab-focusable elements that are not operable',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'focVis',
     what: 'links that are not entirely visible when focused',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'hover',
     what: 'hover-caused content changes',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'hovInd',
     what: 'hover indication nonstandard',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'opFoc',
     what: 'operable elements that are not Tab-focusable',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'tabNav',
     what: 'nonstandard keyboard navigation between elements with the tab role',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'motionSolo',
     what: 'motion without user request, measured within this test',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 15,
     defaultOn: false
   },
   {
     id: 'textNodes',
     what: 'data on specified text nodes',
-    contaminator: true,
+    launchRole: 'waster',
     timeOut: 10,
     defaultOn: false
   }
@@ -537,11 +537,15 @@ exports.reporter = async (page, report, actIndex) => {
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
     const pageClosed = page ? page.isClosed() : true;
-    const followsContaminator = ruleIndex && jobRules[ruleIndex - 1].contaminator;
-    // If it follows a contaminator or the page has closed:
-    if (followsContaminator || pageClosed) {
-      // If the page has closed:
-      if (pageClosed) {
+    // Get whether it needs this function to launch a new browser.
+    const needsLaunch = ruleIndex
+    && jobRules[ruleIndex - 1].launchRole !== 'sharer'
+    && rule.launchRole !== 'owner'
+    || ! ruleIndex;
+    // If it does, or if the page has closed:
+    if (needsLaunch || pageClosed) {
+      // If the page has closed when it is expected to be open:
+      if (pageClosed && ! needsLaunch) {
         // Report this.
         console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
       }
