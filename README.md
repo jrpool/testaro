@@ -140,7 +140,7 @@ All of the tests that Testaro can perform are free of cost, except those perform
 
 ## Jobs
 
-A _job_ is an object that specifies what Testaro is to do. As Testaro performs a job, Testaro reports results by adding data to the job and making that enhanced object available as a _report_.
+A _job_ is an object that specifies what Testaro is to do, and how. As Testaro performs a job, Testaro reports results by adding data to the job and making that enhanced object available as a _report_.
 
 ### Example of a job
 
@@ -882,12 +882,17 @@ The arguments and behaviors described above for execution by a module apply here
 
 In addition to their uses described above, environment variables can be used by acts of type `test`, as documented in the `actSpecs.js` file.
 
-Before making Testaro run a job, you can optionally also set `DEBUG` (to `'true'` or anything else) and/or `WAITS` (to a non-negative integer). The effects of these variables are described in the `run.js` file.
+Before making Testaro run a job, you can optionally also set `HEADED_BROWSER`, `DEBUG`, and/or `WAITS`. The effects of these variables are:
+
+- `HEADED_BROWSER`: whether to run the browser in headed mode instead of the default headless mode
+- `DEBUG`: whether to make logging verbose
+- `WAITS`: the number of milliseconds to wait between actions
 
 You may store environment variables in an untracked `.env` file if you wish, and Testaro will recognize them. Here is a template for a `.env` file:
 
 ```conf
 AGENT=agentabc
+HEADED_BROWSER=false
 DEBUG=false
 JOBDIR=../testing/jobs
 NETWATCH_URL_0_JOB=http://localhost:3000/api/assignJob/agentabc

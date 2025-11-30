@@ -44,7 +44,7 @@ const allRules = [
   {
     id: 'shoot0',
     what: 'first page screenshot',
-    contaminator: false,
+    contaminator: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -352,7 +352,7 @@ const allRules = [
   {
     id: 'shoot1',
     what: 'second page screenshot',
-    contaminator: false,
+    contaminator: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -420,13 +420,6 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'motionSolo',
-    what: 'motion without user request, measured within this test',
-    contaminator: true,
-    timeOut: 15,
-    defaultOn: false
-  },
-  {
     id: 'opFoc',
     what: 'operable elements that are not Tab-focusable',
     contaminator: true,
@@ -441,6 +434,13 @@ const allRules = [
     defaultOn: true
   },
   {
+    id: 'motionSolo',
+    what: 'motion without user request, measured within this test',
+    contaminator: true,
+    timeOut: 15,
+    defaultOn: false
+  },
+  {
     id: 'textNodes',
     what: 'data on specified text nodes',
     contaminator: true,
@@ -448,6 +448,9 @@ const allRules = [
     defaultOn: false
   }
 ];
+const headedBrowser = process.env.HEADED_BROWSER === 'true';
+const debug = process.env.DEBUG === 'true';
+const waits = Number.parseInt(process.env.WAITS) || 0;
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
 // ERROR HANDLER
@@ -528,15 +531,15 @@ exports.reporter = async (page, report, actIndex) => {
   : allRules.filter(rule => rule.defaultOn && ! allRuleIDs.includes(rule.id));
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
-  let contaminatorsStarted = false;
   // For each rule to be tested for:
-  for (const rule of jobRules) {
+  for (const ruleIndex in jobRules) {
+    const rule = jobRules[ruleIndex];
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
     const pageClosed = page ? page.isClosed() : true;
-    const isContaminator = rule.contaminator;
-    // If it is a contaminator other than the first one or the page has closed:
-    if (contaminatorsStarted || pageClosed) {
+    const followsContaminator = ruleIndex && jobRules[ruleIndex - 1].contaminator;
+    // If it follows a contaminator or the page has closed:
+    if (followsContaminator || pageClosed) {
       // If the page has closed:
       if (pageClosed) {
         // Report this.
@@ -545,16 +548,13 @@ exports.reporter = async (page, report, actIndex) => {
       // Replace the browser and the page and navigate to the target.
       await launch(
         report,
-        process.env.DEBUG === 'true',
-        Number.parseInt(process.env.WAITS) || 0,
+        headedBrowser,
+        debug,
+        waits,
         browserID,
         url
       );
       page = require('../run').page;
-    }
-    // If the rule is a contaminator, ensure that future tests use new browsers.
-    if (isContaminator) {
-      contaminatorsStarted = true;
     }
     // Report crashes and disconnections during this test.
     let crashHandler;
@@ -661,8 +661,9 @@ exports.reporter = async (page, report, actIndex) => {
             // Replace the browser and the page and navigate to the target.
             await launch(
               report,
-              process.env.DEBUG === 'true',
-              Number.parseInt(process.env.WAITS) || 0,
+              headedBrowser,
+              debug,
+              waits,
               report.browserID,
               url
             );

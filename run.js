@@ -58,9 +58,8 @@ const os = require('os');
 
 // CONSTANTS
 
-// Set DEBUG environment variable to 'true' to add debugging features.
+const headedBrowser = process.env.HEADED_BROWSER === 'true';
 const debug = process.env.DEBUG === 'true';
-// Set WAITS environment variable to a positive number to insert delays (in ms).
 const waits = Number.parseInt(process.env.WAITS) || 0;
 // CSS selectors for targets of moves.
 const moves = {
@@ -291,7 +290,7 @@ const browserClose = exports.browserClose = async () => {
 };
 // Launches a browser and navigates to a URL.
 const launch = exports.launch = async (
-  report, debug, waits, tempBrowserID, tempURL, retries = 2
+  report, headedBrowser, debug, waits, tempBrowserID, tempURL, retries = 2
 ) => {
   const act = report.acts[actIndex];
   const {device} = report;
@@ -316,7 +315,7 @@ const launch = exports.launch = async (
           }
         }
       },
-      headless: ! debug,
+      headless: ! headedBrowser,
       slowMo: waits || 0,
       ...(browserID === 'chromium' && {
         args: ['--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled']
@@ -460,7 +459,7 @@ const launch = exports.launch = async (
         );
         await wait(1000 * waitSeconds + 100);
         // Then retry the launch and navigation.
-        return launch(report, debug, waits, tempBrowserID, tempURL, retries - 1);
+        return launch(report, headedBrowser, debug, waits, tempBrowserID, tempURL, retries - 1);
       }
       // Otherwise, i.e. if no retries remain:
       else {
@@ -765,6 +764,7 @@ const doActs = async (report, opts = {}) => {
         // Launch a browser, navigate to a page, and add the result to the act.
         await launch(
           report,
+          headedBrowser,
           debug,
           waits,
           actLaunchSpecs[0],
@@ -1516,6 +1516,7 @@ const doActs = async (report, opts = {}) => {
       // Replace the browser and navigate to the URL.
       await launch(
         report,
+        headedBrowser,
         debug,
         waits,
         specs[0],

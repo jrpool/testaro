@@ -39,9 +39,8 @@ const os = require('os');
 
 // CONSTANTS
 
-// Set DEBUG environment variable to 'true' to add debugging features.
+const headedBrowser = process.env.HEADED_BROWSER === 'true';
 const debug = process.env.DEBUG === 'true';
-// Set WAITS environment variable to a positive number to insert delays (in ms).
 const waits = Number.parseInt(process.env.WAITS) || 0;
 const tmpDir = os.tmpdir();
 
@@ -64,6 +63,7 @@ const doTestAct = async () => {
   // Launch a browser, navigate to the URL, and update the page export of the run module.
   await launch(
     report,
+    headedBrowser,
     debug,
     waits,
     act.launch && act.launch.browserID || report.browserID,

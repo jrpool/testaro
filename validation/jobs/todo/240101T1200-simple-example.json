@@ -21,8 +21,7 @@
       ]
     }
   ],
-  "sources": {
-  },
+  "sources": {},
   "standard": "only",
   "observe": false,
   "sendReportTo": "http://localhost:3007/api",
