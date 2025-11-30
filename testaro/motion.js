@@ -65,7 +65,7 @@ exports.reporter = async page => {
       // Get the count of differing pixels between the shots.
       const pixelChanges = pixelmatch(shoot0PNG.data, shoot1PNG.data, null, width, height);
       // Get the ratio of differing to all pixels as a percentage.
-      const changePercent = 100 * pixelChanges / (width * height);
+      const changePercent = Math.round(100 * pixelChanges / (width * height));
       // Free the memory used by screenshots.
       shoot0PNG = shoot1PNG = shoot0PNGBuffer = shoot1PNGBuffer = null;
       // If any pixels were changed:
