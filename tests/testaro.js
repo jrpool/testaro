@@ -577,7 +577,7 @@ exports.reporter = async (page, report, actIndex) => {
       };
       browser.on('disconnected', disconnectHandler);
     }
-    // Initialize an argument array.
+    // Initialize an argument array for reporter or jsonTest.
     const ruleArgs = [page, withItems];
     const ruleFileNames = await fs.readdir(`${__dirname}/../testaro`);
     const isJS = ruleFileNames.includes(`${ruleID}.js`);
@@ -662,7 +662,7 @@ exports.reporter = async (page, report, actIndex) => {
               `WARNING: Retry ${3 - testRetries--} of test ${ruleID} starting after page closed`
             );
             await wait(2000);
-            // Replace the browser and the page and navigate to the target.
+            // Replace the browser and the page in the run module and navigate to the target.
             await launch(
               report,
               headedBrowser,

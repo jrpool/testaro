@@ -60,81 +60,90 @@ const doTestAct = async () => {
   const act = report.acts[actIndex];
   // Get the tool name.
   const {which} = act;
-  // Launch a browser, navigate to the URL, and update the page export of the run module.
-  await launch(
-    report,
-    headedBrowser,
-    debug,
-    waits,
-    act.launch && act.launch.browserID || report.browserID,
-    act.launch && act.launch.target && act.launch.target.url || report.target.url
-  );
-  // If the launch aborted the job:
-  if (report.jobData && report.jobData.aborted) {
-    // Close any existing browser.
-    await browserClose();
-    // Save the revised report.
-    const reportJSON = JSON.stringify(report);
-    await fs.writeFile(reportPath, reportJSON);
-    // Report this.
-    process.send('ERROR: Job aborted');
-  }
-  // Otherwise, i.e. if the launch did not abort the job:
-  else {
-    // Get the updated page.
-    const {page} = require('../run');
-    // If it exists:
-    if (page) {
-      try {
-        // Make the act reporter perform the specified tests of the tool.
-        const actReport = await require(`../tests/${which}`).reporter(page, report, actIndex, 65);
-        // Add the data and result to the act.
-        act.data = actReport.data;
-        act.result = actReport.result;
-        // If the tool reported that the page prevented testing:
-        if (act.data && act.data.prevented) {
-          // Add prevention data to the job data.
-          report.jobData.preventions[which] = act.data.error;
-        }
-        // Close any existing browser.
-        await browserClose();
-        const reportJSON = JSON.stringify(report);
-        // Save the revised report.
-        await fs.writeFile(reportPath, reportJSON);
-        // Send a completion message.
-        process.send('Act completed');
-      }
-      // If the tool invocation failed:
-      catch(error) {
-        // Close any existing browser.
-        await browserClose();
-        // Save the revised report.
-        const reportJSON = JSON.stringify(report);
-        await fs.writeFile(reportPath, reportJSON);
-        // Report the failure.
-        const message = error.message.slice(0, 400);
-        console.log(`ERROR: Test act ${act.which} failed (${message})`);
-        process.send('ERROR performing the act');
-      };
+  let page;
+  // If the tool is not Testaro:
+  if (which !== 'testaro') {
+    // Launch a browser, navigate to the URL, and update the page export of the run module.
+    await launch(
+      report,
+      headedBrowser,
+      debug,
+      waits,
+      act.launch && act.launch.browserID || report.browserID,
+      act.launch && act.launch.target && act.launch.target.url || report.target.url
+    );
+    // If the launch aborted the job:
+    if (report.jobData && report.jobData.aborted) {
+      // Close any existing browser.
+      await browserClose();
+      // Save the revised report.
+      const reportJSON = JSON.stringify(report);
+      await fs.writeFile(reportPath, reportJSON);
+      // Report this.
+      process.send('ERROR: Job aborted');
     }
-    // Otherwise, i.e. if the page does not exist:
+    // Otherwise, i.e. if the launch did not abort the job:
     else {
-      // Add data to the act.
-      act.data ??= {};
-      act.data.prevented = true;
-      act.data.error = 'No page';
-      // Add prevention data to the job data.
-      report.jobData.preventions[which] = act.data.error;
+      // Get the updated page.
+      page = require('../run').page;
+    }
+  }
+  // Otherwise, i.e. if the tool is Testaro, which implements test-specific launching:
+  else {
+    // Get the page.
+    page = require('../run').page;
+  }
+  // If the page exists:
+  if (page) {
+    try {
+      // Make the act reporter perform the specified tests of the tool.
+      const actReport = await require(`../tests/${which}`).reporter(page, report, actIndex, 65);
+      // Add the data and result to the act.
+      act.data = actReport.data;
+      act.result = actReport.result;
+      // If the tool reported that the page prevented testing:
+      if (act.data && act.data.prevented) {
+        // Add prevention data to the job data.
+        report.jobData.preventions[which] = act.data.error;
+      }
       // Close any existing browser.
       await browserClose();
       const reportJSON = JSON.stringify(report);
       // Save the revised report.
       await fs.writeFile(reportPath, reportJSON);
-      // Report this.
-      const message = 'ERROR: No page';
-      console.log(message);
-      process.send(message);
+      // Send a completion message.
+      process.send('Act completed');
     }
+    // If the tool invocation failed:
+    catch(error) {
+      // Close any existing browser.
+      await browserClose();
+      // Save the revised report.
+      const reportJSON = JSON.stringify(report);
+      await fs.writeFile(reportPath, reportJSON);
+      // Report the failure.
+      const message = error.message.slice(0, 400);
+      console.log(`ERROR: Test act ${act.which} failed (${message})`);
+      process.send('ERROR performing the act');
+    };
+  }
+  // Otherwise, i.e. if the page does not exist:
+  else {
+    // Add data to the act.
+    act.data ??= {};
+    act.data.prevented = true;
+    act.data.error = 'No page';
+    // Add prevention data to the job data.
+    report.jobData.preventions[which] = act.data.error;
+    // Close any existing browser.
+    await browserClose();
+    const reportJSON = JSON.stringify(report);
+    // Save the revised report.
+    await fs.writeFile(reportPath, reportJSON);
+    // Report this.
+    const message = 'ERROR: No page';
+    console.log(message);
+    process.send(message);
   }
 };
 

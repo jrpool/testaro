@@ -523,8 +523,8 @@ The Testaro rules are classified by an `allRules` array defined in the `tests/te
 - `id`: the rule ID.
 - `what`: a description of the rule.
 - `launchRole`: what a test for the rule does with respect to a browser launch:
-  - `sharer`: requires a browser but leaves it unchanged for the next test to reuse
-  - `waster`: requires a browser and modifies it so that the next test cannot safely use it
+  - `sharer`: requires a browser and leaves it unchanged so the next test can safely reuse it
+  - `waster`: requires a browser and modifies it so the next test cannot safely reuse it
   - `owner`: launches a custom browser itself and closes it at the end of the test
 - `defaultOn`: whether the rule is to be tested for by default.
 - `timeOut`: the maximum time in seconds allowed for a test for the rule.
