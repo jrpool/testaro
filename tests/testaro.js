@@ -537,6 +537,7 @@ exports.reporter = async (page, report, actIndex) => {
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
     const pageClosed = page ? page.isClosed() : true;
+    const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'low';
     // Get whether it needs this function to launch a new browser.
     const needsLaunch = ruleIndex
     && jobRules[ruleIndex - 1].launchRole !== 'sharer'
@@ -552,9 +553,7 @@ exports.reporter = async (page, report, actIndex) => {
       // Replace the browser and the page and navigate to the target.
       await launch(
         report,
-        headedBrowser,
-        debug,
-        waits,
+        headEmulation,
         browserID,
         url
       );
@@ -665,9 +664,7 @@ exports.reporter = async (page, report, actIndex) => {
             // Replace the browser and the page in the run module and navigate to the target.
             await launch(
               report,
-              headedBrowser,
-              debug,
-              waits,
+              headEmulation,
               report.browserID,
               url
             );

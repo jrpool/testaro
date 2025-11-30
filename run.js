@@ -290,7 +290,7 @@ const browserClose = exports.browserClose = async () => {
 };
 // Launches a browser and navigates to a URL.
 const launch = exports.launch = async (
-  report, headedBrowser, debug, waits, tempBrowserID, tempURL, retries = 2
+  report, headEmulation, tempBrowserID, tempURL, retries = 2
 ) => {
   const act = report.acts[actIndex];
   const {device} = report;
@@ -305,7 +305,37 @@ const launch = exports.launch = async (
     const browserType = playwrightBrowsers[browserID];
     // Close any current browser.
     await browserClose();
-    // Define browser options.
+    // Define the browser-option args, depending on the browser type and head-emulation level.
+    const browserOptionArgs = [];
+    if (browserID === 'chromium') {
+      browserOptionArgs.push(
+        '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'
+      );
+      if (headEmulation === 'high') {
+        browserOptionArgs.push(
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-gpu',
+          '--disable-software-rasterizer',
+          '--force-device-scale-factor=1',
+          '--disable-default-apps',
+          '--disable-extensions',
+          '--disable-sync',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-background-networking',
+          '--force-color-profile=srgb',
+          '--disable-features=TranslateUI,VizDisplayCompositor',
+          '--disable-ipc-flooding-protection',
+          '--disable-logging',
+          '--disable-permissions-api',
+          '--disable-notifications',
+          '--disable-popup-blocking'
+        );
+      }
+    }
+    // Define the browser options.
     const browserOptions = {
       logger: {
         isEnabled: () => false,
@@ -317,9 +347,7 @@ const launch = exports.launch = async (
       },
       headless: ! headedBrowser,
       slowMo: waits || 0,
-      ...(browserID === 'chromium' && {
-        args: ['--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled']
-      })
+      args: browserOptionArgs
     };
     try {
       // Replace the browser with a new one.
@@ -459,7 +487,7 @@ const launch = exports.launch = async (
         );
         await wait(1000 * waitSeconds + 100);
         // Then retry the launch and navigation.
-        return launch(report, headedBrowser, debug, waits, tempBrowserID, tempURL, retries - 1);
+        return launch(report, headEmulation, tempBrowserID, tempURL, retries - 1);
       }
       // Otherwise, i.e. if no retries remain:
       else {
@@ -764,9 +792,7 @@ const doActs = async (report, opts = {}) => {
         // Launch a browser, navigate to a page, and add the result to the act.
         await launch(
           report,
-          headedBrowser,
-          debug,
-          waits,
+          'low',
           actLaunchSpecs[0],
           actLaunchSpecs[1]
         );
@@ -1516,9 +1542,7 @@ const doActs = async (report, opts = {}) => {
       // Replace the browser and navigate to the URL.
       await launch(
         report,
-        headedBrowser,
-        debug,
-        waits,
+        'low',
         specs[0],
         specs[1]
       );

@@ -63,14 +63,14 @@ const doTestAct = async () => {
   let page;
   // If the tool is not Testaro:
   if (which !== 'testaro') {
+    const browserID = act.launch && act.launch.browserID || report.browserID;
+    const targetURL = act.launch && act.launch.target && act.launch.target.url || report.target.url;
     // Launch a browser, navigate to the URL, and update the page export of the run module.
     await launch(
       report,
-      headedBrowser,
-      debug,
-      waits,
-      act.launch && act.launch.browserID || report.browserID,
-      act.launch && act.launch.target && act.launch.target.url || report.target.url
+      'low',
+      browserID,
+      targetURL
     );
     // If the launch aborted the job:
     if (report.jobData && report.jobData.aborted) {
