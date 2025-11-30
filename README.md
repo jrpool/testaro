@@ -529,7 +529,7 @@ The Testaro rules are classified by an `allRules` array defined in the `tests/te
 - `defaultOn`: whether the rule is to be tested for by default.
 - `timeOut`: the maximum time in seconds allowed for a test for the rule.
 
-If you do not specify rules when using the `testaro` tool, Testaro will test for its default rules, namely the rules that have `true` values on the `defaultOn` property in the `allRules` array defined in the `tests/testaro.js` file. It will test for these rules in the order in which they appear in the array.
+If you do not specify rules when using the `testaro` tool, Testaro will test for its default rules. It will test for these rules in the order in which they appear in the array.
 
 The optional `rules` argument for a `testaro` test act is an array whose first item is either `'y'` or `'n'` and whose remaining items are rule IDs. If `'y'`, then only the specified rules’ tests are performed. If `'n'`, then all the default rules are tested for, **except** for the specified rules.
 
