@@ -192,7 +192,13 @@ Here is an example of a job:
     },
     {
       type: 'test',
-      launch: {},
+      launch: {
+        browserID: 'chromium',
+        target: {
+          what: 'Real Estate Management',
+          url: 'https://abccorp.com/mgmt/realproperty.html'
+        }
+      },
       which: 'qualWeb',
       withNewContent: false,
       rules: ['QW-BP25', 'QW-BP26']
@@ -204,7 +210,7 @@ Here is an example of a job:
 
 This job tells Testaro to perform two _acts_. One performs one test of the Axe tool wih reporting at detail level 2, and the other performs two tests of the QualWeb tool.
 
-Each act includes a `launch` property with a default value. That instructs Testaro, before performing those tests, to launch a new Webkit browser, open a context (window) with some properties of an iPhone 8 and without a reduced-motion setting, create a page (tab), and navigate to a particular page of the `abccorp.com` website.
+Each act includes a `launch` object property. In the first act it is an empty object, the browser ID and target URL specified by the job are used. In the second act it overrides the job values with per-act values.
 
 Job properties:
 

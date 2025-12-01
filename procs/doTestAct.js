@@ -88,13 +88,8 @@ const doTestAct = async () => {
       page = require('../run').page;
     }
   }
-  // Otherwise, i.e. if the tool is Testaro, which implements test-specific launching:
-  else {
-    // Get the page.
-    page = require('../run').page;
-  }
   // If the page exists:
-  if (page) {
+  if (page || which === 'testaro') {
     try {
       // Make the act reporter perform the specified tests of the tool.
       const actReport = await require(`../tests/${which}`).reporter(page, report, actIndex, 65);

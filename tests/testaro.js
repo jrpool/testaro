@@ -488,11 +488,10 @@ const wait = ms => {
 };
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
-  const url = await page.url();
   const act = report.acts[actIndex];
-  const {args, stopOnFail, withItems} = act;
-  const launchOptions = act.launch;
-  const browserID = launchOptions ? launchOptions.browserID || report.browserID : report.browserID;
+  const {args, stopOnFail, target, withItems} = act;
+  const url = target.url || report.target.url;
+  const browserID = act.launch ? act.launch.browserID || report.browserID : report.browserID;
   const argRules = args ? Object.keys(args) : null;
   // Get the specification of rules to be tested for.
   const ruleSpec = act.rules
@@ -536,13 +535,13 @@ exports.reporter = async (page, report, actIndex) => {
     const rule = jobRules[ruleIndex];
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
-    const pageClosed = page ? page.isClosed() : true;
     const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'low';
-    // Get whether it needs this function to launch a new browser.
+    // Get whether it needs a new browser launched.
     const needsLaunch = ruleIndex
     && jobRules[ruleIndex - 1].launchRole !== 'sharer'
     && rule.launchRole !== 'owner'
     || ! ruleIndex;
+    const pageClosed = page && page.isClosed();
     // If it does, or if the page has closed:
     if (needsLaunch || pageClosed) {
       // If the page has closed when it is expected to be open:
