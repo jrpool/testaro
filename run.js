@@ -98,7 +98,7 @@ const timeLimits = {
   alfa: 20,
   ed11y: 30,
   ibm: 30,
-  testaro: 150 + Math.round(6 * process.env.WAITS / 1000)
+  testaro: 150 + Math.round(6 * waits / 1000)
 };
 // Timeout multiplier.
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
