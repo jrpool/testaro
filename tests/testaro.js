@@ -489,8 +489,9 @@ const wait = ms => {
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
-  const {args, stopOnFail, target, withItems} = act;
-  const url = target.url || report.target.url;
+  const {args, stopOnFail, withItems} = act;
+  const target = act.target || report.target;
+  const url = target.url;
   const browserID = act.launch ? act.launch.browserID || report.browserID : report.browserID;
   const argRules = args ? Object.keys(args) : null;
   // Get the specification of rules to be tested for.
