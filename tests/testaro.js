@@ -532,13 +532,14 @@ exports.reporter = async (page, report, actIndex) => {
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
   // For each rule to be tested for:
-  for (const ruleIndex in jobRules) {
+  for (const ruleIndexString in jobRules) {
+    const ruleIndex = Number.parseInt(ruleIndexString);
     const rule = jobRules[ruleIndex];
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
     const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'low';
     // Get whether it needs a new browser launched.
-    const needsLaunch = ruleIndex
+    const needsLaunch = ! ruleIndex
     && jobRules[ruleIndex - 1].launchRole !== 'sharer'
     && rule.launchRole !== 'owner'
     || ! ruleIndex;
