@@ -996,9 +996,17 @@ Tools can become faulty. For example, Alfa stopped reporting any rule violations
 
 Testaro would become more reliable if the behavior of its tools were monitored for suspect changes.
 
+### Dependency deployment
+
+The behavior of Testaro as a dependency of an application deployed on a virtual private server has been observed to be vulnerable to slower performance and more frequent test failures than when Testaro is deployed as a stand-alone application on a workstation. The configuration of Testaro has been tuned for mitigation of such behaviors.
+
 ### Containerized deployment
 
-The experimental deployment of Testaro as a dependency in a containerized application has been unsuccessful. Playwnight errors have been thrown that are not thrown when the same application is deployed without containerization.
+The experimental deployment of Testaro as a dependency in a containerized application has been unsuccessful. Playwright errors have been thrown that are not thrown when the same application is deployed without containerization.
+
+### Headless browser fidelity
+
+Testaro normally performs tests with headless browsers. Some experiments appear to have shown that some test results are inaccurate with headless browsers, but this has not been replicated. The `launch` function in the `run` module accepts a `headEmulation` argument with `'high'` and `'low'` values. Its purpose is to permit optimizations of headless browsers to be turned off (`high`), at some performance cost, when making the browsers behave and appear more similar to headed browsers improves test accuracy. Observation has, however, failed to show any performance cost. Therefore, `'high'` is currently the default value.
 
 ## Repository exclusions
 

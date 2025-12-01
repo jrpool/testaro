@@ -65,10 +65,10 @@ const doTestAct = async () => {
   if (which !== 'testaro') {
     const browserID = act.launch && act.launch.browserID || report.browserID;
     const targetURL = act.launch && act.launch.target && act.launch.target.url || report.target.url;
-    // Launch a browser, navigate to the URL, and update the page export of the run module.
+    // Launch a browser, navigate to the URL, and update the run-module page export.
     await launch(
       report,
-      'low',
+      'high',
       browserID,
       targetURL
     );

@@ -537,9 +537,10 @@ exports.reporter = async (page, report, actIndex) => {
     const rule = jobRules[ruleIndex];
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
-    const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'low';
+    // Make the browser emulate headedness in all cases, because performance does not suffer.
+    const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'high';
     // Get whether it needs a new browser launched.
-    const needsLaunch = ! ruleIndex
+    const needsLaunch = ruleIndex
     && jobRules[ruleIndex - 1].launchRole !== 'sharer'
     && rule.launchRole !== 'owner'
     || ! ruleIndex;

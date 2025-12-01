@@ -792,7 +792,7 @@ const doActs = async (report, opts = {}) => {
         // Launch a browser, navigate to a page, and add the result to the act.
         await launch(
           report,
-          'low',
+          'high',
           actLaunchSpecs[0],
           actLaunchSpecs[1]
         );
@@ -1542,7 +1542,7 @@ const doActs = async (report, opts = {}) => {
       // Replace the browser and navigate to the URL.
       await launch(
         report,
-        'low',
+        'high',
         specs[0],
         specs[1]
       );
