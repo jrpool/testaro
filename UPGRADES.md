@@ -2965,3 +2965,83 @@ const doTestAct = async () => {
   // ...existing code...
 };
 ```
+
+## Elapsed times
+
+One example of the elapsed times (in seconds) for tool execution on a relatively complex and defect-rich page:
+
+```json
+"toolTimes": {
+  "testaro": 132,
+  "ibm": 25,
+  "alfa": 13,
+  "qualWeb": 13,
+  "aslint": 7,
+  "wax": 7,
+  "axe": 6,
+  "ed11y": 5,
+  "nuVal": 4,
+  "htmlcs": 3
+},
+```
+The total is 215 seconds. The total elapsed time of the job was 318 seconds. The 103-second difference was consumed mainly by standardization.
+
+Standardization and some Testaro tests are suspected of being inefficient in part by alternating many times between Node.js and the browser environment and partly by executing `getComputedStyle` many times.
+
+The Testaro rule tests had the following elapsed times:
+
+```json
+"ruleTestTimes": {
+  "lineHeight": 22,
+  "allCaps": 9,
+  "focInd": 8,
+  "miniText": 7,
+  "focAll": 7,
+  "hovInd": 7,
+  "focOp": 6,
+  "focVis": 6,
+  "opFoc": 6,
+  "allSlanted": 5,
+  "targetSmall": 4,
+  "zIndex": 4,
+  "distortion": 3,
+  "linkAmb": 3,
+  "targetTiny": 3,
+  "shoot1": 3,
+  "shoot0": 2,
+  "linkUl": 2,
+  "adbID": 1,
+  "imageLink": 1,
+  "hover": 1,
+  "tabNav": 1,
+  "allHidden": 0,
+  "altScheme": 0,
+  "dupAtt": 0,
+  "autocomplete": 0,
+  "bulk": 0,
+  "captionLoc": 0,
+  "datalistRef": 0,
+  "docType": 0,
+  "embAc": 0,
+  "headEl": 0,
+  "headingAmb": 0,
+  "hr": 0,
+  "labClash": 0,
+  "legendLoc": 0,
+  "linkExt": 0,
+  "linkOldAtt": 0,
+  "linkTitle": 0,
+  "linkTo": 0,
+  "nonTable": 0,
+  "optRoleSel": 0,
+  "phOnly": 0,
+  "pseudoP": 0,
+  "radioSet": 0,
+  "role": 0,
+  "secHeading": 0,
+  "styleDiff": 0,
+  "textSem": 0,
+  "titledEl": 0,
+  "buttonMenu": 0
+},
+```
