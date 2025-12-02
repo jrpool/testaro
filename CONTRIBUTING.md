@@ -1,33 +1,9 @@
-/*
-  © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool. All rights reserved.
-
-  MIT License
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
-*/
-
 # Contributing to Testaro
 
 ## Types of contributions
 
 Testaro can benefit from contributions of various types, such as:
+
 - Adding other tools to the tools that it integrates.
 - Improving its execution speed.
 - Improving its own rule implementations.
@@ -36,13 +12,14 @@ Testaro can benefit from contributions of various types, such as:
 ## Adding tools
 
 Tools that may merit consideration include:
+
 - Arc (by TPGi). Costs $0.05 per page tested, and requires each user to have an account with the tool maker and to allow the tool maker to charge a charge account for payment.
 
 ## Improving execution speed
 
 To come.
 
-## Improving rule implementations.
+## Improving rule implementations
 
 To come.
 
@@ -61,6 +38,7 @@ The first step in contributing a new rule to Testaro is to satisfy yourself that
 The second step is to write a validator for the new rule. A validator is software that defines the correct behavior of the implementation of the rule.
 
 Every Testaro rule (which means each of the approximately 50 rules of the Testaro tool) has a correspoding validator. A validator has two parts:
+
 - A job file, in the `validation/tests/jobs` directory. It tells Testaro what tests to perform and what the results should be.
 - A target directory, within the `validation/tests/targets` directory. The target directory contains one or more HTML files that will be tested by the job.
 
@@ -110,7 +88,7 @@ You can copy and revise any of the existing JSON files in the `testaro` director
 
 ### Simplifiable rules
 
-More complex Testaro rules are implemented in JavaScript. Some rules are _simplifiable_. These can be implemented with JavaScript modules like the one for the `allSlanted` rule. To implement such a rule, you can copy an existing module and replace the 7 values of the `ruleData` object. The significant decisions here are about the values of the `selector` and `pruner` properties.
+More complex Testaro rules are implemented in JavaScript. Some rules are _simplifiable_. These can be implemented with JavaScript modules like the one for the `allSlanted` rule. To implement such a rule, you can copy an existing module and replace the values of the 6 properties of the`ruleData` object. The significant decisions here are about the values of the `selector` and `pruner` properties.
 
 The `selector` value is a CSS selector that identifies candidate elements for violation reporting. What makes this rule simplifiable, instead of simple, is that these elements may or may not be determined to violate the rule. Each of the elements identified by the selector must be further analyzed by the pruner. The pruner takes a Playwright locator as its argument and returns `true` if it finds that the element located by the locator violates the rule, or `false` if not.
 
@@ -123,3 +101,28 @@ Some utility functions in modules in the `procs` directory are available for sup
 ## License agreement
 
 From 12 February 2024 through 30 September 2025, contributors of code to Testaro executed the [CVS Health OSS Project Contributor License Agreement](https://forms.office.com/pages/responsepage.aspx?id=uGG7-v46dU65NKR_eCuM1xbiih2MIwxBuRvO0D_wqVFUQ1k0OE5SVVJWWkY4MTVJMkY3Sk9GM1FHRC4u) for Testaro before any pull request was approved and merged.
+
+/*
+  © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
+
+  MIT License
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/

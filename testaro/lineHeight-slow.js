@@ -32,61 +32,39 @@
   their subtrees are excluded.
 */
 
+// IMPORTS
+
+// Module to perform common operations.
+const {init, getRuleResult} = require('../procs/testaro');
+
 // FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const violators = await page.evaluate(() => {
-    const elements = document.body.querySelectorAll('*');
-    const elementsWithText = Array.from(elements).filter(el =>
-      Array.from(el.childNodes).some(child =>
-        child.nodeType === Node.TEXT_NODE &&
-        child.textContent.trim().length
-      )
-    );
-    const violatorData = [];
-    elementsWithText.forEach(el => {
+  // Initialize the locators and result.
+  const all = await init(100, page, 'body *', {hasText: /[^\s]/});
+  // For each locator:
+  for (const loc of all.allLocs) {
+    // Get whether its element violates the rule.
+    const data = await loc.evaluate(el => {
       const styleDec = window.getComputedStyle(el);
       const {fontSize, lineHeight} = styleDec;
-      const fontSizeNum = Number.parseFloat(fontSize);
-      const lineHeightNum = Number.parseFloat(lineHeight);
-      const fontSizeTrunc = fontSizeNum.toFixed(1);
-      const lineHeightTrunc = lineHeightNum.toFixed(1);
-      if (lineHeightNum < 1.495 * fontSizeNum) {
-        const boxData = el.getBoundingClientRect();
-        violatorData.push({
-          tagName: el.tagName,
-          id: el.id,
-          location: {
-            doc: 'dom',
-            type: 'box',
-            spec: boxData
-          },
-          excerpt: el.textContent.trim(),
-          boxID: Object.values(boxData).join(':'),
-          fontSize: fontSizeTrunc,
-          lineHeight: lineHeightTrunc
-        });
-      }
-    });
-    return violatorData;
-  });
-  return {
-    data: {},
-    totals: [0, violators.length, 0, 0],
-    standardInstances: violators.map(violator => {
-      const {tagName, id, location, excerpt, boxID, fontSize, lineHeight} = violator;
       return {
-        ruleID: 'lineHeight',
-        what: `Element line height (${lineHeight}px) is less than 1.5 times its font size (${fontSize}px)`,
-        ordinalSeverity: 1,
-        tagName,
-        id,
-        location,
-        excerpt,
-        boxID,
-        pathID: ''
+        fontSize: Number.parseFloat(fontSize),
+        lineHeight: Number.parseFloat(lineHeight)
       };
-    })
-  };
+    });
+    // If it does, after a grace margin for rounding:
+    const isBad = data.lineHeight < 1.49 * data.fontSize;
+    if (isBad) {
+      // Add the locator to the array of violators.
+      all.locs.push([loc, `font size ${data.fontSize} px, line height ${data.lineHeight} px`]);
+    }
+  }
+  // Populate and return the result.
+  const whats = [
+    'Element line height is less than 1.5 times its font size (__param__)',
+    'Elements have line heights less than 1.5 times their font sizes'
+  ];
+  return await getRuleResult(withItems, all, 'lineHeight', whats, 1);
 };
