@@ -54,16 +54,25 @@ exports.reporter = async (page, withItems) => {
       const lineHeightTrunc = lineHeightNum.toFixed(1);
       if (lineHeightNum < 1.495 * fontSizeNum) {
         const boxData = el.getBoundingClientRect();
+        ['x', 'y', 'width', 'height'].forEach(dimension => {
+          boxData[dimension] = Math.round(boxData[dimension]);
+        });
+        const {x, y, width, height} = boxData;
         violatorData.push({
           tagName: el.tagName,
           id: el.id,
           location: {
             doc: 'dom',
             type: 'box',
-            spec: boxData
+            spec: {
+              x,
+              y,
+              width,
+              height
+            }
           },
           excerpt: el.textContent.trim(),
-          boxID: Object.values(boxData).join(':'),
+          boxID: [x, y, width, height].join(':'),
           fontSize: fontSizeTrunc,
           lineHeight: lineHeightTrunc
         });
