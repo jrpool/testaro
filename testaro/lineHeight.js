@@ -73,6 +73,7 @@ exports.reporter = async (page, withItems) => {
           },
           excerpt: el.textContent.trim(),
           boxID: [x, y, width, height].join(':'),
+          pathID: window.getXPath(el),
           fontSize: fontSizeTrunc,
           lineHeight: lineHeightTrunc
         });
@@ -84,7 +85,7 @@ exports.reporter = async (page, withItems) => {
     data: {},
     totals: [0, violators.length, 0, 0],
     standardInstances: violators.map(violator => {
-      const {tagName, id, location, excerpt, boxID, fontSize, lineHeight} = violator;
+      const {tagName, id, location, excerpt, boxID, pathID, fontSize, lineHeight} = violator;
       return {
         ruleID: 'lineHeight',
         what: `Element line height (${lineHeight}px) is less than 1.5 times its font size (${fontSize}px)`,
@@ -94,7 +95,7 @@ exports.reporter = async (page, withItems) => {
         location,
         excerpt,
         boxID,
-        pathID: ''
+        pathID
       };
     })
   };

@@ -1,3 +1,7 @@
+# todo
+
+Directory watched by executor `watchDir`.
+
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
 
@@ -21,7 +25,3 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
 */
-
-# todo
-
-Directory watched by executor `watchDir`.

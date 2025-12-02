@@ -2,7 +2,7 @@
 
 Directory containing jobs for validation.
 
-# License
+## License
 
 © 2022–2023 CVS Health and/or one of its affiliates. All rights reserved.
 
