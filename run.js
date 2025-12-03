@@ -433,6 +433,33 @@ const launch = exports.launch = async (
               return `/${segments.join('/')}`;
             };
           });
+          // Add a script that defines a window method to return a violation item.
+          await page.addInitScript(() => {
+            window.getViolationItem = element => {
+              const boxData = element.getBoundingClientRect();
+              ['x', 'y', 'width', 'height'].forEach(dimension => {
+                boxData[dimension] = Math.round(boxData[dimension]);
+              });
+              const {x, y, width, height} = boxData;
+              return {
+                tagName: element.tagName,
+                id: element.id || '',
+                location: {
+                  doc: 'dom',
+                  type: 'box',
+                  spec: {
+                    x,
+                    y,
+                    width,
+                    height
+                  }
+                },
+                excerpt: element.textContent.trim(),
+                boxID: [x, y, width, height].join(':'),
+                pathID: window.getXPath(element)
+              };
+            };
+          });
         }
         // Ensure the report has a jobData property.
         report.jobData ??= {};

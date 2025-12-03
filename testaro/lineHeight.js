@@ -63,35 +63,13 @@ exports.reporter = async (page, withItems) => {
         violationCount++;
         // If itemization is required:
         if (withItems) {
-          // Get its bounding box.
-          const boxData = el.getBoundingClientRect();
-          ['x', 'y', 'width', 'height'].forEach(dimension => {
-            boxData[dimension] = Math.round(boxData[dimension]);
-          });
-          const {x, y, width, height} = boxData;
-          // Get its rounded font size and line height.
-          const fontSizeTrunc = fontSizeNum.toFixed(1);
-          const lineHeightTrunc = lineHeightNum.toFixed(1);
-          // Add data on the element to the violation items.
-          violationItems.push({
-            tagName: el.tagName,
-            id: el.id || '',
-            location: {
-              doc: 'dom',
-              type: 'box',
-              spec: {
-                x,
-                y,
-                width,
-                height
-              }
-            },
-            excerpt: el.textContent.trim(),
-            boxID: [x, y, width, height].join(':'),
-            pathID: window.getXPath(el),
-            fontSize: fontSizeTrunc,
-            lineHeight: lineHeightTrunc
-          });
+          // Get a violation item.
+          const violationItem = window.getViolationItem(el);
+          // Add the font size and line height of the element to the violation item.
+          violationItem.fontSize = fontSizeNum.toFixed(1);
+          violationItem.lineHeight = lineHeightNum.toFixed(1);
+          // Add the violation item to the violation items.
+          violationItems.push(violationItem);
         }
       }
     });

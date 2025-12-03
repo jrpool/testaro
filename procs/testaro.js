@@ -155,3 +155,49 @@ exports.simplify = async (page, withItems, ruleData) => {
   // Return the result.
   return result;
 };
+// Itemizes or summarizes violations.
+exports.itemizeOrSummarizeViolations = (violationData, whatMaker) => {
+  const {violationCount, violationItems} = violationData;
+  // Initialize the standard instances.
+  const standardInstances = [];
+  // If itemization is required:
+  if (withItems) {
+    // For each violation item:
+    violationItems.forEach(violationItem => {
+      // Add a standard instance.
+      const {tagName, id, location, excerpt, boxID, pathID, fontSize, lineHeight} = violationItem;
+      standardInstances.push({
+        ruleID: 'lineHeight',
+        what: whatMaker(violationData, true),
+        ordinalSeverity: 1,
+        tagName,
+        id,
+        location,
+        excerpt,
+        boxID,
+        pathID
+      });
+    });
+  }
+  // Otherwise, i.e. if itemization is not required:
+  else {
+    const {violationCount} = violationData;
+    // Summarize the violations.
+    standardInstances.push({
+      ruleID: 'lineHeight',
+      what: whatMaker(violationData, false),
+      ordinalSeverity: 1,
+      count: Math.round(violationCount),
+      tagName: '',
+      id: '',
+      location: {
+        doc: '',
+        type: '',
+        spec: ''
+      },
+      excerpt: '',
+      boxID: '',
+      pathID: ''
+    });
+  }
+};
