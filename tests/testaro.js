@@ -486,34 +486,6 @@ const wait = ms => {
     }, ms);
   });
 };
-// Adds an XPath script to a page.
-const addXPathScript = async page => {
-  await page.addInitScript(() => {
-    window.getXPath = element => {
-      if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-        return '';
-      }
-      if (element.id) {
-        return `id("${element.id}")`;
-      }
-      if (element === document.body) {
-        return element.tagName.toLowerCase();
-      }
-      let index = 0;
-      const siblings = element.parentNode.childNodes;
-      for (let i = 0; i < siblings.length; i++) {
-        const sibling = siblings[i];
-        if (sibling === element) {
-          break;
-        }
-        if (sibling.nodeType === Node.ELEMENT_NODE && sibling.tagName === element.tagName) {
-          index++;
-        }
-      }
-      return `${window.getXPath(element.parentNode)}/${element.tagName.toLowerCase()}[${index + 1}]`;
-    };
-  });
-};
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
@@ -588,7 +560,6 @@ exports.reporter = async (page, report, actIndex) => {
         url
       );
       page = require('../run').page;
-      await addXPathScript(page);
     }
     // Report crashes and disconnections during this test.
     let crashHandler;
@@ -700,7 +671,6 @@ exports.reporter = async (page, report, actIndex) => {
               url
             );
             page = require('../run').page;
-            await addXPathScript(page);
             // If the page replacement failed:
             if (! page) {
               // Report this.
