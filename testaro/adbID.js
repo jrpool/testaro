@@ -25,43 +25,155 @@
 
 /*
   adbID
-  Clean-room rule: report elements that reference aria-describedby targets that are missing or ambiguous (duplicate ids).
+  This test reports elements referencing aria-describedby targets that are missing
+  or, because of duplicate IDs, ambiguous. An earlier version of this test was
+  originally developed under a clean-room procedure to ensure its independence from
+  the implementation of a test for a similar rule in the Tenon tool.
 */
 
-const {init, getRuleResult} = require('../procs/testaro');
+// CONSTANTS
 
+// Descriptions of violation types.
+const violationTypes = {
+  empty: 'Element has an aria-describedby attribute with no value',
+  missing: 'Referenced description of the element does not exist',
+  ambiguous: 'Multiple elements share the ID of a referenced description of the element'
+};
+
+// FUNCTIONS
+
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // elements that reference aria-describedby
-  const all = await init(200, page, '[aria-describedby]');
-  for (const loc of all.allLocs) {
-    const isBad = await loc.evaluate(el => {
-      const raw = el.getAttribute('aria-describedby') || '';
-      const ids = raw.trim().split(/\s+/).filter(Boolean);
-      if (ids.length === 0) return false;
-      // for each referenced id, check how many elements have that id
-      for (const id of ids) {
-        try {
-          // exact match (case-sensitive)
-          const exact = document.querySelectorAll('#' + CSS.escape(id));
-          if (exact.length === 1) continue;
-          // if not exactly one, try case-insensitive match by normalizing
-          const allIds = Array.from(document.querySelectorAll('[id]')).map(e => e.getAttribute('id'));
-          const ci = allIds.filter(i => i && i.toLowerCase() === id.toLowerCase()).length;
-          if (ci === 1) continue;
-          // otherwise it's missing or ambiguous
-          return true;
-        } catch (e) {
-          return true;
+  // Get data on violations of the rule.
+  const violationData = await page.evaluate(withItems => {
+    // Get all elements with aria-describedby attributes.
+    const elements = document.body.querySelectorAll('[aria-describedby]');
+    // Initialize a violation count and an array of violation items.
+    let violationCount = 0;
+    const violationItems = [];
+    // For each such element:
+    elements.forEach(el => {
+      // Initialize the element as a nonviolator.
+      let violationType = '';
+      // Get the IDs in its aria-describedby attribute.
+      const IDs = el.getAttribute('aria-describedby').trim().split(/\s+/);
+      // If there are none:
+      if (IDs.length === 0 || IDs[0] === '') {
+        // Consider the element a violator.
+        violationType = 'empty';
+      }
+      // Otherwise, i.e. if there is at least 1 ID:
+      else {
+        // For each ID:
+        for (const id of IDs) {
+          // Get the element with that ID.
+          const describer = document.getElementById(id);
+          // If it doesn't exist:
+          if (! describer) {
+            // Consider the element a violator.
+            violationType = 'missing';
+            // Stop checking the element.
+            break;
+          }
+          // Otherwise, i.e. if it exists:
+          else {
+            // Get the elements with that ID.
+            const sameIDElements = document.querySelectorAll(`#${id}`);
+            // If there is more than one:
+            if (sameIDElements.length > 1) {
+              // Consider the element a violator.
+              violationType = 'ambiguous';
+              // Stop checking the element.
+              break;
+            }
+          }
         }
       }
-      return false;
+      // If the element is a violator:
+      if (violationType) {
+        // Increment the violation count.
+        violationCount++;
+        // If itemization is required:
+        if (withItems) {
+          // Get its bounding box.
+          const boxData = el.getBoundingClientRect();
+          ['x', 'y', 'width', 'height'].forEach(dimension => {
+            boxData[dimension] = Math.round(boxData[dimension]);
+          });
+          const {x, y, width, height} = boxData;
+          // Add data on the element to the violation items.
+          violationItems.push({
+            tagName: el.tagName,
+            id: el.id || '',
+            location: {
+              doc: 'dom',
+              type: 'box',
+              spec: {
+                x,
+                y,
+                width,
+                height
+              }
+            },
+            excerpt: el.textContent.trim(),
+            boxID: [x, y, width, height].join(':'),
+            pathID: window.getXPath(el),
+            violationType
+          });
+        }
+      }
     });
-    if (isBad) all.locs.push(loc);
+    return {
+      violationCount,
+      violationItems
+    };
+  }, withItems);
+  const {violationCount, violationItems} = violationData;
+  // Initialize the standard instances.
+  const standardInstances = [];
+  // If itemization is required:
+  if (withItems) {
+    // For each violation item:
+    violationItems.forEach(violationItem => {
+      // Add a standard instance.
+      const {tagName, id, location, excerpt, boxID, pathID, violationType} = violationItem;
+      standardInstances.push({
+        ruleID: 'adbID',
+        what: violationTypes[violationType],
+        ordinalSeverity: 1,
+        tagName,
+        id,
+        location,
+        excerpt,
+        boxID,
+        pathID
+      });
+    });
   }
-
-  const whats = [
-    'Referenced description of the element is ambiguous or missing',
-    'Referenced descriptions of elements are ambiguous or missing'
-  ];
-  return await getRuleResult(withItems, all, 'adbID', whats, 3);
+  // Otherwise, i.e. if itemization is not required:
+  else {
+    const {violationCount} = violationData;
+    // Summarize the violations.
+    standardInstances.push({
+      ruleID: 'adbID',
+      what: 'Elements have invalid aria-describedby values',
+      ordinalSeverity: 1,
+      count: violationCount,
+      tagName: '',
+      id: '',
+      location: {
+        doc: '',
+        type: '',
+        spec: ''
+      },
+      excerpt: '',
+      boxID: '',
+      pathID: ''
+    });
+  }
+  return {
+    data: {},
+    totals: [0, violationCount, 0, 0],
+    standardInstances
+  };
 };

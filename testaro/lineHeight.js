@@ -69,12 +69,13 @@ exports.reporter = async (page, withItems) => {
             boxData[dimension] = Math.round(boxData[dimension]);
           });
           const {x, y, width, height} = boxData;
+          // Get its rounded font size and line height.
           const fontSizeTrunc = fontSizeNum.toFixed(1);
           const lineHeightTrunc = lineHeightNum.toFixed(1);
           // Add data on the element to the violation items.
           violationItems.push({
             tagName: el.tagName,
-            id: el.id,
+            id: el.id || '',
             location: {
               doc: 'dom',
               type: 'box',
