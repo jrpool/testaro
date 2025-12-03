@@ -37,7 +37,7 @@
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   // Get data on violations of the rule.
-  const violationData = await page.evaluate(() => {
+  const violationData = await page.evaluate(withItems => {
     // Get all elements.
     const elements = document.body.querySelectorAll('*');
     // Get all elements that have non-empty child text nodes.
@@ -98,12 +98,12 @@ exports.reporter = async (page, withItems) => {
       violationCount,
       violationItems
     };
-  });
+  }, withItems);
+  const {violationCount, violationItems} = violationData;
   // Initialize the standard instances.
   const standardInstances = [];
   // If itemization is required:
   if (withItems) {
-    const {violationItems} = violationData;
     // For each violation item:
     violationItems.forEach(violationItem => {
       // Add a standard instance.
