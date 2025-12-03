@@ -391,24 +391,46 @@ const launch = exports.launch = async (
               if (!element || element.nodeType !== Node.ELEMENT_NODE) {
                 return '';
               }
-              if (element.id) {
-                return `id("${element.id}")`;
-              }
-              if (element === document.body) {
-                return element.tagName.toLowerCase();
-              }
-              let index = 0;
-              const siblings = element.parentNode.childNodes;
-              for (let i = 0; i < siblings.length; i++) {
-                const sibling = siblings[i];
-                if (sibling === element) {
+              const segments = [];
+              let el = element;
+              // As long as the current node is an element:
+              while (el && el.nodeType === Node.ELEMENT_NODE) {
+                const tag = el.tagName.toLowerCase();
+                // If it is the html element:
+                if (el === document.documentElement) {
+                  // Prepend it to the segment array
+                  segments.unshift('html');
+                  // Stop traversing.
                   break;
                 }
-                if (sibling.nodeType === Node.ELEMENT_NODE && sibling.tagName === element.tagName) {
-                  index++;
+                // Otherwise, get its parent node.
+                const parent = el.parentNode;
+                // If (abnormally) the parent node is not an element:
+                if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
+                  // Prepend it to the segment array.
+                  segments.unshift(tag);
+                  // Stop traversing, leaving the segment array partial.
+                  break;
                 }
+                let subscript = '';
+                let sameTagCount = 0;
+                // Get the subscript of the element.
+                const cohort = Array
+                .from(parent.childNodes)
+                .filter(
+                  childNode => childNode.nodeType === Node.ELEMENT_NODE
+                  && childNode.tagName === el.tagName
+                );
+                if (cohort.length > 1) {
+                  subscript = `[${cohort.indexOf(el) + 1}]`;
+                }
+                // Prepend the element identifier to the segment array.
+                segments.unshift(`${tag}${subscript}`);
+                // Continue the traversal with the parent of the current element.
+                el = parent;
               }
-              return `${window.getXPath(element.parentNode)}/${element.tagName.toLowerCase()}[${index + 1}]`;
+              // Return the XPath.
+              return `/${segments.join('/')}`;
             };
           });
         }
