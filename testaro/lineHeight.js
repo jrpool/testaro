@@ -36,57 +36,79 @@
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const violators = await page.evaluate(() => {
+  // Get data on violations of the rule.
+  const violationData = await page.evaluate(() => {
+    // Get all elements.
     const elements = document.body.querySelectorAll('*');
+    // Get all elements that have non-empty child text nodes.
     const elementsWithText = Array.from(elements).filter(el =>
       Array.from(el.childNodes).some(child =>
         child.nodeType === Node.TEXT_NODE &&
         child.textContent.trim().length
       )
     );
-    const violatorData = [];
+    // Initialize a violation count and an array of violation items.
+    let violationCount = 0;
+    const violationItems = [];
+    // For each such element:
     elementsWithText.forEach(el => {
+      // Get its relevant style properties.
       const styleDec = window.getComputedStyle(el);
       const {fontSize, lineHeight} = styleDec;
       const fontSizeNum = Number.parseFloat(fontSize);
       const lineHeightNum = Number.parseFloat(lineHeight);
-      const fontSizeTrunc = fontSizeNum.toFixed(1);
-      const lineHeightTrunc = lineHeightNum.toFixed(1);
+      // If it violates the rule:
       if (lineHeightNum < 1.495 * fontSizeNum) {
-        const boxData = el.getBoundingClientRect();
-        ['x', 'y', 'width', 'height'].forEach(dimension => {
-          boxData[dimension] = Math.round(boxData[dimension]);
-        });
-        const {x, y, width, height} = boxData;
-        violatorData.push({
-          tagName: el.tagName,
-          id: el.id,
-          location: {
-            doc: 'dom',
-            type: 'box',
-            spec: {
-              x,
-              y,
-              width,
-              height
-            }
-          },
-          excerpt: el.textContent.trim(),
-          boxID: [x, y, width, height].join(':'),
-          pathID: window.getXPath(el),
-          fontSize: fontSizeTrunc,
-          lineHeight: lineHeightTrunc
-        });
+        // Increment the violation count.
+        violationCount++;
+        // If itemization is required:
+        if (withItems) {
+          // Get its bounding box.
+          const boxData = el.getBoundingClientRect();
+          ['x', 'y', 'width', 'height'].forEach(dimension => {
+            boxData[dimension] = Math.round(boxData[dimension]);
+          });
+          const {x, y, width, height} = boxData;
+          const fontSizeTrunc = fontSizeNum.toFixed(1);
+          const lineHeightTrunc = lineHeightNum.toFixed(1);
+          // Add data on the element to the violation items.
+          violationItems.push({
+            tagName: el.tagName,
+            id: el.id,
+            location: {
+              doc: 'dom',
+              type: 'box',
+              spec: {
+                x,
+                y,
+                width,
+                height
+              }
+            },
+            excerpt: el.textContent.trim(),
+            boxID: [x, y, width, height].join(':'),
+            pathID: window.getXPath(el),
+            fontSize: fontSizeTrunc,
+            lineHeight: lineHeightTrunc
+          });
+        }
       }
     });
-    return violatorData;
+    return {
+      violationCount,
+      violationItems
+    };
   });
-  return {
-    data: {},
-    totals: [0, violators.length, 0, 0],
-    standardInstances: violators.map(violator => {
-      const {tagName, id, location, excerpt, boxID, pathID, fontSize, lineHeight} = violator;
-      return {
+  // Initialize the standard instances.
+  const standardInstances = [];
+  // If itemization is required:
+  if (withItems) {
+    const {violationItems} = violationData;
+    // For each violation item:
+    violationItems.forEach(violationItem => {
+      // Add a standard instance.
+      const {tagName, id, location, excerpt, boxID, pathID, fontSize, lineHeight} = violationItem;
+      standardInstances.push({
         ruleID: 'lineHeight',
         what: `Element line height (${lineHeight}px) is less than 1.5 times its font size (${fontSize}px)`,
         ordinalSeverity: 1,
@@ -96,7 +118,33 @@ exports.reporter = async (page, withItems) => {
         excerpt,
         boxID,
         pathID
-      };
-    })
+      });
+    });
+  }
+  // Otherwise, i.e. if itemization is not required:
+  else {
+    const {violationCount} = violationData;
+    // Summarize the violations.
+    standardInstances.push({
+      ruleID: 'lineHeight',
+      what: `Element line heights are less than 1.5 times their font sizes`,
+      ordinalSeverity: 1,
+      count: violationCount,
+      tagName: '',
+      id: '',
+      location: {
+        doc: '',
+        type: '',
+        spec: ''
+      },
+      excerpt: '',
+      boxID: '',
+      pathID: ''
+    });
+  }
+  return {
+    data: {},
+    totals: [0, violationCount, 0, 0],
+    standardInstances
   };
 };

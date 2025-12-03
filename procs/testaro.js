@@ -90,19 +90,19 @@ const getRuleResult = exports.getRuleResult = async (
     // If itemization is required:
     if (withItems) {
       // Get the bounding box of the element.
-      const {location} = elData;
+      const {tagName,id, location, excerpt} = elData;
       const box = location.type === 'box' ? location.spec : await boxOf(loc);
       // Add a standard instance to the result.
       standardInstances.push({
         ruleID,
         what: whatParam ? whats[0].replace('__param__', whatParam) : whats[0],
         ordinalSeverity,
-        tagName: elData.tagName,
-        id: elData.id,
-        location: elData.location,
-        excerpt: elData.excerpt,
+        tagName,
+        id,
+        location,
+        excerpt,
         boxID: boxToString(box),
-        pathID: await xPath(loc)
+        pathID: tagName === 'HTML' ? '/html' : await xPath(loc)
       });
     }
   }
