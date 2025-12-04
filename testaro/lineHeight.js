@@ -59,9 +59,9 @@ exports.reporter = async (page, withItems) => {
         child.textContent.trim().length
       )
     );
-    // Initialize a violation count and an array of violation items.
+    // Initialize a violation count and an array of instances.
     let violationCount = 0;
-    const violationItems = [];
+    const instances = [];
     // For each such element:
     elementsWithText.forEach(element => {
       // Get its relevant style properties.
@@ -73,29 +73,34 @@ exports.reporter = async (page, withItems) => {
       if (lineHeightNum < 1.495 * fontSizeNum) {
         // Increment the violation count.
         violationCount++;
+        let instance;
         // If itemization is required:
         if (withItems) {
-          // Get a violation item.
-          const violationItem = window.getViolationItem(element, 'lineHeight');
-          // Add the font size and line height of the element to the violation item.
-          violationItem.fontSize = fontSizeNum.toFixed(1);
-          violationItem.lineHeight = lineHeightNum.toFixed(1);
-          // Add the violation item to the violation items.
-          violationItems.push(violationItem);
+          const fontSizeRounded = fontSizeNum.toFixed(1);
+          const lineHeightRounded = lineHeightNum.toFixed(1);
+          const what = `Element line height (${lineHeightRounded}px) is less than 1.5 times its font size (${fontSizeRounded}px)`;
+          // Get an itemized instance.
+          instance = window.getInstance(element, 'lineHeight', what, 1, 1);
         }
+        // Otherwise, i.e. if itemization is not required:
+        else {
+          // Get a summary.
+          const what = 'Element line heights are less than 1.5 times their font sizes';
+          instance = window.getInstance(null, 'lineHeight', what, violationCount, 1);
+        }
+        // Add the instance to the instances.
+        instances.push(instance);
       }
     });
     return {
       violationCount,
-      violationItems
+      instances
     };
   }, withItems);
-  // Itemize or summarize the violations.
-  const standardInstances = itemizeOrSummarize(violationData, withItems, itemSpecifier);
   // Return the result.
   return {
     data: {},
     totals: [0, violationCount, 0, 0],
-    standardInstances
+    standardInstances: violationData.instances
   };
 };

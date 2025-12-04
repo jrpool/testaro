@@ -433,31 +433,59 @@ const launch = exports.launch = async (
               return `/${segments.join('/')}`;
             };
           });
-          // Add a script that defines a window method to return a violation item.
+          // Add a script that defines a window method to return an instance.
           await page.addInitScript(() => {
-            window.getViolationItem = (element, ruleID) => {
-              const boxData = element.getBoundingClientRect();
-              ['x', 'y', 'width', 'height'].forEach(dimension => {
-                boxData[dimension] = Math.round(boxData[dimension]);
-              });
-              const {x, y, width, height} = boxData;
+            window.getInstance = (
+              element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
+            ) => {
+              // If the element exists:
+              if (element) {
+                // Get its properties.
+                const boxData = element.getBoundingClientRect();
+                ['x', 'y', 'width', 'height'].forEach(dimension => {
+                  boxData[dimension] = Math.round(boxData[dimension]);
+                });
+                const {x, y, width, height} = boxData;
+                const {tagName, id = ''} = element;
+                // Return an itemized instance.
+                return {
+                  ruleID,
+                  what,
+                  count,
+                  ordinalSeverity,
+                  tagName,
+                  id,
+                  location: {
+                    doc: 'dom',
+                    type: 'box',
+                    spec: {
+                      x,
+                      y,
+                      width,
+                      height
+                    }
+                  },
+                  excerpt: element.textContent.trim().replace(/\s+/g, ' ').slice(0, 100),
+                  boxID: [x, y, width, height].join(':'),
+                  pathID: window.getXPath(element)
+                };
+              }
+              // Otherwise, i.e. if no element exists, return a summary instance.
               return {
                 ruleID,
-                tagName: element.tagName,
-                id: element.id || '',
+                what,
+                count,
+                ordinalSeverity,
+                tagName: summaryTagName,
+                id: '',
                 location: {
-                  doc: 'dom',
-                  type: 'box',
-                  spec: {
-                    x,
-                    y,
-                    width,
-                    height
-                  }
+                  doc: '',
+                  type: '',
+                  spec: ''
                 },
-                excerpt: element.textContent.trim(),
-                boxID: [x, y, width, height].join(':'),
-                pathID: window.getXPath(element)
+                excerpt: '',
+                boxID: '',
+                pathID: ''
               };
             };
           });
