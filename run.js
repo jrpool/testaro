@@ -372,8 +372,9 @@ const launch = exports.launch = async (
       browserContext.setDefaultTimeout(0);
       // When a page (i.e. tab) is added to the browser context (i.e. browser window):
       browserContext.on('page', async page => {
-        // Mask automation detection
-        await page.addInitScript(() => {
+        const isTestaroTest = act.type === 'test' && act.which === 'testaro';
+        // Mask automation detection.
+        await page.addInitScript(isTestaroTest => {
           Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
           window.chrome = {runtime: {}};
           Object.defineProperty(navigator, 'plugins', {
@@ -382,59 +383,9 @@ const launch = exports.launch = async (
           Object.defineProperty(navigator, 'languages', {
             get: () => ['en-US', 'en']
           });
-        });
-        // If the act is a testaro test act:
-        if (act.type === 'test' && act.which === 'testaro') {
-          // Add a script that defines a window method to get the XPath of an element.
-          await page.addInitScript(() => {
-            window.getXPath = element => {
-              if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-                return '';
-              }
-              const segments = [];
-              let el = element;
-              // As long as the current node is an element:
-              while (el && el.nodeType === Node.ELEMENT_NODE) {
-                const tag = el.tagName.toLowerCase();
-                // If it is the html element:
-                if (el === document.documentElement) {
-                  // Prepend it to the segment array
-                  segments.unshift('html');
-                  // Stop traversing.
-                  break;
-                }
-                // Otherwise, get its parent node.
-                const parent = el.parentNode;
-                // If (abnormally) the parent node is not an element:
-                if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
-                  // Prepend it to the segment array.
-                  segments.unshift(tag);
-                  // Stop traversing, leaving the segment array partial.
-                  break;
-                }
-                let subscript = '';
-                let sameTagCount = 0;
-                // Get the subscript of the element.
-                const cohort = Array
-                .from(parent.childNodes)
-                .filter(
-                  childNode => childNode.nodeType === Node.ELEMENT_NODE
-                  && childNode.tagName === el.tagName
-                );
-                if (cohort.length > 1) {
-                  subscript = `[${cohort.indexOf(el) + 1}]`;
-                }
-                // Prepend the element identifier to the segment array.
-                segments.unshift(`${tag}${subscript}`);
-                // Continue the traversal with the parent of the current element.
-                el = parent;
-              }
-              // Return the XPath.
-              return `/${segments.join('/')}`;
-            };
-          });
-          // Add a script that defines a window method to return an instance.
-          await page.addInitScript(() => {
+          // If the act is a testaro test act:
+          if (isTestaroTest) {
+            // Add a window method to return an instance.
             window.getInstance = (
               element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
             ) => {
@@ -488,8 +439,54 @@ const launch = exports.launch = async (
                 pathID: ''
               };
             };
-          });
-        }
+            // Add a window method to get the XPath of an element.
+            window.getXPath = element => {
+              if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+                return '';
+              }
+              const segments = [];
+              let el = element;
+              // As long as the current node is an element:
+              while (el && el.nodeType === Node.ELEMENT_NODE) {
+                const tag = el.tagName.toLowerCase();
+                // If it is the html element:
+                if (el === document.documentElement) {
+                  // Prepend it to the segment array
+                  segments.unshift('html');
+                  // Stop traversing.
+                  break;
+                }
+                // Otherwise, get its parent node.
+                const parent = el.parentNode;
+                // If (abnormally) the parent node is not an element:
+                if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
+                  // Prepend it to the segment array.
+                  segments.unshift(tag);
+                  // Stop traversing, leaving the segment array partial.
+                  break;
+                }
+                let subscript = '';
+                let sameTagCount = 0;
+                // Get the subscript of the element.
+                const cohort = Array
+                .from(parent.childNodes)
+                .filter(
+                  childNode => childNode.nodeType === Node.ELEMENT_NODE
+                  && childNode.tagName === el.tagName
+                );
+                if (cohort.length > 1) {
+                  subscript = `[${cohort.indexOf(el) + 1}]`;
+                }
+                // Prepend the element identifier to the segment array.
+                segments.unshift(`${tag}${subscript}`);
+                // Continue the traversal with the parent of the current element.
+                el = parent;
+              }
+              // Return the XPath.
+              return `/${segments.join('/')}`;
+            };
+          }
+        }, isTestaroTest);
         // Ensure the report has a jobData property.
         report.jobData ??= {};
         const {jobData} = report;
