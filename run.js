@@ -435,13 +435,14 @@ const launch = exports.launch = async (
           });
           // Add a script that defines a window method to return a violation item.
           await page.addInitScript(() => {
-            window.getViolationItem = element => {
+            window.getViolationItem = (element, ruleID) => {
               const boxData = element.getBoundingClientRect();
               ['x', 'y', 'width', 'height'].forEach(dimension => {
                 boxData[dimension] = Math.round(boxData[dimension]);
               });
               const {x, y, width, height} = boxData;
               return {
+                ruleID,
                 tagName: element.tagName,
                 id: element.id || '',
                 location: {

@@ -32,8 +32,20 @@
   their subtrees are excluded.
 */
 
+// IMPORTS
+
+const {itemizeOrSummarize} = require('../procs/testaro');
+
 // FUNCTIONS
 
+// Define the value of what.
+const itemSpecifier = (violationItem, withItems) => {
+  if (withItems) {
+    const {fontSize, lineHeight} = violationItem;
+    return `Element line height (${lineHeight}px) is less than 1.5 times its font size (${fontSize}px)`;
+  }
+  return `Element line heights are less than 1.5 times their font sizes`;
+};
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   // Get data on violations of the rule.
@@ -51,9 +63,9 @@ exports.reporter = async (page, withItems) => {
     let violationCount = 0;
     const violationItems = [];
     // For each such element:
-    elementsWithText.forEach(el => {
+    elementsWithText.forEach(element => {
       // Get its relevant style properties.
-      const styleDec = window.getComputedStyle(el);
+      const styleDec = window.getComputedStyle(element);
       const {fontSize, lineHeight} = styleDec;
       const fontSizeNum = Number.parseFloat(fontSize);
       const lineHeightNum = Number.parseFloat(lineHeight);
@@ -64,7 +76,7 @@ exports.reporter = async (page, withItems) => {
         // If itemization is required:
         if (withItems) {
           // Get a violation item.
-          const violationItem = window.getViolationItem(el);
+          const violationItem = window.getViolationItem(element, 'lineHeight');
           // Add the font size and line height of the element to the violation item.
           violationItem.fontSize = fontSizeNum.toFixed(1);
           violationItem.lineHeight = lineHeightNum.toFixed(1);
@@ -78,49 +90,9 @@ exports.reporter = async (page, withItems) => {
       violationItems
     };
   }, withItems);
-  const {violationCount, violationItems} = violationData;
-  // Initialize the standard instances.
-  const standardInstances = [];
-  // If itemization is required:
-  if (withItems) {
-    // For each violation item:
-    violationItems.forEach(violationItem => {
-      // Add a standard instance.
-      const {tagName, id, location, excerpt, boxID, pathID, fontSize, lineHeight} = violationItem;
-      standardInstances.push({
-        ruleID: 'lineHeight',
-        what: `Element line height (${lineHeight}px) is less than 1.5 times its font size (${fontSize}px)`,
-        ordinalSeverity: 1,
-        tagName,
-        id,
-        location,
-        excerpt,
-        boxID,
-        pathID
-      });
-    });
-  }
-  // Otherwise, i.e. if itemization is not required:
-  else {
-    const {violationCount} = violationData;
-    // Summarize the violations.
-    standardInstances.push({
-      ruleID: 'lineHeight',
-      what: `Element line heights are less than 1.5 times their font sizes`,
-      ordinalSeverity: 1,
-      count: violationCount,
-      tagName: '',
-      id: '',
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: '',
-      boxID: '',
-      pathID: ''
-    });
-  }
+  // Itemize or summarize the violations.
+  const standardInstances = itemizeOrSummarize(violationData, withItems, itemSpecifier);
+  // Return the result.
   return {
     data: {},
     totals: [0, violationCount, 0, 0],

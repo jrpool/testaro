@@ -151,24 +151,26 @@ exports.simplify = async (page, withItems, ruleData) => {
     complaints.instance,
     complaints.summary
   ];
-  const result = await getRuleResult(withItems, all, ruleID, whats, ordinalSeverity, summaryTagName);
+  const result = await getRuleResult(
+    withItems, all, ruleID, whats, ordinalSeverity, summaryTagName
+  );
   // Return the result.
   return result;
 };
-// Itemizes or summarizes violations.
-exports.itemizeOrSummarizeViolations = (violationData, whatMaker) => {
+// Returns a standard instance summarizing or standard instances itemizing violations.
+exports.itemizeOrSummarize = (violationData, withItems, whatMaker) => {
   const {violationCount, violationItems} = violationData;
   // Initialize the standard instances.
   const standardInstances = [];
-  // If itemization is required:
-  if (withItems) {
-    // For each violation item:
-    violationItems.forEach(violationItem => {
-      // Add a standard instance.
-      const {tagName, id, location, excerpt, boxID, pathID, fontSize, lineHeight} = violationItem;
+  // For each violation item:
+  violationItems.forEach(violationItem => {
+    // If itemization is required:
+    if (withItems) {
+      // Add a standard instance itemizing the violation.
+      const {tagName, id, location, excerpt, boxID, pathID} = violationItem;
       standardInstances.push({
         ruleID: 'lineHeight',
-        what: whatMaker(violationData, true),
+        what: whatMaker(violationItem, true),
         ordinalSeverity: 1,
         tagName,
         id,
@@ -177,27 +179,28 @@ exports.itemizeOrSummarizeViolations = (violationData, whatMaker) => {
         boxID,
         pathID
       });
-    });
-  }
-  // Otherwise, i.e. if itemization is not required:
-  else {
-    const {violationCount} = violationData;
-    // Summarize the violations.
-    standardInstances.push({
-      ruleID: 'lineHeight',
-      what: whatMaker(violationData, false),
-      ordinalSeverity: 1,
-      count: Math.round(violationCount),
-      tagName: '',
-      id: '',
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: '',
-      boxID: '',
-      pathID: ''
-    });
-  }
+    }
+    // Otherwise, i.e. if itemization is not required:
+    else {
+      // Add a summarizing instance.
+      const {what, tagName} = whatMaker(violationItem, false);
+      standardInstances.push({
+        ruleID: 'lineHeight',
+        what,
+        ordinalSeverity: 1,
+        count: Math.round(violationCount),
+        tagName,
+        id: '',
+        location: {
+          doc: '',
+          type: '',
+          spec: ''
+        },
+        excerpt: '',
+        boxID: '',
+        pathID: ''
+      });
+    }
+  });
+  return standardInstances;
 };
