@@ -32,38 +32,25 @@
   their subtrees are excluded.
 */
 
-// IMPORTS
-
-const {itemizeOrSummarize} = require('../procs/testaro');
-
 // FUNCTIONS
 
-// Define the value of what.
-const itemSpecifier = (violationItem, withItems) => {
-  if (withItems) {
-    const {fontSize, lineHeight} = violationItem;
-    return `Element line height (${lineHeight}px) is less than 1.5 times its font size (${fontSize}px)`;
-  }
-  return `Element line heights are less than 1.5 times their font sizes`;
-};
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   // Get data on violations of the rule.
   const violationData = await page.evaluate(withItems => {
     // Get all elements.
-    const elements = document.body.querySelectorAll('*');
-    // Get all elements that have non-empty child text nodes.
-    const elementsWithText = Array.from(elements).filter(el =>
+    const allElements = document.body.querySelectorAll('*');
+    // Get all violation candidates, i.e. elements that have non-empty child text nodes.
+    const candidates = Array.from(allElements).filter(el =>
       Array.from(el.childNodes).some(child =>
         child.nodeType === Node.TEXT_NODE &&
         child.textContent.trim().length
       )
     );
-    // Initialize a violation count and an array of instances.
     let violationCount = 0;
     const instances = [];
-    // For each such element:
-    elementsWithText.forEach(element => {
+    // For each candidate:
+    candidates.forEach(element => {
       // Get its relevant style properties.
       const styleDec = window.getComputedStyle(element);
       const {fontSize, lineHeight} = styleDec;
@@ -73,34 +60,32 @@ exports.reporter = async (page, withItems) => {
       if (lineHeightNum < 1.495 * fontSizeNum) {
         // Increment the violation count.
         violationCount++;
-        let instance;
         // If itemization is required:
         if (withItems) {
           const fontSizeRounded = fontSizeNum.toFixed(1);
           const lineHeightRounded = lineHeightNum.toFixed(1);
           const what = `Element line height (${lineHeightRounded}px) is less than 1.5 times its font size (${fontSizeRounded}px)`;
-          // Get an itemized instance.
-          instance = window.getInstance(element, 'lineHeight', what, 1, 1);
+          // Add an instance to the instances.
+          instances.push(window.getInstance(element, 'lineHeight', what, 1, 1));
         }
-        // Otherwise, i.e. if itemization is not required:
-        else {
-          // Get a summary.
-          const what = 'Element line heights are less than 1.5 times their font sizes';
-          instance = window.getInstance(null, 'lineHeight', what, violationCount, 1);
-        }
-        // Add the instance to the instances.
-        instances.push(instance);
       }
     });
+    // If there were any violations and itemization is not required:
+    if (violationCount && ! withItems) {
+      const what = 'Element line heights are less than 1.5 times their font sizes';
+      // Add a summary instance to the instances.
+      instances.push(window.getInstance(null, 'lineHeight', what, violationCount, 1));
+    }
     return {
       violationCount,
       instances
     };
   }, withItems);
+  const {violationCount, instances} = violationData;
   // Return the result.
   return {
     data: {},
     totals: [0, violationCount, 0, 0],
-    standardInstances: violationData.instances
+    standardInstances: instances
   };
 };
