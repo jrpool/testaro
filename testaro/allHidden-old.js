@@ -1,6 +1,5 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -27,39 +26,16 @@
   allHidden
   This test reports a page that is entirely or mainly hidden.
 */
-
-// FUNCTIONS
-
-// Runs the test and returns the result.
 exports.reporter = async page => {
-  // Get data on violations of the rule.
-  const violationData = await page.evaluate(() => {
-    // Get all candidates, i.e. the regions that should never be hidden.
-    const regions = {
-      document: {
-        element: document.documentElement,
-        severity: 3
-      },
-      body: {
-        element: document.body,
-        severity: 2
-      },
-      main: {
-        element: document.querySelector('main, [role=main]'),
-        severity: 1
-      }
-    };
-    let violationCount = 0;
-    const instances = [];
-    // For each candidate:
-    Object.keys(regions).forEach(regionName => {
-      // If it is not main and does not exist:
-      if (! regionName && regionName !== 'main') {
-        // Increment the violation count.
-        violationCount++;
-        const what = `The ${regionName} region does not exist`;
-        // Add an instance to the instances.
-        instances.push(window.getInstance(null, 'allHidden', what, 1, 3, regionName));
+  // Gets the hiddennesses of the document, body, and main region.
+  const data = await page.evaluate(() => {
+    // For each region:
+    const {body} = document;
+    const main = body && body.querySelector('main, [role=main]');
+    const data = [];
+    [document.documentElement, body, main].forEach(region => {
+      if (! region) {
+        data.push(null);
       }
       else if (region.hidden || region.ariaHidden) {
         data.push(true);
