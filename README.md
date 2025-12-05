@@ -547,6 +547,8 @@ Some Testaro tests make use of the `init()` function in the `procs/testaro` modu
 
 You can add custom rules to the rules of any tool. Testaro provides a template, `data/template.js`, for the definition of a rule to be added. Once you have created a copy of the template with revisions, you can move the copy into the `testaro` directory and add an entry for your custom rule to the `allRules` object in the `tests/testaro.js` file. Then your custom rule will act as a Testaro rule. Some `testaro` rules are simple enough to be fully specified in JSON files. You can use any of those as a template if you want to create a sufficiently simple custom rule, namely a rule whose prohibited elements are all and only the elements matching a CSS selector. More details about rule creation are in the `CONTRIBUTING.md` file.
 
+A new pattern for rule definition was introduced in version 60.7.0 and is implemented for only some of the applicable Testaro rules. In this pattern, the `launch` function in the `run` module adds a script to the page that runs whenever a new page is added to a browser context. That script adds `window` methods to the page. When the browser is launched for a Testaro test, the added `window` methods include a `getXPath` method and a `getInstance` method. These methods are used in rule definitions. For examples of this pattern, see the `adbID` and `lineHeight` rules.
+
 #### WallyAX
 
 If a `wax` test act is included in the job, an environment variable named `WAX_KEY` must exist, with your WallyAX API key as its value. You can obtain it from [WallyAX](https://account.wallyax.com/?ref_app=Developer&app_type=npm).

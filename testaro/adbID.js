@@ -100,7 +100,7 @@ exports.reporter = async (page, withItems) => {
     if (violationCount && ! withItems) {
       const what = 'Elements have aria-describedby attributes with missing or invalid id values';
       // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'lineHeight', what, violationCount, 3));
+      instances.push(window.getInstance(null, 'adbID', what, violationCount, 3));
     }
     return {
       violationCount,
