@@ -372,121 +372,6 @@ const launch = exports.launch = async (
       browserContext.setDefaultTimeout(0);
       // When a page (i.e. tab) is added to the browser context (i.e. browser window):
       browserContext.on('page', async page => {
-        const isTestaroTest = act.type === 'test' && act.which === 'testaro';
-        // Mask automation detection.
-        await page.addInitScript(isTestaroTest => {
-          Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-          window.chrome = {runtime: {}};
-          Object.defineProperty(navigator, 'plugins', {
-            get: () => [1, 2, 3, 4, 5]
-          });
-          Object.defineProperty(navigator, 'languages', {
-            get: () => ['en-US', 'en']
-          });
-          // If the act is a testaro test act:
-          if (isTestaroTest) {
-            // Add a window method to return an instance.
-            window.getInstance = (
-              element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
-            ) => {
-              // If the element exists:
-              if (element) {
-                // Get its properties.
-                const boxData = element.getBoundingClientRect();
-                ['x', 'y', 'width', 'height'].forEach(dimension => {
-                  boxData[dimension] = Math.round(boxData[dimension]);
-                });
-                const {x, y, width, height} = boxData;
-                const {tagName, id = ''} = element;
-                // Return an itemized instance.
-                return {
-                  ruleID,
-                  what,
-                  count,
-                  ordinalSeverity,
-                  tagName,
-                  id,
-                  location: {
-                    doc: 'dom',
-                    type: 'box',
-                    spec: {
-                      x,
-                      y,
-                      width,
-                      height
-                    }
-                  },
-                  excerpt: element.textContent.trim().replace(/\s+/g, ' ').slice(0, 100),
-                  boxID: [x, y, width, height].join(':'),
-                  pathID: window.getXPath(element)
-                };
-              }
-              // Otherwise, i.e. if no element exists, return a summary instance.
-              return {
-                ruleID,
-                what,
-                count,
-                ordinalSeverity,
-                tagName: summaryTagName,
-                id: '',
-                location: {
-                  doc: '',
-                  type: '',
-                  spec: ''
-                },
-                excerpt: '',
-                boxID: '',
-                pathID: ''
-              };
-            };
-            // Add a window method to get the XPath of an element.
-            window.getXPath = element => {
-              if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-                return '';
-              }
-              const segments = [];
-              let el = element;
-              // As long as the current node is an element:
-              while (el && el.nodeType === Node.ELEMENT_NODE) {
-                const tag = el.tagName.toLowerCase();
-                // If it is the html element:
-                if (el === document.documentElement) {
-                  // Prepend it to the segment array
-                  segments.unshift('html');
-                  // Stop traversing.
-                  break;
-                }
-                // Otherwise, get its parent node.
-                const parent = el.parentNode;
-                // If (abnormally) the parent node is not an element:
-                if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
-                  // Prepend it to the segment array.
-                  segments.unshift(tag);
-                  // Stop traversing, leaving the segment array partial.
-                  break;
-                }
-                let subscript = '';
-                let sameTagCount = 0;
-                // Get the subscript of the element.
-                const cohort = Array
-                .from(parent.childNodes)
-                .filter(
-                  childNode => childNode.nodeType === Node.ELEMENT_NODE
-                  && childNode.tagName === el.tagName
-                );
-                if (cohort.length > 1) {
-                  subscript = `[${cohort.indexOf(el) + 1}]`;
-                }
-                // Prepend the element identifier to the segment array.
-                segments.unshift(`${tag}${subscript}`);
-                // Continue the traversal with the parent of the current element.
-                el = parent;
-              }
-              // Return the XPath.
-              return `/${segments.join('/')}`;
-            };
-          }
-        }, isTestaroTest);
         // Ensure the report has a jobData property.
         report.jobData ??= {};
         const {jobData} = report;
@@ -550,6 +435,122 @@ const launch = exports.launch = async (
       page = await browserContext.newPage();
       // Wait until it is stable.
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
+      const isTestaroTest = act.type === 'test' && act.which === 'testaro';
+      // Add a script to the page to:
+      await page.addInitScript(isTestaroTest => {
+        // Mask automation detection.
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        window.chrome = {runtime: {}};
+        Object.defineProperty(navigator, 'plugins', {
+          get: () => [1, 2, 3, 4, 5]
+        });
+        Object.defineProperty(navigator, 'languages', {
+          get: () => ['en-US', 'en']
+        });
+        // If the act is a testaro test act:
+        if (isTestaroTest) {
+          // Add a window method to return an instance.
+          window.getInstance = (
+            element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
+          ) => {
+            // If the element exists:
+            if (element) {
+              // Get its properties.
+              const boxData = element.getBoundingClientRect();
+              ['x', 'y', 'width', 'height'].forEach(dimension => {
+                boxData[dimension] = Math.round(boxData[dimension]);
+              });
+              const {x, y, width, height} = boxData;
+              const {tagName, id = ''} = element;
+              // Return an itemized instance.
+              return {
+                ruleID,
+                what,
+                count,
+                ordinalSeverity,
+                tagName,
+                id,
+                location: {
+                  doc: 'dom',
+                  type: 'box',
+                  spec: {
+                    x,
+                    y,
+                    width,
+                    height
+                  }
+                },
+                excerpt: element.textContent.trim().replace(/\s+/g, ' ').slice(0, 100),
+                boxID: [x, y, width, height].join(':'),
+                pathID: window.getXPath(element)
+              };
+            }
+            // Otherwise, i.e. if no element exists, return a summary instance.
+            return {
+              ruleID,
+              what,
+              count,
+              ordinalSeverity,
+              tagName: summaryTagName,
+              id: '',
+              location: {
+                doc: '',
+                type: '',
+                spec: ''
+              },
+              excerpt: '',
+              boxID: '',
+              pathID: ''
+            };
+          };
+          // Add a window method to get the XPath of an element.
+          window.getXPath = element => {
+            if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+              return '';
+            }
+            const segments = [];
+            let el = element;
+            // As long as the current node is an element:
+            while (el && el.nodeType === Node.ELEMENT_NODE) {
+              const tag = el.tagName.toLowerCase();
+              // If it is the html element:
+              if (el === document.documentElement) {
+                // Prepend it to the segment array
+                segments.unshift('html');
+                // Stop traversing.
+                break;
+              }
+              // Otherwise, get its parent node.
+              const parent = el.parentNode;
+              // If (abnormally) the parent node is not an element:
+              if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
+                // Prepend it to the segment array.
+                segments.unshift(tag);
+                // Stop traversing, leaving the segment array partial.
+                break;
+              }
+              let subscript = '';
+              let sameTagCount = 0;
+              // Get the subscript of the element.
+              const cohort = Array
+              .from(parent.childNodes)
+              .filter(
+                childNode => childNode.nodeType === Node.ELEMENT_NODE
+                && childNode.tagName === el.tagName
+              );
+              if (cohort.length > 1) {
+                subscript = `[${cohort.indexOf(el) + 1}]`;
+              }
+              // Prepend the element identifier to the segment array.
+              segments.unshift(`${tag}${subscript}`);
+              // Continue the traversal with the parent of the current element.
+              el = parent;
+            }
+            // Return the XPath.
+            return `/${segments.join('/')}`;
+          };
+        }
+      }, isTestaroTest);
       // Navigate to the specified URL.
       const navResult = await goTo(report, page, url, 15000, 'domcontentloaded');
       // If the navigation succeeded:
