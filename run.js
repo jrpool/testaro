@@ -462,6 +462,8 @@ const launch = exports.launch = async (
               });
               const {x, y, width, height} = boxData;
               const {tagName, id = ''} = element;
+              const rawExcerpt = element.textContent.trim() || element.outerHTML.trim();
+              const excerpt = rawExcerpt.replace(/\s+/g, ' ').slice(0, 200);
               // Return an itemized instance.
               return {
                 ruleID,
@@ -480,7 +482,7 @@ const launch = exports.launch = async (
                     height
                   }
                 },
-                excerpt: element.textContent.trim().replace(/\s+/g, ' ').slice(0, 100),
+                excerpt,
                 boxID: [x, y, width, height].join(':'),
                 pathID: window.getXPath(element)
               };

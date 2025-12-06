@@ -44,8 +44,8 @@ exports.reporter = async (page, withItems) => {
       const alt = (element.getAttribute('alt') || '').trim();
       // If it is non-empty:
       if (alt) {
-        const isURL = /^(?:https?:|file:|ftp:).+$/i.test(alt);
-        const isFileName = /favicon|^.+\.(?:png|jpe?g|gif|svg|webp|ico)$/i.test(alt);
+        const isURL = /^(?:https?:|file:|ftp:)\S+$/i.test(alt);
+        const isFileName = /favicon|^\S+\.(?:png|jpe?g|gif|svg|webp|ico)$/i.test(alt);
         // If it is a URL or file name:
         if (isURL || isFileName) {
           // Increment the violation count.
