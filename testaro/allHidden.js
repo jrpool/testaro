@@ -33,18 +33,18 @@
 // Runs the test and returns the result.
 exports.reporter = async page => {
   // Get a count of elements deemed visible by Playwright.
-  const visibleElementCount = await page.locator(':visible').count();
-  // Get totals and an instance.
+  const visibleElementCount = await page.locator('body :visible').count();
+  // Get a violation count and an instance.
   const violationData = await page.evaluate(visibleElementCount => {
-    const violationCount = 0;
+    let violationCount = 0;
     const instances = [];
     // If no element is visible:
     if (! visibleElementCount) {
       // Increment the violation count.
       violationCount = 1;
-      const what = `The entire page is hidden or empty`;
+      const what = `The entire page body is hidden or empty`;
       // Add a summary instance to the instances.
-      instances.push(null, 'allHidden', what, 1, 3);
+      instances.push(window.getInstance(null, 'allHidden', what, 1, 3));
     }
     return {
       violationCount,
