@@ -36,8 +36,8 @@
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Get data on violations of the rule.
-  const violationData = await page.evaluate(withItems => {
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(withItems => {
     // Get all elements.
     const allElements = document.body.querySelectorAll('*');
     // Get all violation candidates, i.e. elements that have non-empty child text nodes.
@@ -77,15 +77,9 @@ exports.reporter = async (page, withItems) => {
       instances.push(window.getInstance(null, 'lineHeight', what, violationCount, 1));
     }
     return {
-      violationCount,
-      instances
+      data: {},
+      totals: [0, violationCount, 0, 0],
+      standardInstances: instances
     };
   }, withItems);
-  const {violationCount, instances} = violationData;
-  // Return the result.
-  return {
-    data: {},
-    totals: [0, violationCount, 0, 0],
-    standardInstances: instances
-  };
 };

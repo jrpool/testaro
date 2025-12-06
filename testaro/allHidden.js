@@ -34,8 +34,8 @@
 exports.reporter = async page => {
   // Get a count of elements deemed visible by Playwright.
   const visibleElementCount = await page.locator('body :visible').count();
-  // Get a violation count and an instance.
-  const violationData = await page.evaluate(visibleElementCount => {
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(visibleElementCount => {
     let violationCount = 0;
     const instances = [];
     // If no element is visible:
@@ -47,15 +47,9 @@ exports.reporter = async page => {
       instances.push(window.getInstance(null, 'allHidden', what, 1, 3));
     }
     return {
-      violationCount,
-      instances
+      data: {},
+      totals: [0, 0, 0, violationCount],
+      standardInstances: instances
     };
   }, visibleElementCount);
-  const {violationCount, instances} = violationData;
-  // Return the result.
-  return {
-    data: {},
-    totals: [0, 0, 0, violationCount],
-    standardInstances: instances
-  };
 };

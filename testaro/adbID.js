@@ -36,8 +36,8 @@
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Get data on violations of the rule.
-  const violationData = await page.evaluate(withItems => {
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(withItems => {
     // Get all candidates, i.e. elements with aria-describedby attributes.
     const candidates = document.body.querySelectorAll('[aria-describedby]');
     let violationCount = 0;
@@ -104,15 +104,9 @@ exports.reporter = async (page, withItems) => {
       instances.push(window.getInstance(null, 'adbID', what, violationCount, 3));
     }
     return {
-      violationCount,
-      instances
+      data: {},
+      totals: [0, violationCount, 0, 0],
+      standardInstances: instances
     };
   }, withItems);
-  const {violationCount, instances} = violationData;
-  // Return the result.
-  return {
-    data: {},
-    totals: [0, violationCount, 0, 0],
-    standardInstances: instances
-  };
 };
