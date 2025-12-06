@@ -607,7 +607,7 @@ exports.reporter = async (page, report, actIndex) => {
               // Add data about the test, including its prevention, to the result.
               const endTime = Date.now();
               testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
-              data.rulePreventions.push(rule);
+              data.rulePreventions.push(ruleID);
               data.rulePreventionMessages[ruleID] = 'Timeout';
               result[ruleID].totals = [0, 0, 0, 0];
               result[ruleID].standardInstances = [];

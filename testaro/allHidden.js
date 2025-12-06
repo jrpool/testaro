@@ -32,70 +32,30 @@
 
 // Runs the test and returns the result.
 exports.reporter = async page => {
-  // Get data on violations of the rule.
-  const violationData = await page.evaluate(() => {
-    // Get all candidates, i.e. the regions that should never be hidden.
-    const regions = {
-      document: {
-        element: document.documentElement,
-        severity: 3
-      },
-      body: {
-        element: document.body,
-        severity: 2
-      },
-      main: {
-        element: document.querySelector('main, [role=main]'),
-        severity: 1
-      }
-    };
-    let violationCount = 0;
+  // Get a count of elements deemed visible by Playwright.
+  const visibleElementCount = await page.locator(':visible').count();
+  // Get totals and an instance.
+  const violationData = await page.evaluate(visibleElementCount => {
+    const violationCount = 0;
     const instances = [];
-    // For each candidate:
-    Object.keys(regions).forEach(regionName => {
-      // If it is not main and does not exist:
-      if (! regionName && regionName !== 'main') {
-        // Increment the violation count.
-        violationCount++;
-        const what = `The ${regionName} region does not exist`;
-        // Add an instance to the instances.
-        instances.push(window.getInstance(null, 'allHidden', what, 1, 3, regionName));
-      }
-      else if (region.hidden || region.ariaHidden) {
-        data.push(true);
-      }
-      else {
-        const styleDec = window.getComputedStyle(region);
-        const {display, visibility} = styleDec;
-        data.push(display === 'none' || visibility === 'hidden');
-      }
-    });
-    return data;
-  });
-  // Get the severity totals.
-  const totals = [0, data[2] ? 1 : 0, data[1] ? 1 : 0, data[0] ? 1 : 0];
-  const standardInstances = [];
-  data.forEach((isHidden, index) => {
-    const region = [['Document', 'HTML'], ['Body', 'BODY'], ['Main region', 'MAIN']][index];
-    if (isHidden) {
-      standardInstances.push({
-        ruleID: 'allHidden',
-        what: `${region[0]} is hidden`,
-        ordinalSeverity: 3 - index,
-        tagName: region[1],
-        id: '',
-        location: {
-          doc: '',
-          type: '',
-          spec: ''
-        },
-        excerpt: ''
-      });
+    // If no element is visible:
+    if (! visibleElementCount) {
+      // Increment the violation count.
+      violationCount = 1;
+      const what = `The entire page is hidden or empty`;
+      // Add a summary instance to the instances.
+      instances.push(null, 'allHidden', what, 1, 3);
     }
-  });
+    return {
+      violationCount,
+      instances
+    };
+  }, visibleElementCount);
+  const {violationCount, instances} = violationData;
+  // Return the result.
   return {
-    data,
-    totals,
-    standardInstances
+    data: {},
+    totals: [0, 0, 0, violationCount],
+    standardInstances: instances
   };
 };

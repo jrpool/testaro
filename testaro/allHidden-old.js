@@ -1,5 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -26,52 +27,72 @@
   allHidden
   This test reports a page that is entirely or mainly hidden.
 */
+
+// FUNCTIONS
+
+// Runs the test and returns the result.
 exports.reporter = async page => {
-  // Gets the hiddennesses of the document, body, and main region.
-  const data = await page.evaluate(() => {
-    // For each region:
-    const {body} = document;
-    const main = body && body.querySelector('main, [role=main]');
-    const data = [];
-    [document.documentElement, body, main].forEach(region => {
-      if (! region) {
-        data.push(null);
+  // Get data on violations of the rule.
+  const violationData = await page.evaluate(() => {
+    // Get all candidates, i.e. the regions that should never be hidden.
+    const regions = {
+      html: {
+        element: document.documentElement,
+        severity: 3
+      },
+      body: {
+        element: document.body,
+        severity: 2
+      },
+      main: {
+        element: document.querySelector('main, [role=main]'),
+        severity: 1
       }
-      else if (region.hidden || region.ariaHidden) {
-        data.push(true);
+    };
+    let violationCounts = [0, 0, 0, 0];
+    const instances = [];
+    // For each candidate:
+    Object.keys(regions).forEach(regionName => {
+      const region = regions[regionName];
+      const {element, severity} = region;
+      console.log(`XXX ${regionName}`);
+      const tagName = regionName.toUpperCase();
+      // If it is not main and does not exist:
+      if (! element && regionName !== 'main') {
+        console.log(`XXX ${regionName} is not main anddoes not exist`);
+        // Increment the violation count.
+        violationCounts[3]++;
+        // Add an instance to the instances.
+        const what = `The ${regionName} region does not exist`;
+        // Add a summary instance to the instances.
+        instances.push(window.getInstance(null, 'allHidden', what, 1, 3, tagName));
       }
-      else {
-        const styleDec = window.getComputedStyle(region);
+      // Otherwise, if it exists:
+      else if (element) {
+        console.log(`XXX ${regionName} exists`);
+        const styleDec = window.getComputedStyle(element);
         const {display, visibility} = styleDec;
-        data.push(display === 'none' || visibility === 'hidden');
+        // If it is hidden:
+        if (display === 'none' || visibility === 'hidden' || element.ariaHidden === 'true') {
+          // Increment the violation count.
+          violationCounts[severity]++;
+          // Add an instance to the instances.
+          const what = `The ${regionName} region is hidden`;
+          // Add an instance to the instances.
+          instances.push(window.getInstance(element, 'allHidden', what, 1, severity, tagName));
+        }
       }
     });
-    return data;
+    return {
+      violationCounts,
+      instances
+    };
   });
-  // Get the severity totals.
-  const totals = [0, data[2] ? 1 : 0, data[1] ? 1 : 0, data[0] ? 1 : 0];
-  const standardInstances = [];
-  data.forEach((isHidden, index) => {
-    const region = [['Document', 'HTML'], ['Body', 'BODY'], ['Main region', 'MAIN']][index];
-    if (isHidden) {
-      standardInstances.push({
-        ruleID: 'allHidden',
-        what: `${region[0]} is hidden`,
-        ordinalSeverity: 3 - index,
-        tagName: region[1],
-        id: '',
-        location: {
-          doc: '',
-          type: '',
-          spec: ''
-        },
-        excerpt: ''
-      });
-    }
-  });
+  const {violationCounts, instances} = violationData;
+  // Return the result.
   return {
-    data,
-    totals,
-    standardInstances
+    data: {},
+    totals: violationCounts,
+    standardInstances: instances
   };
 };
