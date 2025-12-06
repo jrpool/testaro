@@ -1,6 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -25,34 +26,52 @@
 
 /*
   altScheme
-  Identify img elements whose alt attribute is an entire URL or clearly a file name (favicon).
+  Identify img elements whose alt attribute is a URL or file name.
 */
 
-const {init, getRuleResult} = require('../procs/testaro');
+// FUNCTIONS
 
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Candidate images: any img with an alt attribute (including empty)
-  const all = await init(100, page, 'img[alt]');
-  for (const loc of all.allLocs) {
-    const isBad = await loc.evaluate(el => {
-      const alt = (el.getAttribute('alt') || '').trim();
-      if (!alt) return false;
-  // full-string URL (http(s) or file or ftp) — must be the entire alt value
-  if (/^\s*(?:https?:|file:|ftp:)\S+\s*$/i.test(alt)) return true;
-      // favicon or typical file names
-      if (/favicon/i.test(alt)) return true;
-  // common image file extensions that occupy the entire alt or are the base filename
-  if (/^\s*\S+\.(?:png|jpe?g|gif|svg|webp|ico)\s*$/i.test(alt)) return true;
-      // match exact equality with src or href attributes
-      const href = (el.getAttribute('href') || el.getAttribute('src') || '').trim();
-      if (href && alt === href) return true;
-      return false;
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(withItems => {
+    // Get all candidates, i.e. img elements with alt attributes.
+    const candidates = document.body.querySelectorAll('img[alt]');
+    let violationCount = 0;
+    const instances = [];
+    // For each candidate:
+    candidates.forEach(element => {
+      const alt = (element.getAttribute('alt') || '').trim();
+      // If it is non-empty:
+      if (alt) {
+        const isURL = /^(?:https?:|file:|ftp:).+$/i.test(alt);
+        const isFileName = /favicon|^.+\.(?:png|jpe?g|gif|svg|webp|ico)$/i.test(alt);
+        // If it is a URL or file name:
+        if (isURL || isFileName) {
+          // Increment the violation count.
+          violationCount++;
+          // If itemization is required:
+          if (withItems) {
+            const valueType = isURL && isFileName
+            ? 'the URL of an image file'
+            : (isURL ? 'a URL' : 'a file name');
+            const what = `img element has an alt attribute with ${valueType} as its value`;
+            // Add an instance to the instances.
+            instances.push(window.getInstance(element, 'altScheme', what, 1, 2));
+          }
+        }
+      }
     });
-    if (isBad) all.locs.push(loc);
-  }
-  const whats = [
-    'Element has an alt attribute with a URL as its entire value',
-    'img elements have alt attributes with URLs as their entire values'
-  ];
-  return await getRuleResult(withItems, all, 'altScheme', whats, 2);
+    // If there were any violations and itemization is not required:
+    if (violationCount && ! withItems) {
+      const what = 'img elements have alt attributes with URL or filename values';
+      // Add a summary instance to the instances.
+      instances.push(window.getInstance(null, 'altScheme', what, violationCount, 2, 'IMG'));
+    }
+    return {
+      data: {},
+      totals: [0, violationCount, 0, 0],
+      standardInstances: instances
+    };
+  }, withItems);
 };
