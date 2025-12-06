@@ -448,9 +448,6 @@ const allRules = [
     defaultOn: false
   }
 ];
-const headedBrowser = process.env.HEADED_BROWSER === 'true';
-const debug = process.env.DEBUG === 'true';
-const waits = Number.parseInt(process.env.WAITS) || 0;
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
 // ERROR HANDLER
