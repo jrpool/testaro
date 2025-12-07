@@ -120,8 +120,7 @@ After that, you can update Testaro after any version change:
 cd testaro
 git checkout package-lock.json
 git pull
-npm update
-npx playwright install
+npm run deps
 ```
 
 Once it is installed as an application, you can use its features with a terminal interface by executing the “By a user” statements below.

@@ -54,22 +54,28 @@ exports.reporter = async (
       const name = window.getAccessibleName(candidate).toLowerCase();
       // Get its required autocomplete value.
       let requiredAuto = '';
-      if (candidate.type === 'email' || emailLabels.some(label => name.includes(label))) {
+      if (candidate.type === 'email' || name && emailLabels.some(label => name.includes(label))) {
         requiredAuto = 'email';
       }
-      else if (candidate.type === 'text' || nameLabels.some(label => name.includes(label))) {
+      else if (
+        name && candidate.type === 'text' && nameLabels.some(label => name.includes(label))
+      ) {
         requiredAuto = 'name';
       }
-      else if (candidate.type === 'text' && givenLabels.some(label => name.includes(label))) {
+      else if (
+        name && candidate.type === 'text' && givenLabels.some(label => name.includes(label))
+      ) {
         requiredAuto = 'given-name';
       }
-      else if (candidate.type === 'text' && familyLabels.some(label => name.includes(label))) {
+      else if (
+        name && candidate.type === 'text' && familyLabels.some(label => name.includes(label))
+      ) {
         requiredAuto = 'family-name';
       }
       // Get its actual autocomplete value.
       const actualAuto = candidate.getAttribute('autocomplete');
       // If an autocomplete value is required but not present:
-      if (requiredAuto && ! actualAuto.includes(requiredAuto)) {
+      if (requiredAuto && ! (actualAuto && actualAuto.includes(requiredAuto))) {
         // Increment the violation count.
         violationCount++;
         // If itemization is required:
@@ -89,7 +95,7 @@ exports.reporter = async (
     return {
       data: {},
       totals: [0, 0, violationCount, 0],
-      instances
+      standardInstances: instances
     }
   }, [withItems, nameLabels, givenLabels, familyLabels, emailLabels]);
 };
