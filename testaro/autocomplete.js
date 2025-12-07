@@ -40,14 +40,14 @@ const {getLocatorData} = require('../procs/getLocatorData');
 exports.reporter = async (
   page,
   withItems,
+  nameLabels = ['your name', 'full name', 'first and last name'],
   emailLabels = ['email'],
-  nameLabels = ['name'],
   givenLabels = ['first name', 'forename', 'given name'],
   familyLabels = ['last name', 'surname', 'family name']
 ) => {
   // Return totals and standard instances for the rule.
   return await page.evaluate(args => {
-    const [withItems, givenLabels, familyLabels, emailLabels] = args;
+    const [withItems, nameLabels,givenLabels, familyLabels, emailLabels] = args;
     // Get all candidates, i.e. text and email input elements.
     const candidates = document.body.querySelectorAll(
       'input[type=text], input[type=email], input:not([type])'
@@ -58,86 +58,44 @@ exports.reporter = async (
     candidates.forEach(candidate => {
       // Get its lower-cased accessible name.
       const name = window.getAccessibleName(candidate).toLowerCase();
-      const actualAuto = candidate.getAttribute('autocomplete');
-      // If its type or accessible name indicates it is an email input:
+      // Get its required autocomplete value.
+      let requiredAuto = '';
       if (candidate.type === 'email' || emailLabels.some(label => name.includes(label))) {
-        // If it has no autocomplete attribute with email value:
-        if (actualAuto !== 'email') {
-          // Increment the violation count.
-          violationCount++;
-          // If itemization is required:
-          if (withItems) {
-            const what = 'Email input has no autocomplete="email" attribute';
-            // Add an instance to the instances.
-            instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
-          }
-        }
+        requiredAuto = 'email';
       }
-      // Otherwise, if its type and accessible name indicate it is a given-name input:
+      else if (candidate.type === 'text' || nameLabels.some(label => name.includes(label))) {
+        requiredAuto = 'name';
+      }
       else if (candidate.type === 'text' && givenLabels.some(label => name.includes(label))) {
-        // If it has no autocomplete attribute with given-name value:
-        if (actualAuto !== 'given-name') {
-          // Increment the violation count.
-          violationCount++;
-          // If itemization is required:
-          if (withItems) {
-            const what = 'Given-name input has no autocomplete="given-name" attribute';
-            // Add an instance to the instances.
-            instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
-          }
-        }
+        requiredAuto = 'given-name';
       }
-      // Otherwise, if its type and accessible name indicate it is a family-name input:
       else if (candidate.type === 'text' && familyLabels.some(label => name.includes(label))) {
-        // If it has no autocomplete attribute with family-name value:
-        if (actualAuto !== 'family-name') {
-          // Increment the violation count.
-          violationCount++;
-          // If itemization is required:
-          if (withItems) {
-            const what = 'Given-name input has no autocomplete="given-name" attribute';
-            // Add an instance to the instances.
-            instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
-          }
+        requiredAuto = 'family-name';
+      }
+      // Get its actual autocomplete value.
+      const actualAuto = candidate.getAttribute('autocomplete');
+      // If an autocomplete value is required but not present:
+      if (requiredAuto && ! actualAuto.includes(requiredAuto)) {
+        // Increment the violation count.
+        violationCount++;
+        // If itemization is required:
+        if (withItems) {
+          const what = `input has no autocomplete="${requiredAuto}" attribute`;
+          // Add an instance to the instances.
+          instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
         }
       }
     });
-  }, [withItems, givenLabels, familyLabels, emailLabels]);
-  // Initialize the locators and result.
-  // For each locator:
-  const autoValues = {
-    'given-name': givenLabels,
-    'family-name': familyLabels,
-    'email': emailLabels
-  };
-  for (const loc of all.allLocs) {
-    // Get which autocomplete value, if any, its element needs.
-    const elData = await getLocatorData(loc);
-    const lcText = elData.excerpt.toLowerCase();
-    const neededAutos = Object.keys(autoValues)
-    .filter(autoValue => autoValues[autoValue].some(typeLabel => lcText.includes(typeLabel)));
-    let neededAuto;
-    if (neededAutos.length === 1) {
-      neededAuto = neededAutos[0];
+    // If there were any violations and itemization is not required:
+    if (violationCount && ! withItems) {
+      const what = 'Inputs are missing required autocomplete attributes';
+      // Add a summary instance to the instances.
+      instances.push(window.getInstance(null, 'autocomplete', what, violationCount, 2));
     }
-    else if (! neededAutos.length && await loc.getAttribute('type') === 'email') {
-      neededAuto = 'email';
+    return {
+      data: {},
+      totals: [0, 0, violationCount, 0],
+      instances
     }
-    // If it needs one:
-    if (neededAuto) {
-      // If it does not have the one it needs:
-      const actualAuto = await loc.getAttribute('autocomplete');
-      const isBad = actualAuto !== neededAuto;
-      if (isBad) {
-        // Add the locator to the array of violators.
-        all.locs.push([loc, neededAuto]);
-      }
-    }
-  }
-  // Populate and return the result.
-  const whats = [
-    'Input is missing an autocomplete attribute with value __param__',
-    'Inputs are missing applicable autocomplete attributes'
-  ];
-  return await getRuleResult(withItems, all, 'autocomplete', whats, 2);
+  }, [withItems, nameLabels, givenLabels, familyLabels, emailLabels]);
 };
