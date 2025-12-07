@@ -4,6 +4,9 @@
   "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
+    "build:nameComputation": "esbuild src/nameComputation.js --bundle --format=iife --global-name=computeAccessibleName --outfile=dist/nameComputation.js",
+    "build": "npm run build:nameComputation",
+    "deps": "npm update && npx playwright install && npm run build",
     "tests": "node validation/executors/tests",
     "test": "node validation/executors/test",
     "run": "node validation/executors/run",
@@ -47,6 +50,8 @@
     "puppeteer-extra-plugin-stealth": "*"
   },
   "devDependencies": {
+    "dom-accessibility-api": "*",
+    "esbuild": "*",
     "eslint": "*"
   }
 }

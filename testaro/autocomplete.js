@@ -40,12 +40,70 @@ const {getLocatorData} = require('../procs/getLocatorData');
 exports.reporter = async (
   page,
   withItems,
+  emailLabels = ['email'],
+  nameLabels = ['name'],
   givenLabels = ['first name', 'forename', 'given name'],
-  familyLabels = ['last name', 'surname', 'family name'],
-  emailLabels = ['email']
+  familyLabels = ['last name', 'surname', 'family name']
 ) => {
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(args => {
+    const [withItems, givenLabels, familyLabels, emailLabels] = args;
+    // Get all candidates, i.e. text and email input elements.
+    const candidates = document.body.querySelectorAll(
+      'input[type=text], input[type=email], input:not([type])'
+    );
+    let violationCount = 0;
+    const instances = [];
+    // For each candidate:
+    candidates.forEach(candidate => {
+      // Get its lower-cased accessible name.
+      const name = window.getAccessibleName(candidate).toLowerCase();
+      const actualAuto = candidate.getAttribute('autocomplete');
+      // If its type or accessible name indicates it is an email input:
+      if (candidate.type === 'email' || emailLabels.some(label => name.includes(label))) {
+        // If it has no autocomplete attribute with email value:
+        if (actualAuto !== 'email') {
+          // Increment the violation count.
+          violationCount++;
+          // If itemization is required:
+          if (withItems) {
+            const what = 'Email input has no autocomplete="email" attribute';
+            // Add an instance to the instances.
+            instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
+          }
+        }
+      }
+      // Otherwise, if its type and accessible name indicate it is a given-name input:
+      else if (candidate.type === 'text' && givenLabels.some(label => name.includes(label))) {
+        // If it has no autocomplete attribute with given-name value:
+        if (actualAuto !== 'given-name') {
+          // Increment the violation count.
+          violationCount++;
+          // If itemization is required:
+          if (withItems) {
+            const what = 'Given-name input has no autocomplete="given-name" attribute';
+            // Add an instance to the instances.
+            instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
+          }
+        }
+      }
+      // Otherwise, if its type and accessible name indicate it is a family-name input:
+      else if (candidate.type === 'text' && familyLabels.some(label => name.includes(label))) {
+        // If it has no autocomplete attribute with family-name value:
+        if (actualAuto !== 'family-name') {
+          // Increment the violation count.
+          violationCount++;
+          // If itemization is required:
+          if (withItems) {
+            const what = 'Given-name input has no autocomplete="given-name" attribute';
+            // Add an instance to the instances.
+            instances.push(window.getInstance(candidate, 'autocomplete', what, 1, 2));
+          }
+        }
+      }
+    });
+  }, [withItems, givenLabels, familyLabels, emailLabels]);
   // Initialize the locators and result.
-  const all = await init(100, page, 'input[type=text], input[type=email], input:not([type])');
   // For each locator:
   const autoValues = {
     'given-name': givenLabels,

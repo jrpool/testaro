@@ -436,6 +436,8 @@ const launch = exports.launch = async (
       // Wait until it is stable.
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
       const isTestaroTest = act.type === 'test' && act.which === 'testaro';
+      // Add a script to the page to compute the accessible name of an element.
+      await page.addInitScript({path: require.resolve('./src/nameComputation.js')});
       // Add a script to the page to:
       await page.addInitScript(isTestaroTest => {
         // Mask automation detection.
@@ -449,6 +451,13 @@ const launch = exports.launch = async (
         });
         // If the act is a testaro test act:
         if (isTestaroTest) {
+          // Add a window method to compute the accessible name of an element.
+          window.getAccessibleName = element => {
+            const nameIsComputable = element
+            && element.nodeType === Node.ELEMENT_NODE
+            && typeof window.computeAccessibleName === 'function';
+            return nameIsComputable ? window.computeAccessibleName(element) : '';
+          };
           // Add a window method to return an instance.
           window.getInstance = (
             element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
