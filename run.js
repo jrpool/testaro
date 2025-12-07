@@ -437,7 +437,7 @@ const launch = exports.launch = async (
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
       const isTestaroTest = act.type === 'test' && act.which === 'testaro';
       // Add a script to the page to compute the accessible name of an element.
-      await page.addInitScript({path: require.resolve('./src/nameComputation.js')});
+      await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
       // Add a script to the page to:
       await page.addInitScript(isTestaroTest => {
         // Mask automation detection.
