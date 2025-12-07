@@ -1,5 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -27,14 +28,7 @@
   This test reports failures to equip name and email inputs with correct autocomplete attributes.
 */
 
-// ########## IMPORTS
-
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
-// Module to get locator data.
-const {getLocatorData} = require('../procs/getLocatorData');
-
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (
