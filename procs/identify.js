@@ -85,15 +85,16 @@ const addIDs = async (locator, recipient) => {
       const timer = new Promise(resolve => {
         timeout = setTimeout(() => {
           resolve({timedOut: true})
-          clearTimeout(timeout);
         }, 500);
       });
       // Use Playwright to get the XPath.
       const pathIDPromise = xPath(locator);
       const pathID = await Promise.race([pathIDPromise, timer]);
-      // If the XPath was computed:
+      // If the XPath was computed before being timed out:
       if (typeof pathID === 'string') {
-        // Add it to the result.
+        // Prevent the timeout from resolving.
+        clearTimeout(timeout);
+        // Add the XPath to the result.
         recipient.pathID = pathID;
       }
     }
