@@ -446,8 +446,54 @@ const launch = exports.launch = async (
         });
       });
       const isTestaroTest = act.type === 'test' && act.which === 'testaro';
-      // If the act is a testaro test act:
+      // If the launch is for a testaro test act:
       if (isTestaroTest) {
+        // Add a script to the page to add a window method to get the XPath of an element.
+        await page.addInitScript(() => {
+          window.getXPath = element => {
+            if (! element || element.nodeType !== Node.ELEMENT_NODE) {
+              return '';
+            }
+            const segments = [];
+            // As long as the current node is an element:
+            while (element && element.nodeType === Node.ELEMENT_NODE) {
+              const tag = element.tagName.toLowerCase();
+              // If it is the html element:
+              if (element === document.documentElement) {
+                // Prepend it to the segment array
+                segments.unshift('html');
+                // Stop traversing.
+                break;
+              }
+              // Otherwise, get its parent node.
+              const parent = element.parentNode;
+              // If (abnormally) the parent node is not an element:
+              if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
+                // Prepend it to the segment array.
+                segments.unshift(tag);
+                // Stop traversing, leaving the segment array partial.
+                break;
+              }
+              let subscript = '';
+              // Get the subscript of the element.
+              const cohort = Array
+              .from(parent.childNodes)
+              .filter(
+                childNode => childNode.nodeType === Node.ELEMENT_NODE
+                && childNode.tagName === element.tagName
+              );
+              if (cohort.length > 1) {
+                subscript = `[${cohort.indexOf(element) + 1}]`;
+              }
+              // Prepend the element identifier to the segment array.
+              segments.unshift(`${tag}${subscript}`);
+              // Continue the traversal with the parent of the current element.
+              element = parent;
+            }
+            // Return the XPath.
+            return `/${segments.join('/')}`;
+          };
+        });
         // Add a script to the page to compute the accessible name of an element.
         await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
         // Add a script to the page to:
@@ -514,52 +560,6 @@ const launch = exports.launch = async (
               boxID: '',
               pathID: ''
             };
-          };
-          // Add a window method to get the XPath of an element.
-          window.getXPath = element => {
-            if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-              return '';
-            }
-            const segments = [];
-            let el = element;
-            // As long as the current node is an element:
-            while (el && el.nodeType === Node.ELEMENT_NODE) {
-              const tag = el.tagName.toLowerCase();
-              // If it is the html element:
-              if (el === document.documentElement) {
-                // Prepend it to the segment array
-                segments.unshift('html');
-                // Stop traversing.
-                break;
-              }
-              // Otherwise, get its parent node.
-              const parent = el.parentNode;
-              // If (abnormally) the parent node is not an element:
-              if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
-                // Prepend it to the segment array.
-                segments.unshift(tag);
-                // Stop traversing, leaving the segment array partial.
-                break;
-              }
-              let subscript = '';
-              let sameTagCount = 0;
-              // Get the subscript of the element.
-              const cohort = Array
-              .from(parent.childNodes)
-              .filter(
-                childNode => childNode.nodeType === Node.ELEMENT_NODE
-                && childNode.tagName === el.tagName
-              );
-              if (cohort.length > 1) {
-                subscript = `[${cohort.indexOf(el) + 1}]`;
-              }
-              // Prepend the element identifier to the segment array.
-              segments.unshift(`${tag}${subscript}`);
-              // Continue the traversal with the parent of the current element.
-              el = parent;
-            }
-            // Return the XPath.
-            return `/${segments.join('/')}`;
           };
         });
       }
@@ -1659,7 +1659,7 @@ const doActs = async (report, opts = {}) => {
       // Replace the browser and navigate to the URL.
       await launch(
         report,
-        '',
+        'standardization',
         'high',
         specs[0],
         specs[1]

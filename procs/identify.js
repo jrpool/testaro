@@ -30,9 +30,7 @@
 // IMPORTS
 
 // Module to get the XPath of an element.
-const getPath = {
-  xPath: require('playwright-dompath').xPath
-};
+const {xPath} = require('playwright-dompath');
 
 // FUNCTIONS
 
@@ -42,7 +40,7 @@ const boxOf = exports.boxOf = async locator => {
     const isVisible = await locator.isVisible();
     if (isVisible) {
       const box = await locator.boundingBox({
-        timeout: 50
+        timeout: 100
       });
       if (box) {
         Object.keys(box).forEach(dim => {
@@ -72,22 +70,30 @@ const boxToString = exports.boxToString = box => {
   }
 };
 // Adds a box ID and a path ID to an object.
-const addIDs = async (locators, recipient) => {
+const addIDs = async (locator, recipient) => {
+  const locatorCount = await locator.count();
   // If there is exactly 1 of them:
-  const locatorCount = await locators.count();
   if (locatorCount === 1) {
     // Add the box ID of the element to the result if none exists yet.
     if (! recipient.boxID) {
-      const box = await boxOf(locators);
+      const box = await boxOf(locator);
       recipient.boxID = boxToString(box);
     }
     // If the element has no path ID yet in the result:
     if (! recipient.pathID) {
-      // Add it to the result.
-      const pathIDPromise = getPath.xPath(locators);
-      const timeoutPromise = setTimeout(() => true, 1000);
-      const pathID = Promise.race([pathIDPromise, timeoutPromise]);
+      let timeout;
+      const timer = new Promise(resolve => {
+        timeout = setTimeout(() => {
+          resolve({timedOut: true})
+          clearTimeout(timeout);
+        }, 500);
+      });
+      // Use Playwright to get the XPath.
+      const pathIDPromise = xPath(locator);
+      const pathID = await Promise.race([pathIDPromise, timer]);
+      // If the XPath was computed:
       if (typeof pathID === 'string') {
+        // Add it to the result.
         recipient.pathID = pathID;
       }
     }
