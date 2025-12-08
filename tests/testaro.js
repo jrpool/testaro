@@ -552,6 +552,7 @@ exports.reporter = async (page, report, actIndex) => {
       // Replace the browser and the page and navigate to the target.
       await launch(
         report,
+        actIndex,
         headEmulation,
         browserID,
         url
@@ -663,6 +664,7 @@ exports.reporter = async (page, report, actIndex) => {
             // Replace the browser and the page in the run module and navigate to the target.
             await launch(
               report,
+              actIndex,
               headEmulation,
               report.browserID,
               url

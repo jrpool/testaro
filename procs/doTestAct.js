@@ -39,19 +39,12 @@ const os = require('os');
 
 // CONSTANTS
 
-const headedBrowser = process.env.HEADED_BROWSER === 'true';
-const debug = process.env.DEBUG === 'true';
-const waits = Number.parseInt(process.env.WAITS) || 0;
 const tmpDir = os.tmpdir();
-
-// VARIABLES
-
-const actIndex = Number.parseInt(process.argv[2]);
 
 // FUNCTIONS
 
 // Performs the tests of the act specified by the caller.
-const doTestAct = async () => {
+const doTestAct = async actIndex => {
   const reportPath = `${tmpDir}/report.json`;
   // Get the report from the temporary directory.
   const reportJSON = await fs.readFile(reportPath, 'utf8');
@@ -68,6 +61,7 @@ const doTestAct = async () => {
     // Launch a browser, navigate to the URL, and update the run-module page export.
     await launch(
       report,
+      actIndex,
       'high',
       browserID,
       targetURL
@@ -88,7 +82,7 @@ const doTestAct = async () => {
       page = require('../run').page;
     }
   }
-  // If the page exists:
+  // If the page exists or the tool is Testaro:
   if (page || which === 'testaro') {
     try {
       // Make the act reporter perform the specified tests of the tool.
@@ -142,4 +136,4 @@ const doTestAct = async () => {
   }
 };
 
-doTestAct();
+doTestAct(Number.parseInt(process.argv[2]));

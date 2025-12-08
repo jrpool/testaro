@@ -111,7 +111,6 @@ const tmpDir = os.tmpdir();
 // Facts about the current session.
 let actCount = 0;
 // Facts about the current act.
-let actIndex = 0;
 let browser;
 let cleanupInProgress = false;
 let browserCloseIntentional = false;
@@ -290,9 +289,9 @@ const browserClose = exports.browserClose = async () => {
 };
 // Launches a browser and navigates to a URL.
 const launch = exports.launch = async (
-  report, headEmulation, tempBrowserID, tempURL, retries = 2
+  report, actIndex, headEmulation, tempBrowserID, tempURL, retries = 2
 ) => {
-  const act = report.acts[actIndex];
+  const act = report.acts[actIndex] || {};
   const {device} = report;
   const deviceID = device && device.id;
   const browserID = tempBrowserID || report.browserID || '';
@@ -435,12 +434,8 @@ const launch = exports.launch = async (
       page = await browserContext.newPage();
       // Wait until it is stable.
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
-      const isTestaroTest = act.type === 'test' && act.which === 'testaro';
-      // Add a script to the page to compute the accessible name of an element.
-      await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
-      // Add a script to the page to:
-      await page.addInitScript(isTestaroTest => {
-        // Mask automation detection.
+      // Add a script to the page to mask automation detection.
+      await page.addInitScript(() => {
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
         window.chrome = {runtime: {}};
         Object.defineProperty(navigator, 'plugins', {
@@ -449,8 +444,14 @@ const launch = exports.launch = async (
         Object.defineProperty(navigator, 'languages', {
           get: () => ['en-US', 'en']
         });
-        // If the act is a testaro test act:
-        if (isTestaroTest) {
+      });
+      const isTestaroTest = act.type === 'test' && act.which === 'testaro';
+      // If the act is a testaro test act:
+      if (isTestaroTest) {
+        // Add a script to the page to compute the accessible name of an element.
+        await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
+        // Add a script to the page to:
+        await page.addInitScript(() => {
           // Add a window method to compute the accessible name of an element.
           window.getAccessibleName = element => {
             const nameIsComputable = element
@@ -560,8 +561,8 @@ const launch = exports.launch = async (
             // Return the XPath.
             return `/${segments.join('/')}`;
           };
-        }
-      }, isTestaroTest);
+        });
+      }
       // Navigate to the specified URL.
       const navResult = await goTo(report, page, url, 15000, 'domcontentloaded');
       // If the navigation succeeded:
@@ -603,7 +604,7 @@ const launch = exports.launch = async (
         );
         await wait(1000 * waitSeconds + 100);
         // Then retry the launch and navigation.
-        return launch(report, headEmulation, tempBrowserID, tempURL, retries - 1);
+        return launch(report, actIndex, headEmulation, tempBrowserID, tempURL, retries - 1);
       }
       // Otherwise, i.e. if no retries remain:
       else {
@@ -828,9 +829,8 @@ const doActs = async (report, opts = {}) => {
   const standard = report.standard || 'only';
   const reportPath = `${tmpDir}/report.json`;
   // For each act in the report.
-  for (const doActsIndex in acts) {
+  for (const actIndex in acts) {
     if (signal && signal.aborted) throw new Error('doActs aborted');
-    actIndex = doActsIndex;
     // If the job has not been aborted:
     if (report.jobData && ! report.jobData.aborted) {
       let act = acts[actIndex];
@@ -908,6 +908,7 @@ const doActs = async (report, opts = {}) => {
         // Launch a browser, navigate to a page, and add the result to the act.
         await launch(
           report,
+          actIndex,
           'high',
           actLaunchSpecs[0],
           actLaunchSpecs[1]
@@ -1658,6 +1659,7 @@ const doActs = async (report, opts = {}) => {
       // Replace the browser and navigate to the URL.
       await launch(
         report,
+        '',
         'high',
         specs[0],
         specs[1]
