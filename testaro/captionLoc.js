@@ -28,21 +28,40 @@
   Report caption elements that are not the first child of their table element.
 */
 
-const {init, getRuleResult} = require('../procs/testaro');
+// FUNCTIONS
 
 exports.reporter = async (page, withItems) => {
-  const all = await init(100, page, 'caption');
-  for (const loc of all.allLocs) {
-    const isBad = await loc.evaluate(el => {
-      const parent = el.parentElement;
-      if (!parent || parent.tagName !== 'TABLE') return false;
-      return parent.firstElementChild !== el;
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(withItems => {
+    // Get all candidates, i.e. caption elements.
+    const candidates = document.body.querySelectorAll('caption');
+    let violationCount = 0;
+    const instances = [];
+    // For each candidate:
+    candidates.forEach(element => {
+      const parent = element.parentElement;
+      // If the element is not the first child of a table element:
+      if (! parent || parent.tagName !== 'TABLE' || parent.firstElementChild !== el) {
+        // Increment the violation count.
+        violationCount++;
+        // If itemization is required:
+        if (withItems) {
+          const what = 'caption element is not the first child of a table element';
+          // Add an instance to the instances.
+          instances.push(window.getInstance(element, 'captionLoc', what, 1, 3));
+        }
+      }
     });
-    if (isBad) all.locs.push(loc);
-  }
-  const whats = [
-    'Element is not the first child of a table element',
-    'caption elements are not the first children of table elements'
-  ];
-  return await getRuleResult(withItems, all, 'captionLoc', whats, 3, 'CAPTION');
+    // If there are any violations and itemization is not required:
+    if (violationCount && ! withItems) {
+      const what = 'caption elements are not the first children of table elements';
+      // Add a summary instance to the instances.
+      instances.push(window.getInstance(null, 'captionLoc', what, violationCount, 3, 'caption'));
+    }
+    return {
+      data: {},
+      totals: [0, 0, 0, violationCount],
+      standardInstances: instances
+    }
+  }, withItems);
 };
