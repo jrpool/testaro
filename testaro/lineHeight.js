@@ -32,54 +32,41 @@
   their subtrees are excluded.
 */
 
+// IMPORTS
+
+const {doTest} = require('../procs/testaro');
+
 // FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Return totals and standard instances for the rule.
-  return await page.evaluate(withItems => {
-    // Get all elements.
-    const allElements = document.body.querySelectorAll('*');
-    // Get all violation candidates, i.e. elements that have non-empty child text nodes.
-    const candidates = Array.from(allElements).filter(el =>
-      Array.from(el.childNodes).some(child =>
-        child.nodeType === Node.TEXT_NODE &&
-        child.textContent.trim().length
-      )
+  // Define a violation function for execution in the browser.
+  const getBadWhat = element => {
+    // Get whether the element has a non-spacing child text node.
+    const hasText = Array.from(element.childNodes).some(child =>
+      child.nodeType === Node.TEXT_NODE && child.textContent.trim()
     );
-    let violationCount = 0;
-    const instances = [];
-    // For each candidate:
-    candidates.forEach(element => {
+    // If so:
+    if (hasText) {
       // Get its relevant style properties.
       const styleDec = window.getComputedStyle(element);
       const {fontSize, lineHeight} = styleDec;
       const fontSizeNum = Number.parseFloat(fontSize);
       const lineHeightNum = Number.parseFloat(lineHeight);
-      // If it violates the rule:
-      if (lineHeightNum < 1.495 * fontSizeNum) {
-        // Increment the violation count.
-        violationCount++;
-        // If itemization is required:
-        if (withItems) {
-          const fontSizeRounded = fontSizeNum.toFixed(1);
-          const lineHeightRounded = lineHeightNum.toFixed(1);
-          const what = `Element line height (${lineHeightRounded}px) is less than 1.5 times its font size (${fontSizeRounded}px)`;
-          // Add an instance to the instances.
-          instances.push(window.getInstance(element, 'lineHeight', what, 1, 1));
-        }
+      // Get whether it violates the rule.
+      const isBad = lineHeightNum < 1.495 * fontSizeNum;
+      // If it does:
+      if (isBad) {
+        const whatFontSize = `font size (${fontSizeNum.toFixed(1)}px)`;
+        const whatLineHeight = `line height (${lineHeightNum.toFixed(1)}px)`;
+        // Return a violation description.
+        return `Element ${whatLineHeight} is less than 1.5 times its ${whatFontSize}`;
       }
-    });
-    // If there were any violations and itemization is not required:
-    if (violationCount && ! withItems) {
-      const what = 'Element line heights are less than 1.5 times their font sizes';
-      // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'lineHeight', what, violationCount, 1));
     }
-    return {
-      data: {},
-      totals: [0, violationCount, 0, 0],
-      standardInstances: instances
-    };
-  }, withItems);
+  };
+  const whats = 'Element line heights are less than 1.5 times their font sizes';
+  // Perform the test and return the result.
+  return doTest(
+    page, withItems, 'lineHeight', '*', whats, 1, null, getBadWhat.toString()
+  );
 };

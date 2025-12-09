@@ -32,81 +32,50 @@
   the implementation of a test for a similar rule in the Tenon tool.
 */
 
+// IMPORTS
+
+const {doTest} = require('../procs/testaro');
+
 // FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Return totals and standard instances for the rule.
-  return await page.evaluate(withItems => {
-    // Get all candidates, i.e. elements with aria-describedby attributes.
-    const candidates = document.body.querySelectorAll('[aria-describedby]');
-    let violationCount = 0;
-    const instances = [];
-    // For each candidate:
-    candidates.forEach(element => {
-      // Get the IDs in its aria-describedby attribute.
-      const IDs = element.getAttribute('aria-describedby').trim().split(/\s+/).filter(Boolean);
-      // If there are none:
-      if (! IDs.length) {
-        // Increment the violation count.
-        violationCount++;
-        // If itemization is required:
-        if (withItems) {
-          const what = 'Element has an aria-describedby attribute with no value';
-          // Add an instance to the instances.
-          instances.push(window.getInstance(element, 'adbID', what, 1, 3));
-        }
-      }
-      // Otherwise, i.e. if there is at least 1 ID:
-      else {
-        // For each ID:
-        for (const id of IDs) {
-          // Get the element with that ID.
-          const describer = document.getElementById(id);
-          // If it doesn't exist:
-          if (! describer) {
-            // Increment the violation count.
-            violationCount++;
-            // If itemization is required:
-            if (withItems) {
-              const what = `No element has the aria-describedby ID ${id}`;
-              // Add an instance to the instances.
-              instances.push(window.getInstance(element, 'adbID', what, 1, 3));
-            }
-            // Stop checking the element.
-            break;
-          }
-          // Otherwise, i.e. if it exists:
-          else {
-            // Get the elements with that ID.
-            const sameIDElements = document.querySelectorAll(`#${id}`);
-            // If there is more than one:
-            if (sameIDElements.length > 1) {
-              // Increment the violation count.
-              violationCount++;
-              // If itemization is required:
-              if (withItems) {
-                const what = `Multiple elements share the aria-describedby ID ${id}`;
-                // Add an instance to the instances.
-                instances.push(window.getInstance(element, 'adbID', what, 1, 2));
-              }
-              // Stop checking the element.
-              break;
-            }
-          }
-        }
-      }
-    });
-    // If there were any violations and itemization is not required:
-    if (violationCount && ! withItems) {
-      const what = 'Elements have aria-describedby attributes with missing or invalid id values';
-      // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'adbID', what, violationCount, 3));
+  // Define a violation function for execution in the browser.
+  const getBadWhat = element => {
+    // Get the IDs in the aria-describedby attribute of the element.
+    const IDs = element.getAttribute('aria-describedby').trim().split(/\s+/).filter(Boolean);
+    // If there are none:
+    if (! IDs.length) {
+      // Return a violation description.
+      return 'Element has an aria-describedby attribute with no value';
     }
-    return {
-      data: {},
-      totals: [0, violationCount, 0, 0],
-      standardInstances: instances
-    };
-  }, withItems);
+    // Otherwise, i.e. if there is at least 1 ID:
+    else {
+      // For each ID:
+      for (const id of IDs) {
+        // Get the element with that ID.
+        const describer = document.getElementById(id);
+        // If it doesn't exist:
+        if (! describer) {
+          // Return a violation description.
+          return `No element has the aria-describedby ID ${id}`;
+        }
+        // Otherwise, i.e. if it exists:
+        else {
+          // Get the elements with that ID.
+          const sameIDElements = document.querySelectorAll(`#${id}`);
+          // If there is more than one:
+          if (sameIDElements.length > 1) {
+            // Return a violation description.
+            return `Multiple elements share the aria-describedby ID ${id}`;
+          }
+        }
+      }
+    }
+  };
+  const whats = 'Elements have aria-describedby attributes with missing or invalid id values';
+  // Perform the test and return the result.
+  return doTest(
+    page, withItems, 'adbID', '[aria-describedby]', whats, 3, null, getBadWhat.toString()
+  );
 };

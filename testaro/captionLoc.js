@@ -1,6 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -25,43 +26,28 @@
 
 /*
   captionLoc
-  Report caption elements that are not the first child of their table element.
+  Report caption elements that are not the first children of table elements.
 */
+
+// IMPORTS
+
+const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
 exports.reporter = async (page, withItems) => {
-  // Return totals and standard instances for the rule.
-  return await page.evaluate(withItems => {
-    // Get all candidates, i.e. caption elements.
-    const candidates = document.body.querySelectorAll('caption');
-    let violationCount = 0;
-    const instances = [];
-    // For each candidate:
-    candidates.forEach(element => {
-      const parent = element.parentElement;
-      // If the element is not the first child of a table element:
-      if (! parent || parent.tagName !== 'TABLE' || parent.firstElementChild !== el) {
-        // Increment the violation count.
-        violationCount++;
-        // If itemization is required:
-        if (withItems) {
-          const what = 'caption element is not the first child of a table element';
-          // Add an instance to the instances.
-          instances.push(window.getInstance(element, 'captionLoc', what, 1, 3));
-        }
-      }
-    });
-    // If there are any violations and itemization is not required:
-    if (violationCount && ! withItems) {
-      const what = 'caption elements are not the first children of table elements';
-      // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'captionLoc', what, violationCount, 3, 'caption'));
+  // Define a violation function for execution in the browser.
+  const getBadWhat = element => {
+    const parent = element.parentElement;
+    // If the element is not the first child of a table element:
+    if (! parent || parent.tagName !== 'TABLE' || parent.firstElementChild !== element) {
+      // Return a violation description.
+      return 'caption element is not the first child of a table element';
     }
-    return {
-      data: {},
-      totals: [0, 0, 0, violationCount],
-      standardInstances: instances
-    }
-  }, withItems);
+  };
+  const whats = 'caption elements are not the first children of table elements';
+  // Perform the test and return the result.
+  return doTest(
+    page, withItems, 'captionLoc', 'caption', whats, 3, 'caption', getBadWhat.toString()
+  );
 };

@@ -157,3 +157,70 @@ exports.simplify = async (page, withItems, ruleData) => {
   // Return the result.
   return result;
 };
+// Performs a standard test.
+exports.doTest = async (
+  page,
+  withItems,
+  ruleID,
+  candidateSelector,
+  whats,
+  severity,
+  summaryTagName,
+  getBadWhatString
+) => {
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(args => {
+    const [
+      withItems,
+      ruleID,
+      candidateSelector,
+      whats,
+      severity,
+      summaryTagName,
+      getBadWhatString
+    ] = args;
+    // Get all candidates.
+    const candidates = document.body.querySelectorAll(candidateSelector);
+    let violationCount = 0;
+    const instances = [];
+    // Get a violation function.
+    const getBadWhat = eval(`(${getBadWhatString})`);
+    // For each candidate:
+    candidates.forEach(element => {
+      const violationWhat = getBadWhat(element);
+      // If it violates the rule:
+      if (violationWhat) {
+        // Increment the violation count.
+        violationCount++;
+        // If itemization is required:
+        if (withItems) {
+          // Add an instance to the instances.
+          instances.push(
+            window.getInstance(element, ruleID, violationWhat, 1, severity)
+          );
+        }
+      }
+    });
+    // If there are any violations and itemization is not required:
+    if (violationCount && ! withItems) {
+      // Add a summary instance to the instances.
+      instances.push(
+        window.getInstance(null, ruleID, whats, violationCount, severity, summaryTagName)
+      );
+    }
+    return {
+      data: {},
+      totals: [0, 0, 0, violationCount],
+      standardInstances: instances
+    }
+  }, [
+      withItems,
+      ruleID,
+      candidateSelector,
+      whats,
+      severity,
+      summaryTagName,
+      getBadWhatString
+    ]
+  );
+};
