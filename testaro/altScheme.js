@@ -29,49 +29,35 @@
   Identify img elements whose alt attribute is a URL or file name.
 */
 
+// IMPORTS
+
+const {doTest} = require('../procs/testaro');
+
 // FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Return totals and standard instances for the rule.
-  return await page.evaluate(withItems => {
-    // Get all candidates, i.e. img elements with alt attributes.
-    const candidates = document.body.querySelectorAll('img[alt]');
-    let violationCount = 0;
-    const instances = [];
-    // For each candidate:
-    candidates.forEach(element => {
-      const alt = (element.getAttribute('alt') || '').trim();
-      // If it is non-empty:
-      if (alt) {
-        const isURL = /^(?:https?:|file:|ftp:)\S+$/i.test(alt);
-        const isFileName = /favicon|^\S+\.(?:png|jpe?g|gif|svg|webp|ico)$/i.test(alt);
-        // If it is a URL or file name:
-        if (isURL || isFileName) {
-          // Increment the violation count.
-          violationCount++;
-          // If itemization is required:
-          if (withItems) {
-            const valueType = isURL && isFileName
-            ? 'the URL of an image file'
-            : (isURL ? 'a URL' : 'a file name');
-            const what = `img element has an alt attribute with ${valueType} as its value`;
-            // Add an instance to the instances.
-            instances.push(window.getInstance(element, 'altScheme', what, 1, 2));
-          }
-        }
+  // Define a violation function for execution in the browser.
+  const getBadWhat = element => {
+    // Get the value of the alt attribute of the element.
+    const alt = (element.getAttribute('alt') || '').trim();
+    // If it is non-empty:
+    if (alt) {
+      const isURL = /^(?:https?:|file:|ftp:)\S+$/i.test(alt);
+      const isFileName = /favicon|^\S+\.(?:png|jpe?g|gif|svg|webp|ico)$/i.test(alt);
+      // If it is a URL or file name:
+      if (isURL || isFileName) {
+        const valueType = isURL && isFileName
+        ? 'the URL of an image file'
+        : (isURL ? 'a URL' : 'a file name');
+        // Return a violation description.
+        return `img element has an alt attribute with ${valueType} as its value`;
       }
-    });
-    // If there were any violations and itemization is not required:
-    if (violationCount && ! withItems) {
-      const what = 'img elements have alt attributes with URL or filename values';
-      // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'altScheme', what, violationCount, 2, 'IMG'));
     }
-    return {
-      data: {},
-      totals: [0, violationCount, 0, 0],
-      standardInstances: instances
-    };
-  }, withItems);
+  };
+  const whats = 'img elements have alt attributes with URL or filename values';
+  // Perform the test and return the result.
+  return doTest(
+    page, withItems, 'altScheme', 'img[alt]', whats, 1, 'IMG', getBadWhat.toString()
+  );
 };
