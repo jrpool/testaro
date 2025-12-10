@@ -30,41 +30,23 @@
   non-obvious what a user will activate with a click.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
-// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Initialize the locators and result.
-  const all = await init(
-    100,
-    page,
-    'a a, a button, a input, a select, button a, button button, button input, button select'
-  );
-  // For each locator:
-  for (const loc of all.allLocs) {
-    // Get whether its embedder is a link or a button.
-    const embedderTagName = await loc.evaluate(element => {
-      const embedder = element.parentElement.closest('a, button');
-      return embedder ? embedder.tagName : '';
-    });
-    let param = 'a link or button';
-    if (embedderTagName === 'A') {
-      param = 'a link';
-    }
-    else if (embedderTagName === 'BUTTON') {
-      param = 'a button';
-    }
-    all.locs.push([loc, param]);
-  }
-  // Populate and return the result.
-  const whats = [
-    'Interactive element is embedded in __param__',
-    'Interactive elements are contained by links or buttons'
-  ];
-  return await getRuleResult(withItems, all, 'embAc', whats, 2);
+  const getBadWhat = element => {
+    // Get whether the embedding element is a link or a button.
+    const embedder = element.parentElement.closest('a, button');
+    const embedderWhat = embedder.tagName.toLowerCase() === 'a' ? 'a link' : 'a button';
+    // Return a violation description.
+    return `interactive element is embedded in ${embedderWhat}`;
+  };
+  const selector = ['a', 'button', 'input', 'select']
+  .map(tag => `a ${tag}, button ${tag}`)
+  .join(', ');
+  const whats = 'interactive elements are embedded in links or buttons';
+  return doTest(page, withItems, 'embAc', selector, whats, 2, null, getBadWhat.toString());
 };

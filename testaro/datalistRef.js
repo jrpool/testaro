@@ -1,6 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado. All rights reserved.
+  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -28,22 +29,39 @@
   Report inputs whose list attribute references a missing or ambiguous datalist
 */
 
-const {init, getRuleResult} = require('../procs/testaro');
+// IMPORTS
+
+const {doTest} = require('../procs/testaro');
+
+// FUNCTIONS
 
 exports.reporter = async (page, withItems) => {
-  const all = await init(100, page, 'input[list]');
-  for (const loc of all.allLocs) {
-    const isBad = await loc.evaluate(el => {
-      const list = el.getAttribute('list');
-      if (!list) return false;
-      const matches = Array.from(document.querySelectorAll('datalist')).filter(d => d.id === list);
-      return matches.length !== 1;
-    });
-    if (isBad) all.locs.push(loc);
-  }
-  const whats = [
-    'list attribute of the element references an ambiguous or missing datalist element',
-    'list attributes of elements reference ambiguous or missing datalist elements'
-  ];
-  return await getRuleResult(withItems, all, 'datalistRef', whats, 3, 'INPUT');
+  const getBadWhat = element => {
+    // Get the ID of the datalist element referenced by the list attribute of the element.
+    const listID = element.getAttribute('list');
+    // If the element has a list attribute with a non-empty value:
+    if (listID) {
+      // Get the element it references.
+      const listElement = document.getElementById(listID);
+      // If no such element exists:
+      if (! listElement) {
+        // Return a violation description.
+        return 'input element list attribute references a missing element';
+      }
+      // Otherwise, if the element it references is not a datalist:
+      if (listElement.tagName.toLowerCase() !== 'datalist') {
+        // Return a violation description.
+        return 'input element list attribute references a non-datalist element';
+      }
+    }
+    // Otherwise, i.e. if it has no list attribute with a non-empty value:
+    else {
+      // Return a violation description.
+      return 'input element list attribute is empty';
+    }
+  };
+  const whats = 'list attributes of input elements are empty or IDs of no or non-datalist elements';
+  return doTest(
+    page, withItems, 'datalistRef', 'input[list]', whats, 3, 'INPUT', getBadWhat.toString()
+  );
 };

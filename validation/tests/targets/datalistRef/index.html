@@ -31,23 +31,16 @@
   </head>
   <body>
     <main>
-      <h1>Page with correct and erroneous datalist references</h1>
+      <h1 id="nonDatalist">Page with correct and erroneous datalist references</h1>
       <form onsubmit="alert('Thank you for your submission')">
         <datalist id="okDatalist">
           <option value="red">
           <option value="yellow">
         </datalist>
-        <datalist id="badDatalist">
-          <option value="paper">
-          <option value="plastic">
-        </datalist>
-        <datalist id="badDatalist">
-          <option value="metal">
-          <option value="stone">
-        </datalist>
         <p><label>Name a color: <input type="text" name="color" list="okDatalist"></label></p>
-        <p><label>Name a material: <input type="text" name="material" list="badDatalist"></label></p>
+        <p><label>Name a material: <input type="text" name="material" list></label></p>
         <p><label>Name a city: <input type="text" name="city" list="noDatalist"></label></p>
+        <p><label>Name a thing: <input type="text" name="thing" list="nonDatalist"></label></p>
         <p><button>Submit</button></p>
       </form>
       <p>The material and city inputs are defective.</p>
