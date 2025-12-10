@@ -41,90 +41,74 @@
   WARNING: This test fails to recognize outlines when run with firefox.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
+const {doTest} = require('./procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Initialize the locators and result.
-  const all = await init(100, page, 'body *:visible');
-  all.result.data.focusableCount = 0;
-  // For each locator:
-  for (const loc of all.allLocs) {
-    // Get whether its element is focusable.
-    const isFocusable = await loc.evaluate(el => el.tabIndex === 0);
-    // If it is:
-    if (isFocusable) {
-      // Add this to the report.
-      all.result.data.focusableCount++;
-      // Get whether it has a nonstandard focus indicator.
-      const hasBadIndicator = await loc.evaluate(el => {
-        // Get the live style declaration of the element.
-        const styleDec = window.getComputedStyle(el);
-        // If the element has an outline:
+  // Define a violation function for execution in the browser.
+  const getBadWhat = element => {
+    // Get whether the element is visible.
+    const isVisible = element.checkVisibility({
+      contentVisibilityAuto: true,
+      opacityProperty: true,
+      visibilityProperty: true
+    });
+    // If so:
+    if (isVisible) {
+      // Get whether it is focusable.
+      const isFocusable = element.tabIndex === 0;
+      // If so:
+      if (isFocusable) {
+        // Get its live style declaration.
+        const styleDec = window.getComputedStyle(element);
+        // If the element has an outline before being focused:
         if (styleDec.outlineWidth !== '0px') {
-          // Return a violation.
-          return 'an outline when blurred';
+          // Return a violation description.
+          return 'Element is focusable but has an outline when blurred';
         }
-        // Otherwise, i.e. if the element has no outline:
-        else {
-          // Focus the element.
-          el.focus({preventScroll: true});
-          // If it now has no outline:
-          if (styleDec.outlineWidth === '0px') {
-            // Return this violation.
-            return 'no focus outline';
-          }
-          // Otherwise, if it now has an outline thinner than 2 pixels:
-          else if (Number.parseFloat(styleDec.outlineWidth) < 2) {
-            // Return this violation.
-            return 'a focus outline thinner than 2 pixels';
-          }
-          // Otherwise, if it now has a transparent outline:
-          else if (styleDec.outlineColor === 'rgba(0, 0, 0, 0)') {
-            // Return this violation.
-            return 'a transparent focus outline';
-          }
-          // Otherwise, if it now has a non-solid outline:
-          else if (styleDec.outlineStyle !== 'solid') {
-            // If the outline style exists:
-            if (styleDec.outlineStyle) {
-              // If the style is delegated to the user agent:
-              if (styleDec.outlineStyle === 'auto') {
-                // Return conformance.
-                return false;
-              }
-              // Otherwise, i.e. if the style is not delegated to the user agent:
-              else {
-                // Return this violation.
-                return `a focus outline with the ${styleDec.outlineStyle} instead of solid style`;
-              }
-            }
-            // Otherwise, i.e. if no outline style exists:
-            else {
-              // Return this violation.
-              return 'a focus outline with no style instead of solid style';
+        // Otherwise, i.e. if the element has no outline, focus the element.
+        element.focus({preventScroll: true});
+        // If it now has no outline:
+        if (styleDec.outlineWidth === '0px') {
+          // Return a violation description.
+          return 'Element when focused has no outline';
+        }
+        // Otherwise, if it now has an outline thinner than 2 pixels:
+        if (Number.parseFloat(styleDec.outlineWidth) < 2) {
+          // Return a violation description.
+          return 'Element when focused has an outline thinner than 2 pixels';
+        }
+        // Otherwise, if it now has a transparent outline:
+        if (styleDec.outlineColor === 'rgba(0, 0, 0, 0)') {
+          // Return a violation description.
+          return 'Element when focused has a transparent outline';
+        }
+        // Otherwise, if it now has a non-solid outline:
+        if (styleDec.outlineStyle !== 'solid') {
+          // If the outline style exists:
+          if (styleDec.outlineStyle) {
+            // If the style is not delegated to the user agent:
+            if (styleDec.outlineStyle !== 'auto') {
+              // Return a violation description
+              return `Element when focused has an outline with the ${styleDec.outlineStyle} instead of solid style`;
             }
           }
-          // Otherwise, i.e. if the element now has a standard outline:
+          // Otherwise, i.e. if no outline style exists:
           else {
-            // Return conformance.
-            return false;
+            // Return a violation description.
+            return 'Element when focused has an outline with no instead of solid style';
           }
         }
-      });
-      // If it does:
-      if (hasBadIndicator) {
-        // Add the locator to the array of violators.
-        all.locs.push([loc, hasBadIndicator]);
       }
     }
-  }
-  // Populate and return the result.
-  const whats = ['Element has __param__', 'Elements fail to have standard focus indicators'];
-  return await getRuleResult(withItems, all, 'focInd', whats, 1);
+  };
+  const whats = 'Elements fail to have standard focus indicators';
+  // Perform the test and return the result.
+  return doTest(
+    page, withItems, 'focInd', 'body *', whats, 1, null, getBadWhat.toString()
+  );
 };

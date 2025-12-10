@@ -43,7 +43,7 @@ exports.reporter = async (page, withItems) => {
     if (/[^\s]/.test(rawText)) {
       const isVisible = element.checkVisibility({
         contentVisibilityAuto: true,
-        opaityProperty: true,
+        opacityProperty: true,
         visibilityProperty: true
       });
       // If the element is visible:
