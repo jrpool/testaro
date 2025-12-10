@@ -47,7 +47,7 @@ exports.reporter = async (page, withItems) => {
         visibilityProperty: true
       });
       // If the element is visible:
-      if (!isVisible) {
+      if (isVisible) {
         const styleDec = window.getComputedStyle(element);
         // Get its font size.
         const fontSizeString = styleDec.fontSize;
