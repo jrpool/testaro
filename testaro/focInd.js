@@ -43,7 +43,7 @@
 
 // IMPORTS
 
-const {doTest} = require('./procs/testaro');
+const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
