@@ -1,6 +1,5 @@
 /*
   © 2022–2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool. All rights reserved.
 
   MIT License
 
@@ -30,38 +29,34 @@
   This test reports elements with font sizes smaller than 11 pixels.
 */
 
-// IMPORTS
+// Module to perform common operations.
+const {init, getRuleResult} = require('../procs/testaro');
 
-const {doTest} = require('../procs/testaro');
+// ########## FUNCTIONS
 
-// FUNCTIONS
-
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const getBadWhat = element => {
-    const rawText = element.textContent || '';
-    // If the element has text content with any non-whitespace:
-    if (/[^\s]/.test(rawText)) {
-      const isVisible = element.checkVisibility({
-        contentVisibilityAuto: true,
-        opaityProperty: true,
-        visibilityProperty: true
-      });
-      // If the element is visible:
-      if (!isVisible) {
-        const styleDec = window.getComputedStyle(element);
-        // Get its font size.
-        const fontSizeString = styleDec.fontSize;
-        const fontSize = Number.parseFloat(fontSizeString);
-        // If its font size is smaller than 11 pixels:
-        if (fontSize < 11) {
-          // Return a violation description.
-          return `Element is visible but its font size is ${fontSize}px, smaller than 11px`;
-        }
-      }
+  // Initialize the locators and result.
+  const all = await init(100, page, 'body *:not(script, style):visible', {hasText: /[^\s]+/});
+  // For each locator:
+  for (const loc of all.allLocs) {
+    // Get the font size of its element if less than 11 pixels.
+    const fontSize = await loc.evaluate(el => {
+      const styleDec = window.getComputedStyle(el);
+      const fontSizeString = styleDec.fontSize;
+      const fontSize = Number.parseFloat(fontSizeString);
+      return fontSize < 11 ? fontSize : null;
+    });
+    // If it violates the rule:
+    if (fontSize) {
+      // Add the locator to the array of violators.
+      all.locs.push([loc, fontSize]);
     }
-  };
-  const whats = 'Visible elements have font sizes smaller than 11 pixels';
-  return doTest(
-    page, withItems, 'miniText', 'body *:not(script, style)', whats, 2, '', getBadWhat.toString()
-  );
+  }
+  // Populate and return the result.
+  const whats = [
+    'Element has a font size of __param__ pixels, smaller than 11 pixels',
+    'Elements have font sizes smaller than 11 pixels'
+  ];
+  return await getRuleResult(withItems, all, 'miniText', whats, 2);
 };
