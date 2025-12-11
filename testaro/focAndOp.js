@@ -96,12 +96,12 @@ exports.reporter = async (page, withItems) => {
       let hasPointer = false;
       // If the element is not a label:
       if (element.tagName !== 'LABEL') {
-        const styleDec = window.getComputedStyle(el);
+        const styleDec = window.getComputedStyle(element);
         hasPointer = styleDec.cursor === 'pointer';
         // If it has a pointer cursor:
         if (hasPointer) {
           // Neutralize the cursor style of the parent element of the element.
-          el.parentElement.style.cursor = 'default';
+          element.parentElement.style.cursor = 'default';
           // Get whether, after this, the element still has a pointer cursor.
           hasPointer = styleDec.cursor === 'pointer';
           // Add this to the operabilities of the element.
@@ -114,18 +114,18 @@ exports.reporter = async (page, withItems) => {
         opHow.push('click listener');
       }
       // If the element has an operable explicit role:
-      const role = el.getAttribute('role');
+      const role = element.getAttribute('role');
       if (opRoles.has(role)) {
         // Add this to the operabilities.
         opHow.push(`role ${role}`);
       }
       // If the element has an operable tagname:
-      const tagName = el.tagName;
+      const tagName = element.tagName;
       if (opTags.has(tagName)) {
         // Add this to the operabilities.
         opHow.push(`tagname ${tagName}`);
       }
-      const isOperable = howOperable.length > 0;
+      const isOperable = opHow.length > 0;
       // If the element is focusable but not operable:
       if (isFocusable && ! isOperable) {
         // Return a severity and violation description.
