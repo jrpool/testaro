@@ -40,7 +40,6 @@ const {doTest} = require('../procs/testaro');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Define a violation function for execution in the browser.
   const getBadWhat = element => {
     // Get whether the element has a non-spacing child text node.
     const hasText = Array.from(element.childNodes).some(child =>
@@ -65,7 +64,6 @@ exports.reporter = async (page, withItems) => {
     }
   };
   const whats = 'Element line heights are less than 1.5 times their font sizes';
-  // Perform the test and return the result.
   return doTest(
     page, withItems, 'lineHeight', '*', whats, 1, null, getBadWhat.toString()
   );

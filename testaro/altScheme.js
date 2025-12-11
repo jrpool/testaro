@@ -37,7 +37,6 @@ const {doTest} = require('../procs/testaro');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Define a violation function for execution in the browser.
   const getBadWhat = element => {
     // Get the value of the alt attribute of the element.
     const alt = (element.getAttribute('alt') || '').trim();
@@ -56,7 +55,6 @@ exports.reporter = async (page, withItems) => {
     }
   };
   const whats = 'img elements have alt attributes with URL or filename values';
-  // Perform the test and return the result.
   return doTest(
     page, withItems, 'altScheme', 'img[alt]', whats, 1, 'IMG', getBadWhat.toString()
   );

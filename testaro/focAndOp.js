@@ -45,7 +45,6 @@ const {doTest} = require('../procs/testaro');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Define a violation function for execution in the browser.
   const getBadWhat = element => {
     // Get whether the element is visible.
     const isVisible = element.checkVisibility({
@@ -139,7 +138,6 @@ exports.reporter = async (page, withItems) => {
     }
   };
   const whats = 'Elements are Tab-focusable but not operable or vice versa';
-  // Perform the test and return the result.
   return doTest(
     page, withItems, 'focAndOp', 'body *', whats, 2, null, getBadWhat.toString()
   );

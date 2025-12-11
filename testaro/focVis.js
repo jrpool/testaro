@@ -29,45 +29,33 @@
   This test reports links that are at least partly off the display when focused.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
-// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Initialize a sample of locators and a result.
-  const all = await init(100, page, 'a:visible');
-  // For each locator:
-  for (const loc of all.allLocs) {
-    // Focus it.
-    await loc.focus();
-    // Get its location.
-    const box = await loc.boundingBox();
-    // Get how its element violates the rule, if it does.
-    const isBad = [box.x < 0, box.y < 0];
-    // If it does:
-    if (isBad.some(item => item)) {
-      // Add the locator to the array of violators.
-      let param;
-      if (isBad.every(item => item)) {
-        param = 'above and to the left of';
+  const getBadWhat = element => {
+    const isVisible = element.checkVisibility({
+      contentVisibilityAuto: true,
+      opacityProperty: true,
+      visibilityProperty: true
+    });
+    // If the element is visible:
+    if (isVisible) {
+      // Focus it.
+      element.focus();
+      const box = element.getBoundingClientRect();
+      // If it violates the rule:
+      if (box.x < 0 || box.y < 0) {
+        // Return a violation description.
+        return 'Upper left corner of the element is above or to the left of the display';
       }
-      else if (isBad[0]) {
-        param = 'to the left of';
-      }
-      else {
-        param = 'above';
-      }
-      all.locs.push([loc, param]);
     }
-  }
-  // Populate and return the result.
-  const whats = [
-    'Visible link is __param__ the display',
-    'Visible links are above or to the left of the display'
-  ];
-  return await getRuleResult(withItems, all, 'focVis', whats, 2);
+  };
+  const whats = 'Visible links are above or to the left of the display';
+  return doTest(
+    page, withItems, 'focVis', 'a', whats, 2, 'A', getBadWhat.toString()
+  );
 };

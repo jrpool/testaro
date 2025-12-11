@@ -50,7 +50,6 @@ const {doTest} = require('../procs/testaro');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Define a violation function for execution in the browser.
   const getBadWhat = element => {
     // Get whether the element is visible.
     const isVisible = element.checkVisibility({
@@ -108,7 +107,6 @@ exports.reporter = async (page, withItems) => {
     }
   };
   const whats = 'Elements fail to have standard focus indicators';
-  // Perform the test and return the result.
   return doTest(
     page, withItems, 'focInd', 'body *', whats, 1, null, getBadWhat.toString()
   );

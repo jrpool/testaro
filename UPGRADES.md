@@ -3305,3 +3305,5 @@ In a run by the Kilotest server on the [home page of the Open Source Collective]
 All of the tests with elapsed times longer than 2 seconds were not yet refactored. Some of the refactored tests applied `checkVisibility` to all `body` descendant elements.
 
 Credit for the speed improvement in refactored tests is apparently owed to the encapsulation of the entire test logic in a browser function, versus the repeated element-by-element execution of the same logic in Node.js with Playwright methods.
+
+Evidence for this hypothesis is provided by the change in elapsed time after refactoring of the `focOp` and `opFoc` tests. These two tests consumed 18 seconds before the refactoring. The refactoring combined them into a single `focAndOp` test with functionality equivalent to both original tests. The refactored test on the same target consumed 2 seconds, even though it reported and itemized 223 violations.

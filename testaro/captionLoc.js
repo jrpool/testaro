@@ -36,7 +36,6 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 exports.reporter = async (page, withItems) => {
-  // Define a violation function for execution in the browser.
   const getBadWhat = element => {
     const parent = element.parentElement;
     // If the element is not the first child of a table element:
@@ -46,7 +45,6 @@ exports.reporter = async (page, withItems) => {
     }
   };
   const whats = 'caption elements are not the first children of table elements';
-  // Perform the test and return the result.
   return doTest(
     page, withItems, 'captionLoc', 'caption', whats, 3, 'CAPTION', getBadWhat.toString()
   );
