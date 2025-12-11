@@ -385,17 +385,17 @@ const allRules = [
     defaultOn: true
   },
   {
+    id: 'focAndOp',
+    what: 'Tab-focusable elements that are not operable or vice versa',
+    launchRole: 'waster',
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
     id: 'focInd',
     what: 'missing and nonstandard focus indicators',
     launchRole: 'waster',
     timeOut: 10,
-    defaultOn: true
-  },
-  {
-    id: 'focOp',
-    what: 'Tab-focusable elements that are not operable',
-    launchRole: 'waster',
-    timeOut: 5,
     defaultOn: true
   },
   {
@@ -415,13 +415,6 @@ const allRules = [
   {
     id: 'hovInd',
     what: 'hover indication nonstandard',
-    launchRole: 'waster',
-    timeOut: 10,
-    defaultOn: true
-  },
-  {
-    id: 'opFoc',
-    what: 'operable elements that are not Tab-focusable',
     launchRole: 'waster',
     timeOut: 10,
     defaultOn: true

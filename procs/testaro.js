@@ -194,9 +194,18 @@ exports.doTest = async (
         violationCount++;
         // If itemization is required:
         if (withItems) {
+          const violationWhatStart = violationWhat.slice(0, 2);
+          let ruleSeverity = severity;
+          let ruleWhat = violationWhat
+          // If this violation has a custom severity:
+          if (/[0-3]:/.test(violationWhatStart)) {
+            // Get it and remove it from the violation description.
+            ruleSeverity = Number(violationWhat[0]);
+            ruleWhat = violationWhat.slice(2);
+          }
           // Add an instance to the instances.
           instances.push(
-            window.getInstance(element, ruleID, violationWhat, 1, severity)
+            window.getInstance(element, ruleID, ruleWhat, 1, ruleSeverity)
           );
         }
       }

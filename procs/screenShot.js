@@ -18,7 +18,7 @@ exports.screenShot = async (page, exclusion = null) => {
   const options = {
     fullPage: true,
     omitBackground: true,
-    timeout: 2000
+    timeout: 4000
   };
   if (exclusion) {
     options.mask = [exclusion];

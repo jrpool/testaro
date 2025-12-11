@@ -3239,3 +3239,69 @@ Given your goal to move on with [testaro](cci:7://file:///Users/pool/Users/pool/
 - Plan separately for a future **element-matching module** that consumes all tools’ outputs and decides “these instances refer to the same DOM element”.
 
 That way, you get immediate performance and implementation wins in [testaro](cci:7://file:///Users/pool/Users/pool/Documents/Topics/work/testaro:0:0-0:0), without locking yourself into the fragile assumption that “XPath strings must match exactly across all tools.
+
+## Sampling and performance
+
+Refactoring Testaro tests to eliminate sampling of elements began in December 2025. Initial results suggest that refactoring decreases elapsed test times despite the fact that all applicable elements are examined rather than only a sample.
+
+In a run by the Kilotest server on the [home page of the Open Source Collective](https://opencollective.com/opensource), with about 2700 visible elements,the elapsed times of Testaro tests were:
+
+```json
+"ruleTestTimes": {
+  "allCaps": 11,
+  "opFoc": 10,
+  "allSlanted": 9,
+  "hovInd": 9,
+  "focOp": 8,
+  "targetSmall": 7,
+  "focAll": 7,
+  "focVis": 6,
+  "distortion": 5,
+  "linkAmb": 5,
+  "titledEl": 5,
+  "zIndex": 5,
+  "targetTiny": 4,
+  "shoot1": 4,
+  "linkTitle": 3,
+  "hover": 3,
+  "shoot0": 2,
+  "adbID": 2,
+  "linkUl": 2,
+  "buttonMenu": 2,
+  "focInd": 2,
+  "tabNav": 2,
+  "dupAtt": 0,
+  "imageLink": 1,
+  "labClash": 1,
+  "allHidden": 0,
+  "altScheme": 0,
+  "autocomplete": 0,
+  "bulk": 0,
+  "captionLoc": 0,
+  "datalistRef": 0,
+  "docType": 0,
+  "embAc": 0,
+  "headEl": 0,
+  "headingAmb": 0,
+  "hr": 0,
+  "legendLoc": 0,
+  "lineHeight": 0,
+  "linkExt": 0,
+  "linkOldAtt": 0,
+  "linkTo": 0,
+  "miniText": 0,
+  "nonTable": 0,
+  "optRoleSel": 0,
+  "phOnly": 0,
+  "pseudoP": 0,
+  "radioSet": 0,
+  "role": 0,
+  "secHeading": 0,
+  "styleDiff": 0,
+  "textSem": 0
+}
+```
+
+All of the tests with elapsed times longer than 2 seconds were not yet refactored. Some of the refactored tests applied `checkVisibility` to all `body` descendant elements.
+
+Credit for the speed improvement in refactored tests is apparently owed to the encapsulation of the entire test logic in a browser function, versus the repeated element-by-element execution of the same logic in Node.js with Playwright methods.
