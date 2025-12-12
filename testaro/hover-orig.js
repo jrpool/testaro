@@ -33,49 +33,6 @@
   the rule is considered violated.
 */
 
-// IMPORTS
-
-const {doTest} = require('../procs/testaro');
-
-// FUNCTIONS
-
-exports.reporter = async (page, withItems) => {
-  const getBadWhat = element => {
-    // Create a mutation observer to observe all elements.
-    const observer = new MutationObserver(mutations => {
-      const otherMutationRecords = mutations.filter(record => record.target !== element);
-      // If any elements other than the element have changed:
-      if (otherMutationRecords.length) {
-      }
-    });
-    const rawText = element.textContent || '';
-    // If the element has text content with any non-whitespace:
-    if (/[^\s]/.test(rawText)) {
-      const isVisible = element.checkVisibility({
-        contentVisibilityAuto: true,
-        opacityProperty: true,
-        visibilityProperty: true
-      });
-      // If the element is visible:
-      if (isVisible) {
-        const styleDec = window.getComputedStyle(element);
-        // Get its font size.
-        const fontSizeString = styleDec.fontSize;
-        const fontSize = Number.parseFloat(fontSizeString);
-        // If its font size is smaller than 11 pixels:
-        if (fontSize < 11) {
-          // Return a violation description.
-          return `Element is visible but its font size is ${fontSize}px, smaller than 11px`;
-        }
-      }
-    }
-  };
-  const whats = 'Visible elements have font sizes smaller than 11 pixels';
-  return doTest(
-    page, withItems, 'miniText', 'body *:not(script, style)', whats, 2, '', getBadWhat.toString()
-  );
-};
-
 // ########## IMPORTS
 
 // Module to perform common operations.
