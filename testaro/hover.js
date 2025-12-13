@@ -40,113 +40,96 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 exports.reporter = async (page, withItems) => {
-  const getBadWhat = element => {
-    // Create a mutation observer to observe all elements.
-    const observer = new MutationObserver(mutations => {
-      const otherMutationRecords = mutations.filter(record => record.target !== element);
-      // If any elements other than the element have changed:
-      if (otherMutationRecords.length) {
-      }
-    });
-    const rawText = element.textContent || '';
-    // If the element has text content with any non-whitespace:
-    if (/[^\s]/.test(rawText)) {
-      const isVisible = element.checkVisibility({
-        contentVisibilityAuto: true,
-        opacityProperty: true,
-        visibilityProperty: true
+  const getBadWhat = async element => {
+    if (element.getAttribute('role') !== 'tooltip') {
+      console.log(`XXX Element type is ${element.tagName}`);
+      let timer;
+      const hoverEvent = new MouseEvent('mouseover', {
+        bubbles: true,
+        cancelable: true,
+        view: window
       });
-      // If the element is visible:
-      if (isVisible) {
-        const styleDec = window.getComputedStyle(element);
-        // Get its font size.
-        const fontSizeString = styleDec.fontSize;
-        const fontSize = Number.parseFloat(fontSizeString);
-        // If its font size is smaller than 11 pixels:
-        if (fontSize < 11) {
-          // Return a violation description.
-          return `Element is visible but its font size is ${fontSize}px, smaller than 11px`;
-        }
+      // Create a mutation observer.
+      const mutationPromise = new Promise(resolve => {
+        const observationStart = Date.now();
+        const observer = new MutationObserver(mutations => {
+          console.log('XXX Mutation observer sent notice');
+          const otherMutatedRecords = mutations.filter(
+            record => record.target !== element && record.target.getAttribute('role') !== 'tooltip'
+          );
+          const impactCount = otherMutatedRecords.length;
+          // If a mutation occurs in any other element(s):
+          if (impactCount) {
+            const impactTime = Math.round(Date.now() - observationStart);
+            const impactWhat = impactCount === 1 ? '1 other element' : `${impactCount} other elements`;
+            // Update the violation description.
+            const violationWhat = `Hovering over the element adds, removes, or changes ${impactWhat} after ${impactTime}ms`;
+            // Clear the timer.
+            clearTimeout(timer);
+            // Stop the observer.
+            observer.disconnect();
+            // Report the violation description.
+            resolve(violationWhat);
+          }
+        });
+      });
+      // Ensure that the mouse is in the home position.
+      document.body.dispatchEvent(new MouseEvent('mouseover'));
+      console.log('XXX Moved mouse home');
+      // Start observing.
+      observer.observe(document.body, {
+        attributes: true,
+        subtree: true,
+        childList: true
+      });
+      console.log('XXX Started to observe body');
+      // Start hovering over the element.
+      element.dispatchEvent(hoverEvent);
+      console.log('XXX Started to hover over element');
+      // Start a time-limit timer.
+      const timeoutPromise = new Promise(resolve => {
+        // If no mutation is observed before the time limit:
+        timer = setTimeout(() => {
+          // Stop the observer.
+          observer.disconnect();
+          console.log('XXX Disconnected observer on timeout');
+          // Report the timeout.
+          resolve('');
+        }, 1500);
+      });
+      // Get the violation description or timeout report.
+      const violationWhat = await Promise.race(mutationPromise, timeoutPromise);
+      // If any mutations occurred before the time limit:
+      if (violationWhat) {
+        // Return the violation description.
+        return violationWhat;
       }
     }
   };
-  const whats = 'Visible elements have font sizes smaller than 11 pixels';
+  const selector = [
+   '[aria-controls]',
+   '[aria-expanded]',
+   '[aria-haspopup]',
+   '[onmouseenter]',
+   '[onmouseover]',
+   '[onmouseenter]',
+   '[onmouseover]',
+   '[role="menu"]',
+   '[role="menubar"]',
+   '[role="menuitem"]',
+   '[data-tooltip]',
+   '[data-popover]',
+   '[data-hover]',
+   '[data-menu]',
+   '[data-dropdown]',
+   '[role="tab"]',
+   '[role="combobox"]',
+   'button',
+   'li'
+  ].join(', ');
+  const whats = 'Hovering over elements adds, removes, or changes other elements';
+  console.log('XXX About to return a call to doTest');
   return doTest(
-    page, withItems, 'miniText', 'body *:not(script, style)', whats, 2, '', getBadWhat.toString()
+    page, withItems, 'hover', selector, whats, 0, '', getBadWhat.toString()
   );
-};
-
-// ########## IMPORTS
-
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
-
-// ########## FUNCTIONS
-
-// Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
-  // Initialize the locators and result.
-  const allTrigger = await init(
-    20, page, '[aria-controls], [aria-expanded], [aria-haspopup], [onmouseenter], [onmouseover]'
-  );
-  const allNonTrigger = await init(
-    30 - allTrigger.result.data.sampleSize,
-    page,
-    'body *:not([aria-controls], [aria-expanded], [aria-haspopup], [onmouseenter], [onmouseover])'
-  );
-  const populationSize
-    = allTrigger.result.data.populationSize + allNonTrigger.result.data.populationSize;
-  const sampleSize = allTrigger.result.data.sampleSize + allNonTrigger.result.data.sampleSize;
-  const all = {
-    allLocs: allTrigger.allLocs.concat(allNonTrigger.allLocs),
-    locs: [],
-    result: {
-      data: {
-        populationSize,
-        sampleSize,
-        populationRatio: sampleSize ? populationSize / sampleSize : null
-      },
-      totals: [0, 0, 0, 0],
-      standardInstances: []
-    }
-  };
-  // For each locator:
-  for (const loc of all.allLocs) {
-    // Get how many elements are added or subtracted when the element is hovered over.
-    await page.mouse.move(0, 0);
-    const loc0 = page.locator('body *:visible');
-    const elementCount0 = await loc0.count();
-    // Hover over the element, whether or not covered.
-    try {
-      await loc.hover({
-        force: true,
-        timeout: 100
-      });
-      const loc1 = page.locator('body *:visible');
-      const elementCount1 = await loc1.count();
-      const additions = elementCount1 - elementCount0;
-      // If any elements are added or subtracted:
-      if (additions !== 0) {
-        // Add the locator and the change of element count to the array of violation locators.
-        const impact = additions > 0
-          ? `added ${additions} elements to the page`
-          : `subtracted ${- additions} from the page`;
-        all.locs.push([loc, impact]);
-      }
-    }
-    // If hovering times out:
-    catch(error) {
-      // Report the test prevented.
-      const {data} = all.result;
-      data.prevented = true;
-      data.error = 'ERROR hovering over an element';
-      break;
-    }
-  }
-  // Populate and return the result.
-  const whats = [
-    'Hovering over the element __param__',
-    'Hovering over elements adds elements to or subtracts elements from the page'
-  ];
-  return await getRuleResult(withItems, all, 'hover', whats, 0);
 };

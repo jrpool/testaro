@@ -186,8 +186,8 @@ exports.doTest = async (
     // Get a violation function.
     const getBadWhat = eval(`(${getBadWhatString})`);
     // For each candidate:
-    candidates.forEach(element => {
-      const violationWhat = getBadWhat(element);
+    candidates.forEach(async element => {
+      const violationWhat = await getBadWhat(element);
       // If it violates the rule:
       if (violationWhat) {
         // Increment the violation count.
