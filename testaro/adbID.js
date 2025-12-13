@@ -73,7 +73,7 @@ exports.reporter = async (page, withItems) => {
     }
   };
   const whats = 'Elements have aria-describedby attributes with missing or invalid id values';
-  return doTest(
+  return await doTest(
     page, withItems, 'adbID', '[aria-describedby]', whats, 3, null, getBadWhat.toString()
   );
 };

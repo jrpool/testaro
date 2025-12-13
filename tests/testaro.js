@@ -409,7 +409,7 @@ const allRules = [
     id: 'hover',
     what: 'hover-caused content changes',
     launchRole: 'waster',
-    timeOut: 10,
+    timeOut: 300,
     defaultOn: true
   },
   {

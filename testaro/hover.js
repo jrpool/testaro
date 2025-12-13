@@ -41,64 +41,65 @@ const {doTest} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   const getBadWhat = async element => {
+    console.log(`XXX Tagname: ${element.tagName}`);
     if (element.getAttribute('role') !== 'tooltip') {
-      console.log(`XXX Element type is ${element.tagName}`);
       let timer;
+      let observer;
       const hoverEvent = new MouseEvent('mouseover', {
         bubbles: true,
         cancelable: true,
         view: window
       });
-      // Create a mutation observer.
+      // Ensure that the mouse is in the home position.
+      document.body.dispatchEvent(new MouseEvent('mouseover'));
+      const observationStart = Date.now();
+      // Execute a Promise that resolves when a mutation is observed.
       const mutationPromise = new Promise(resolve => {
-        const observationStart = Date.now();
-        const observer = new MutationObserver(mutations => {
-          console.log('XXX Mutation observer sent notice');
-          const otherMutatedRecords = mutations.filter(
-            record => record.target !== element && record.target.getAttribute('role') !== 'tooltip'
-          );
+        // When mutations are observed:
+        observer = new MutationObserver(mutationRecords => {
+          const otherMutatedRecords = mutationRecords.filter(record => {
+            const {target} = record;
+            return target !== element && target.getAttribute('role') !== 'tooltip';
+          });
           const impactCount = otherMutatedRecords.length;
-          // If a mutation occurs in any other element(s):
+          // If they occur in any other element(s) except tooltips:
           if (impactCount) {
             const impactTime = Math.round(Date.now() - observationStart);
-            const impactWhat = impactCount === 1 ? '1 other element' : `${impactCount} other elements`;
-            // Update the violation description.
+            console.log(`XXX Time: ${impactTime}`);
+            const impactWhat = impactCount === 1
+            ? '1 other element'
+            : `${impactCount} other elements`;
+            // Create a violation description with the mutated element count and the elapsed time.
             const violationWhat = `Hovering over the element adds, removes, or changes ${impactWhat} after ${impactTime}ms`;
             // Clear the timer.
             clearTimeout(timer);
             // Stop the observer.
             observer.disconnect();
-            // Report the violation description.
+            // Resolve the Promise with the violation description.
             resolve(violationWhat);
           }
         });
+        // Start observing.
+        observer.observe(document.body, {
+          attributes: true,
+          subtree: true,
+          childList: true
+        });
+        // Start hovering over the element.
+        element.dispatchEvent(hoverEvent);
       });
-      // Ensure that the mouse is in the home position.
-      document.body.dispatchEvent(new MouseEvent('mouseover'));
-      console.log('XXX Moved mouse home');
-      // Start observing.
-      observer.observe(document.body, {
-        attributes: true,
-        subtree: true,
-        childList: true
-      });
-      console.log('XXX Started to observe body');
-      // Start hovering over the element.
-      element.dispatchEvent(hoverEvent);
-      console.log('XXX Started to hover over element');
-      // Start a time-limit timer.
+      // Execute a Promise that resolves when a time limit expires.
       const timeoutPromise = new Promise(resolve => {
         // If no mutation is observed before the time limit:
         timer = setTimeout(() => {
           // Stop the observer.
           observer.disconnect();
-          console.log('XXX Disconnected observer on timeout');
-          // Report the timeout.
+          // Resolve the Promise with an empty string.
           resolve('');
         }, 1500);
       });
       // Get the violation description or timeout report.
-      const violationWhat = await Promise.race(mutationPromise, timeoutPromise);
+      const violationWhat = await Promise.race([mutationPromise, timeoutPromise]);
       // If any mutations occurred before the time limit:
       if (violationWhat) {
         // Return the violation description.
@@ -128,8 +129,7 @@ exports.reporter = async (page, withItems) => {
    'li'
   ].join(', ');
   const whats = 'Hovering over elements adds, removes, or changes other elements';
-  console.log('XXX About to return a call to doTest');
-  return doTest(
+  return await doTest(
     page, withItems, 'hover', selector, whats, 0, '', getBadWhat.toString()
   );
 };

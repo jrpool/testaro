@@ -104,7 +104,7 @@ exports.reporter = async (page, withItems) => {
    'li'
   ].join(', ');
   const whats = 'Hovering over elements adds, removes, or changes other elements';
-  return doTest(
+  return await doTest(
     page, withItems, 'hover', selector, whats, 0, '', getBadWhat.toString()
   );
 };

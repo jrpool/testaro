@@ -169,7 +169,7 @@ exports.doTest = async (
   getBadWhatString
 ) => {
   // Return totals and standard instances for the rule.
-  return await page.evaluate(args => {
+  return await page.evaluate(async args => {
     const [
       withItems,
       ruleID,
@@ -186,8 +186,8 @@ exports.doTest = async (
     // Get a violation function.
     const getBadWhat = eval(`(${getBadWhatString})`);
     // For each candidate:
-    candidates.forEach(async element => {
-      const violationWhat = await getBadWhat(element);
+    for (const candidate of candidates) {
+      const violationWhat = await getBadWhat(candidate);
       // If it violates the rule:
       if (violationWhat) {
         // Increment the violation count.
@@ -205,11 +205,11 @@ exports.doTest = async (
           }
           // Add an instance to the instances.
           instances.push(
-            window.getInstance(element, ruleID, ruleWhat, 1, ruleSeverity)
+            window.getInstance(candidate, ruleID, ruleWhat, 1, ruleSeverity)
           );
         }
       }
-    });
+    }
     // If there are any violations and itemization is not required:
     if (violationCount && ! withItems) {
       // Add a summary instance to the instances.
