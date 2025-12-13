@@ -41,17 +41,23 @@ const {doTest} = require('../procs/testaro');
 
 exports.reporter = async (page, withItems) => {
   const getBadWhat = async element => {
-    console.log(`XXX Tagname: ${element.tagName}`);
-    if (element.getAttribute('role') !== 'tooltip') {
+    const isVisible = element.checkVisibility({
+      contentVisibilityAuto: true,
+      opacityProperty: true,
+      visibilityProperty: true
+    })
+    if (isVisible && element.getAttribute('role') !== 'tooltip') {
       let timer;
       let observer;
-      const hoverEvent = new MouseEvent('mouseover', {
+      const hoverEvent = new MouseEvent('pointerover', {
         bubbles: true,
         cancelable: true,
         view: window
       });
-      // Ensure that the mouse is in the home position.
-      document.body.dispatchEvent(new MouseEvent('mouseover'));
+      // Neutralize the hover location.
+      document.body.dispatchEvent(new MouseEvent('pointerover'));
+      // Allow time for handlers of this event to complete execution.
+      await new Promise(resolve => setTimeout(resolve, 100));
       const observationStart = Date.now();
       // Execute a Promise that resolves when a mutation is observed.
       const mutationPromise = new Promise(resolve => {
@@ -62,15 +68,21 @@ exports.reporter = async (page, withItems) => {
             return target !== element && target.getAttribute('role') !== 'tooltip';
           });
           const impactCount = otherMutatedRecords.length;
+          const impactDetails = otherMutatedRecords.map(record => {
+            const {attributeName, target} = record;
+            const xPath = getXPath(target);
+            const textStart = target.textContent?.slice(0, 20).trim().replace(/\s+/g, ' ') || '';
+            return `${target.tagName}[${attributeName || ''}](${xPath})<${textStart}>`;
+          });
           // If they occur in any other element(s) except tooltips:
           if (impactCount) {
             const impactTime = Math.round(Date.now() - observationStart);
-            console.log(`XXX Time: ${impactTime}`);
             const impactWhat = impactCount === 1
             ? '1 other element'
             : `${impactCount} other elements`;
+            const impactWhatLong = `${impactWhat} (${impactDetails.join(', ')})`;
             // Create a violation description with the mutated element count and the elapsed time.
-            const violationWhat = `Hovering over the element adds, removes, or changes ${impactWhat} after ${impactTime}ms`;
+            const violationWhat = `Hovering over the element adds, removes, or changes ${impactWhatLong} after ${impactTime}ms`;
             // Clear the timer.
             clearTimeout(timer);
             // Stop the observer.
@@ -82,6 +94,7 @@ exports.reporter = async (page, withItems) => {
         // Start observing.
         observer.observe(document.body, {
           attributes: true,
+          // attributeFilter: ['style', 'class', 'hidden', 'aria-hidden', 'disabled', 'open'],
           subtree: true,
           childList: true
         });
@@ -96,7 +109,7 @@ exports.reporter = async (page, withItems) => {
           observer.disconnect();
           // Resolve the Promise with an empty string.
           resolve('');
-        }, 1500);
+        }, 400);
       });
       // Get the violation description or timeout report.
       const violationWhat = await Promise.race([mutationPromise, timeoutPromise]);
@@ -105,6 +118,8 @@ exports.reporter = async (page, withItems) => {
         // Return the violation description.
         return violationWhat;
       }
+      //XXX Temp
+      return 'No mutations';
     }
   };
   const selector = [
@@ -125,8 +140,8 @@ exports.reporter = async (page, withItems) => {
    '[data-dropdown]',
    '[role="tab"]',
    '[role="combobox"]',
-   'button',
-   'li'
+   'a',
+   'button'
   ].join(', ');
   const whats = 'Hovering over elements adds, removes, or changes other elements';
   return await doTest(
