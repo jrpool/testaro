@@ -76,7 +76,7 @@ exports.reporter = async (page, withItems) => {
     // Move the mouse to the top left corner of the page.
     await page.mouse.move(0, 0);
     // Get the XPath of the element referenced by the locator.
-    let xPath = loc.evaluate(element => getXPath(element));
+    let xPath = await loc.evaluate(element => getXPath(element));
     // Change it to the XPath of the desired observation root.
     const pathSegments = xPath.split('/');
     const {length} = pathSegments;
