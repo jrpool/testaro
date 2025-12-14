@@ -45,81 +45,110 @@ exports.reporter = async (page, withItems) => {
       contentVisibilityAuto: true,
       opacityProperty: true,
       visibilityProperty: true
-    })
+    });
     if (isVisible && element.getAttribute('role') !== 'tooltip') {
       let timer;
       let observer;
-      const hoverEvent = new MouseEvent('pointerover', {
+      const options = {
         bubbles: true,
         cancelable: true,
         view: window
-      });
+      };
+      const hoverEvents = [
+        new MouseEvent('mouseover', options),
+        new MouseEvent('mousemove', options),
+        new PointerEvent('pointerover', options),
+        new PointerEvent('pointermove', options)
+      ];
+      const {__lastHoveredElement} = window;
       // Neutralize the hover location.
-      document.body.dispatchEvent(new MouseEvent('pointerover'));
-      // Allow time for handlers of this event to complete execution.
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const observationStart = Date.now();
-      // Execute a Promise that resolves when a mutation is observed.
-      const mutationPromise = new Promise(resolve => {
-        // When mutations are observed:
-        observer = new MutationObserver(mutationRecords => {
-          const otherMutatedRecords = mutationRecords.filter(record => {
-            const {target} = record;
-            return target !== element && target.getAttribute('role') !== 'tooltip';
+      if (__lastHoveredElement) {
+        [
+          [MouseEvent, 'mouseout', true],
+          [MouseEvent, 'mouseleave', false],
+          [PointerEvent, 'pointerout', true],
+          [PointerEvent, 'pointerleave', false]
+        ].forEach(([event, type, bubbles]) => {
+          __lastHoveredElement.dispatchEvent(new event(type, {bubbles}));
+        });
+      }
+      // Allow time for handlers of these events to complete execution.
+      await new Promise(resolve => setTimeout(resolve, 800));
+      // Check whether, after the neutralization, the current element is still visible.
+      const isStillVisible = element.checkVisibility({
+        contentVisibilityAuto: true,
+        opacityProperty: true,
+        visibilityProperty: true
+      });
+      // If so:
+      if (isStillVisible) {
+        const observationStart = Date.now();
+        // Execute a Promise that resolves when a mutation is observed.
+        const mutationPromise = new Promise(resolve => {
+          // When mutations are observed:
+          observer = new MutationObserver(mutationRecords => {
+            const otherMutationRecords = mutationRecords.filter(record => {
+              const {target, type} = record;
+              return type !== 'childList'
+              && target !== element
+              && target.getAttribute('role') !== 'tooltip';
+            });
+            // If any are reportable:
+            if (otherMutationRecords.length) {
+              // Get a non-duplicative set of their types and XPaths.
+              const impacts = new Set();
+              otherMutationRecords.forEach(record => {
+                const {attributeName, target, type} = record;
+                const xPath = getXPath(target);
+                const attributeSuffix = attributeName ? `:${attributeName}` : '';
+                const textStart = target.textContent?.slice(0, 20).trim().replace(/\s+/g, ' ') || '';
+                impacts.add(`${type}${attributeSuffix}@${xPath} (“${textStart}”)`);
+              });
+              const impactTime = Math.round(Date.now() - observationStart);
+              // Create a violation description with the elapsed time and the mutation details.
+              const violationWhat = `Hovering over the element makes these changes after ${impactTime}ms: ${Array.from(impacts).join(', ')}`;
+              // Clear the timer.
+              clearTimeout(timer);
+              // Stop the observer.
+              observer.disconnect();
+              // Resolve the Promise with the violation description.
+              resolve(violationWhat);
+            }
           });
-          const impactCount = otherMutatedRecords.length;
-          const impactDetails = otherMutatedRecords.map(record => {
-            const {attributeName, target} = record;
-            const xPath = getXPath(target);
-            const textStart = target.textContent?.slice(0, 20).trim().replace(/\s+/g, ' ') || '';
-            return `${target.tagName}[${attributeName || ''}](${xPath})<${textStart}>`;
+          // Start observing.
+          observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['style', 'class', 'hidden', 'aria-hidden', 'disabled', 'open'],
+            subtree: true,
+            childList: true
           });
-          // If they occur in any other element(s) except tooltips:
-          if (impactCount) {
-            const impactTime = Math.round(Date.now() - observationStart);
-            const impactWhat = impactCount === 1
-            ? '1 other element'
-            : `${impactCount} other elements`;
-            const impactWhatLong = `${impactWhat} (${impactDetails.join(', ')})`;
-            // Create a violation description with the mutated element count and the elapsed time.
-            const violationWhat = `Hovering over the element adds, removes, or changes ${impactWhatLong} after ${impactTime}ms`;
-            // Clear the timer.
-            clearTimeout(timer);
+          // Start hovering over the element.
+          hoverEvents.forEach(event => {
+            element.dispatchEvent(event);
+          });
+          // Record the element for future mouseout events.
+          window.__lastHoveredElement = element;
+        });
+        // Execute a Promise that resolves when a time limit expires.
+        const timeoutPromise = new Promise(resolve => {
+          // If no mutation is observed before the time limit:
+          timer = setTimeout(() => {
             // Stop the observer.
             observer.disconnect();
-            // Resolve the Promise with the violation description.
-            resolve(violationWhat);
-          }
+            // Resolve the Promise with an empty string.
+            resolve('');
+          }, 400);
         });
-        // Start observing.
-        observer.observe(document.body, {
-          attributes: true,
-          // attributeFilter: ['style', 'class', 'hidden', 'aria-hidden', 'disabled', 'open'],
-          subtree: true,
-          childList: true
-        });
-        // Start hovering over the element.
-        element.dispatchEvent(hoverEvent);
-      });
-      // Execute a Promise that resolves when a time limit expires.
-      const timeoutPromise = new Promise(resolve => {
-        // If no mutation is observed before the time limit:
-        timer = setTimeout(() => {
-          // Stop the observer.
-          observer.disconnect();
-          // Resolve the Promise with an empty string.
-          resolve('');
-        }, 400);
-      });
-      // Get the violation description or timeout report.
-      const violationWhat = await Promise.race([mutationPromise, timeoutPromise]);
-      // If any mutations occurred before the time limit:
-      if (violationWhat) {
-        // Return the violation description.
-        return violationWhat;
+        // Get the violation description or timeout report.
+        const violationWhat = await Promise.race([mutationPromise, timeoutPromise]);
+        // If any mutations occurred before the time limit:
+        if (violationWhat) {
+          // Return the violation description.
+          return violationWhat;
+        }
+        //XXX Temp
+        return 'No mutations';
       }
-      //XXX Temp
-      return 'No mutations';
     }
   };
   const selector = [
