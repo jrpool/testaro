@@ -25,158 +25,96 @@
 
 /*
   hover
-  This test reports unexpected impacts of hovering over owning or controlling elements. The
-  elements that are subjected to hovering (called “triggers”) include the elements that have
-  attributes associated with control over the visibility of other elements. If hovering over an
-  element results in a change in the count or particular attributes of elements other than the
-  trigger within the tree rooted at the grandparent of the trigger, the rule is considered violated.
+  This test reports unexpected impacts of hovering. The elements that are subjected to hovering
+  (called “triggers”) include all the elements that have attributes associated with control over
+  the visibility of other elements. If hovering over an element results in an increase or decrease
+  in the total count of visible elements in the tree rooted in the grandparent of the trigger,
+  the rule is considered violated.
 */
 
-// IMPORTS
+// ########## IMPORTS
 
-const {doTest} = require('../procs/testaro');
+// Module to perform common operations.
+const {getRuleResult} = require('../procs/testaro');
 
-// FUNCTIONS
+// ########## FUNCTIONS
 
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const getBadWhat = async element => {
-    const isVisible = element.checkVisibility({
-      contentVisibilityAuto: true,
-      opacityProperty: true,
-      visibilityProperty: true
-    });
-    // If the element is visible and is not a tooltip:
-    if (isVisible && element.getAttribute('role') !== 'tooltip') {
-      let timer;
-      let observer;
-      const options = {
-        bubbles: true,
-        cancelable: true,
-        view: window
-      };
-      const hoverEvents = [
-        new MouseEvent('mouseover', options),
-        new MouseEvent('mousemove', options),
-        new PointerEvent('pointerover', options),
-        new PointerEvent('pointermove', options)
-      ];
-      const {__lastHoveredElement} = window;
-      // Exit the prior hover location, if any.
-      if (__lastHoveredElement) {
-        [
-          [MouseEvent, 'mouseout', true],
-          [MouseEvent, 'mouseleave', false],
-          [PointerEvent, 'pointerout', true],
-          [PointerEvent, 'pointerleave', false]
-        ].forEach(([event, type, bubbles]) => {
-          __lastHoveredElement.dispatchEvent(new event(type, {bubbles}));
-        });
-      }
-      // Allow time for handlers of these events to complete execution.
-      await new Promise(resolve => setTimeout(resolve, 800));
-      // Check whether the visibility of the element was due solely to the prior hovering.
-      const isStillVisible = element.checkVisibility({
-        contentVisibilityAuto: true,
-        opacityProperty: true,
-        visibilityProperty: true
-      });
-      // If so:
-      if (isStillVisible) {
-        const observationStart = Date.now();
-        // Execute a Promise that resolves when a mutation is observed.
-        const mutationPromise = new Promise(resolve => {
-          // When mutations are observed:
-          observer = new MutationObserver(mutationRecords => {
-            const otherMutationRecords = mutationRecords.filter(record => {
-              const {target, type} = record;
-              return type !== 'childList'
-              && target !== element
-              && target.getAttribute('role') !== 'tooltip';
-            });
-            // If any are reportable:
-            if (otherMutationRecords.length) {
-              // Get a non-duplicative set of their types and XPaths.
-              const impacts = new Set();
-              otherMutationRecords.forEach(record => {
-                const {attributeName, target, type} = record;
-                const xPath = getXPath(target);
-                const attributeSuffix = attributeName ? `:${attributeName}` : '';
-                const textStart = target.textContent?.slice(0, 20).trim().replace(/\s+/g, ' ') || '';
-                impacts.add(`${type}${attributeSuffix}@${xPath} (“${textStart}”)`);
-              });
-              const impactTime = Math.round(Date.now() - observationStart);
-              // Create a violation description with the elapsed time and the mutation details.
-              const violationWhat = `Hovering over the element makes these changes after ${impactTime}ms: ${Array.from(impacts).join(', ')}`;
-              // Clear the timer.
-              clearTimeout(timer);
-              // Stop the observer.
-              observer.disconnect();
-              // Resolve the Promise with the violation description.
-              resolve(violationWhat);
-            }
-          });
-          let observationRoot = element.parentElement.parentElement;
-          const rootTagName = observationRoot.tagName;
-          if (['MAIN', 'BODY'].includes(rootTagName)) {
-            observationRoot = element.parentElement;
-          }
-          // Start observing.
-          observer.observe(observationRoot, {
-            attributes: true,
-            attributeFilter: ['style', 'class', 'hidden', 'aria-hidden', 'disabled', 'open'],
-            subtree: true,
-            childList: true
-          });
-          // Start hovering over the element.
-          hoverEvents.forEach(event => {
-            element.dispatchEvent(event);
-          });
-          // Record the element for future mouseout events.
-          window.__lastHoveredElement = element;
-        });
-        // Execute a Promise that resolves when a time limit expires.
-        const timeoutPromise = new Promise(resolve => {
-          // If no mutation is observed before the time limit:
-          timer = setTimeout(() => {
-            // Stop the observer.
-            observer.disconnect();
-            // Resolve the Promise with an empty string.
-            resolve('');
-          }, 400);
-        });
-        // Get the violation description or timeout report.
-        const violationWhat = await Promise.race([mutationPromise, timeoutPromise]);
-        // If any mutations occurred before the time limit:
-        if (violationWhat) {
-          // Return the violation description.
-          return violationWhat;
-        }
-        //XXX Temp
-        return 'No mutations';
-      }
+  // Initialize the locators and result.
+  const triggerLocs = await page.locator([
+   '[aria-controls]:visible',
+   '[aria-expanded]:visible',
+   '[aria-haspopup]:visible',
+   '[onmouseenter]:visible',
+   '[onmouseover]:visible',
+   '[onpointerenter]:visible',
+   '[onpointerover]:visible',
+   '[role="menu"]:visible',
+   '[role="menubar"]:visible',
+   '[role="menuitem"]:visible',
+   '[data-tooltip]:visible',
+   '[data-popover]:visible',
+   '[data-hover]:visible',
+   '[data-menu]:visible',
+   '[data-dropdown]:visible',
+   '[role="tab"]:visible',
+   '[role="combobox"]:visible'
+  ]).join(', ');
+  const allLocs = await triggerLocs.all();
+  const all = {
+    allLocs,
+    locs: [],
+    result: {
+      data: {},
+      totals: [0, 0, 0, 0],
+      standardInstances: []
     }
   };
-  const selector = [
-   '[aria-controls]',
-   '[aria-expanded]',
-   '[aria-haspopup]',
-   '[onmouseenter]',
-   '[onmouseover]',
-   '[onpointerenter]',
-   '[onpointerover]',
-   '[role="menu"]',
-   '[role="menubar"]',
-   '[role="menuitem"]',
-   '[data-tooltip]',
-   '[data-popover]',
-   '[data-hover]',
-   '[data-menu]',
-   '[data-dropdown]',
-   '[role="tab"]',
-   '[role="combobox"]'
-  ].join(', ');
-  const whats = 'Hovering over elements adds, removes, or changes other elements';
-  return await doTest(
-    page, withItems, 'hover', selector, whats, 0, '', getBadWhat.toString()
-  );
+  // For each locator:
+  for (const loc of allLocs) {
+    // Move the mouse to the top left corner of the page.
+    await page.mouse.move(0, 0);
+    // Get the XPath of the element referenced by the locator.
+    let xPath = loc.evaluate(element => getXPath(element));
+    // Change it to the XPath of the desired observation root.
+    const pathSegments = xPath.split('/');
+    const {length} = pathSegments;
+    pathSegments.pop();
+    if (! ['main', 'body'].includes(pathSegments[length - 2])) {
+      pathSegments.pop();
+    }
+    xPath = pathSegments.join('/');
+    const rootLoc = page.locator(`xpath=${xPath}`);
+    // Get a count of the visible elements in the observation tree.
+    const loc0 = rootLoc.locator('*:visible');
+    const elementCount0 = await loc0.count();
+    try {
+      // Hover over the element.
+      await loc.hover({timeout: 200});
+      // Get a count of the visible elements in the observation tree.
+      const loc1 = rootLoc.locator('*:visible');
+      const elementCount1 = await loc1.count();
+      // If the count has changed:
+      if (elementCount1 !== elementCount0) {
+        // Add the locator and a violation description to the array of violation locators.
+        const impact = additions > 0 ? additions : - additions;
+        all.locs.push([loc, impact]);
+      }
+    }
+    // If hovering times out:
+    catch(error) {
+      // Report the test prevented.
+      const {data} = all.result;
+      data.prevented = true;
+      data.error = 'ERROR hovering over an element';
+      break;
+    }
+  }
+  // Populate and return the result.
+  const whats = [
+    'Hovering over the element changes the number of elements on the page by __param__',
+    'Hovering over elements changes the number of elements on the page'
+  ];
+  return await getRuleResult(withItems, all, 'hover', whats, 0);
 };
