@@ -25,11 +25,12 @@
 
 /*
   hover
-  This test reports unexpected impacts of hovering over owning or controlling elements. The
-  elements that are subjected to hovering (called “triggers”) include the elements that have
-  attributes associated with control over the visibility of other elements. If hovering over an
-  element results in a change in the count or particular attributes of elements other than the
-  trigger within the tree rooted at the grandparent of the trigger, the rule is considered violated.
+  This test reports unexpected impacts of hovering. The elements that are subjected to hovering
+  (called “triggers”) include all the elements that have ARIA attributes associated with control
+  over the visibility of other elements and all the elements that have onmouseenter or
+  onmouseover attributes, as well as a sample of all visible elements in the body. If hovering over
+  an element results in an increase or decrease in the total count of visible elements in the body,
+  the rule is considered violated.
 */
 
 // IMPORTS
@@ -162,8 +163,8 @@ exports.reporter = async (page, withItems) => {
    '[aria-haspopup]',
    '[onmouseenter]',
    '[onmouseover]',
-   '[onpointerenter]',
-   '[onpointerover]',
+   '[onmouseenter]',
+   '[onmouseover]',
    '[role="menu"]',
    '[role="menubar"]',
    '[role="menuitem"]',
@@ -173,7 +174,9 @@ exports.reporter = async (page, withItems) => {
    '[data-menu]',
    '[data-dropdown]',
    '[role="tab"]',
-   '[role="combobox"]'
+   '[role="combobox"]',
+   'a',
+   'button'
   ].join(', ');
   const whats = 'Hovering over elements adds, removes, or changes other elements';
   return await doTest(
