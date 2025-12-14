@@ -60,7 +60,7 @@ exports.reporter = async (page, withItems) => {
    '[data-dropdown]:visible',
    '[role="tab"]:visible',
    '[role="combobox"]:visible'
-  ]).join(', ');
+  ].join(', '));
   const allLocs = await triggerLocs.all();
   const all = {
     allLocs,
