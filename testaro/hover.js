@@ -116,8 +116,13 @@ exports.reporter = async (page, withItems) => {
               resolve(violationWhat);
             }
           });
+          let observationRoot = element.parentElement.parentElement;
+          const rootTagName = observationRoot.tagName;
+          if (['MAIN', 'BODY'].includes(rootTagName)) {
+            observationRoot = element.parentElement;
+          }
           // Start observing.
-          observer.observe(document.body, {
+          observer.observe(observationRoot, {
             attributes: true,
             attributeFilter: ['style', 'class', 'hidden', 'aria-hidden', 'disabled', 'open'],
             subtree: true,
