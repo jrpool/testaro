@@ -46,6 +46,7 @@ exports.reporter = async (page, withItems) => {
       opacityProperty: true,
       visibilityProperty: true
     });
+    // If the element is visible and is not a tooltip:
     if (isVisible && element.getAttribute('role') !== 'tooltip') {
       let timer;
       let observer;
@@ -61,7 +62,7 @@ exports.reporter = async (page, withItems) => {
         new PointerEvent('pointermove', options)
       ];
       const {__lastHoveredElement} = window;
-      // Neutralize the hover location.
+      // Exit the prior hover location, if any.
       if (__lastHoveredElement) {
         [
           [MouseEvent, 'mouseout', true],
@@ -74,7 +75,7 @@ exports.reporter = async (page, withItems) => {
       }
       // Allow time for handlers of these events to complete execution.
       await new Promise(resolve => setTimeout(resolve, 800));
-      // Check whether, after the neutralization, the current element is still visible.
+      // Check whether the visibility of the element was due solely to the prior hovering.
       const isStillVisible = element.checkVisibility({
         contentVisibilityAuto: true,
         opacityProperty: true,
