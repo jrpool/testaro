@@ -35,45 +35,10 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {getBasicResult} = require('../procs/testaro');
+const {getRuleResult} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
-// Returns an awaited change in a visible element count.
-const getVisibleCountChange = async (rootLoc, elementCount0) => {
-  let timeout;
-  let settleInterval;
-  let elementCount1 = elementCount0;
-  // Set a time limit on the change.
-  const timeoutPromise = new Promise(resolve => {
-    timeout = setTimeout(() => {
-      clearInterval(settleInterval);
-      resolve();
-    });
-  }, 400);
-  // Until the time limit expires, periodically:
-  const settlePromise = new Promise(resolve => {
-    settleInterval = setInterval(async () => {
-      const visiblesLoc = await rootLoc.locator('*:visible');
-      // Get the count.
-      elementCount1 = await visiblesLoc.count();
-      // If the count has changed:
-      if (elementCount1 !== elementCount0) {
-        // Stop.
-        clearTimeout(timeout);
-        clearInterval(settleInterval);
-        resolve();
-      }
-    });
-  }, 75);
-  // When a change occurs or the time limit expires:
-  await Promise.race([timeoutPromise, settlePromise]);
-  // Return the change.
-  return elementCount1 - elementCount0;
-};
-// Gets a violation description.
-const getViolationDescription = change =>
-  `Hovering over the element changes the number of related visible elements by ${change}`;
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   // Initialize the locators and result.
@@ -97,49 +62,82 @@ exports.reporter = async (page, withItems) => {
    '[role="combobox"]:visible'
   ].join(', '));
   const allLocs = await candidateLocs.all();
-  const violations = [];
-  const preventionData = {};
+  const all = {
+    allLocs,
+    locs: [],
+    result: {
+      data: {
+        populationRatio: 1
+      },
+      totals: [0, 0, 0, 0],
+      standardInstances: []
+    }
+  };
   // For each locator:
   for (const loc of allLocs) {
+    // Move the mouse to the top left corner of the page.
+    await page.mouse.move(0, 0);
     // Get the XPath of the element referenced by the locator.
     let xPath = await loc.evaluate(element => getXPath(element));
+    // Change it to the XPath of the desired observation root.
     const pathSegments = xPath.split('/');
     const {length} = pathSegments;
-    // Change it to the XPath of the desired observation root.
     pathSegments.pop();
     if (! ['main', 'body'].includes(pathSegments[length - 2])) {
       pathSegments.pop();
     }
     xPath = pathSegments.join('/');
-    // Get a locator for the observation root.
     const rootLoc = page.locator(`xpath=${xPath}`);
-    const loc0 = await rootLoc.locator('*:visible');
     // Get a count of the visible elements in the observation tree.
+    const loc0 = await rootLoc.locator('*:visible');
     const elementCount0 = await loc0.count();
     try {
       // Hover over the element.
       await loc.hover({timeout: 400});
-      // Get the change in the count of the visible elements in the observation tree.
-      const change = await getVisibleCountChange(rootLoc, elementCount0);
-      // If a change occurred:
-      if (change) {
-        // Add the locator and a violation description to the array of violations.
-        violations.push([loc, getViolationDescription(change)]);
-      }
+      // Get a count of the visible elements in the observation tree.
+      const loc1 = await rootLoc.locator('*:visible');
+      const elementCount1 = await loc1.count();
       // Stop hovering over the element.
       await page.mouse.move(0, 0);
-      // Await a change in the count of the visible elements in the observation tree.
-      await getVisibleCountChange(rootLoc, elementCount0 + change);
+      let timeoutTimer;
+      let settleInterval;
+      const timeoutPromise = new Promise(resolve => {
+        timeoutTimer = setTimeout(() => {
+          clearTimeout(settleInterval);
+          resolve();
+        });
+      }, 400);
+      settlePromise = new Promise(resolve => {
+        settleInterval = setInterval(async () => {
+          const elementCount2 = await loc1.count();
+          if (elementCount2 < elementCount1) {
+            clearTimeout(timeoutTimer);
+            clearInterval(settleInterval);
+            resolve();
+          }
+        });
+      }, 75);
+      await Promise.race([timeoutPromise, settlePromise]);
+      // If the count has changed:
+      if (elementCount1 !== elementCount0) {
+        // Add the locator and a violation description to the array of violation locators.
+        const impact = elementCount1 - elementCount0;
+        all.locs.push([loc, impact]);
+      }
     }
     // If hovering times out:
     catch(error) {
       // Report the test prevented.
-      preventionData.prevented = true;
-      preventionData.error = 'ERROR hovering over an element';
+      const {data} = all.result;
+      data.prevented = true;
+      data.error = 'ERROR hovering over an element';
       break;
     }
   }
-  // Get and return a result.
-  const whats = 'Hovering over elements changes the number of related visible elements';
-  return await getBasicResult(page, withItems, 'hover', 0, '', whats, preventionData, violations);
+  // Populate and return the result.
+  const whats = [
+    'Hovering over the element changes the number of elements on the page by __param__',
+    'Hovering over elements changes the number of elements on the page'
+  ];
+  return await getRuleResult(withItems, all, 'hover', whats, 0);
 };

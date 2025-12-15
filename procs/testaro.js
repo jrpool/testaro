@@ -233,3 +233,64 @@ exports.doTest = async (
     ]
   );
 };
+// Returns a result from a basic test.
+exports.getBasicResult = async (
+  page, withItems, ruleID, ordinalSeverity, summaryTagName, whats, preventionData, violations
+) => {
+  // If the test was prevented:
+  if (preventionData.prevented) {
+    // Return this.
+    return {
+      data: preventionData,
+      totals: [0, 0, 0, 0],
+      standardInstances: []
+    };
+  }
+  // Otherwise, i.e. if the test was not prevented:
+  const totals = [0, 0, 0, 0];
+  totals[ordinalSeverity] = violations.length;
+  const standardInstances = [];
+  // If itemization is required:
+  if (withItems) {
+    // For each violation:
+    for (const violation of violations) {
+      const elData = await getLocatorData(violation[0]);
+      // Get the bounding box of the element.
+      const {tagName, id, location, excerpt} = elData;
+      const box = location.type === 'box' ? location.spec : await boxOf(loc);
+      // Add a standard instance to the result.
+      standardInstances.push({
+        ruleID,
+        what: violation[1],
+        ordinalSeverity,
+        tagName,
+        id,
+        location,
+        excerpt,
+        boxID: boxToString(box),
+        pathID: tagName === 'HTML' ? '/html' : await xPath(loc)
+      });
+    }
+  }
+  // Otherwise, i.e. if itemization is not required:
+  else {
+    // Add a summary instance to the instances.
+    standardInstances.push({
+      ruleID,
+      What: whats,
+      ordinalSeverity,
+      summaryTagName,
+      id: '',
+      location: {},
+      excerpt: '',
+      boxID: '',
+      pathID: ''
+    });
+  }
+  // Return the result.
+  return {
+    data: {},
+    totals,
+    standardInstances
+  };
+};
