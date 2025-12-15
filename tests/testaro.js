@@ -543,7 +543,6 @@ exports.reporter = async (page, report, actIndex) => {
         console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
       }
       // Replace the browser and the page and navigate to the target.
-      console.log('XXX About to launch');
       await launch(
         report,
         actIndex,
@@ -552,7 +551,6 @@ exports.reporter = async (page, report, actIndex) => {
         url
       );
       page = require('../run').page;
-      console.log('XXX Launched');
     }
     // Report crashes and disconnections during this test.
     let crashHandler;
@@ -609,7 +607,6 @@ exports.reporter = async (page, report, actIndex) => {
             }, timeLimit);
           });
           // Perform the test, subject to the time limit.
-          console.log('XXX About to perform test');
           const ruleReport = isJS
             ? require(`../testaro/${ruleID}`).reporter(... ruleArgs)
             : jsonTest(ruleID, ruleArgs);
