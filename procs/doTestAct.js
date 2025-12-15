@@ -43,7 +43,7 @@ const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
-// Performs the tests of the act specified by the caller.
+// Performs the tests of an act.
 const doTestAct = async actIndex => {
   const reportPath = `${tmpDir}/report.json`;
   // Get the report from the temporary directory.

@@ -582,8 +582,9 @@ exports.reporter = async (page, report, actIndex) => {
         ruleArgs.push(... args[ruleID]);
       }
       result[ruleID] ??= {};
+      const ruleResult = result[ruleID];
       const {what} = rule;
-      result[ruleID].what = what || '';
+      ruleResult.what = what || '';
       const startTime = Date.now();
       let timeout;
       let testRetries = 2;
@@ -600,8 +601,8 @@ exports.reporter = async (page, report, actIndex) => {
               testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
               data.rulePreventions.push(ruleID);
               data.rulePreventionMessages[ruleID] = 'Timeout';
-              result[ruleID].totals = [0, 0, 0, 0];
-              result[ruleID].standardInstances = [];
+              ruleResult.totals = [0, 0, 0, 0];
+              ruleResult.standardInstances = [];
               console.log(`ERROR: Test of testaro rule ${ruleID} timed out`);
               resolve({timedOut: true});
             }, timeLimit);
@@ -618,26 +619,32 @@ exports.reporter = async (page, report, actIndex) => {
             const endTime = Date.now();
             testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
             Object.keys(ruleOrTimeoutReport).forEach(key => {
-              result[ruleID][key] = ruleOrTimeoutReport[key];
+              ruleResult[key] = ruleOrTimeoutReport[key];
             });
+            // If the test was prevented:
+            if (ruleResult.data?.prevented && ruleResult.data.error) {
+              // Add this to the result.
+              data.rulePreventions.push(ruleID);
+              data.rulePreventionMessages[ruleID] = ruleResult.data.error;
+            }
             // If the result includes totals:
-            if (result[ruleID].totals) {
+            if (ruleResult.totals) {
               // Round them.
-              result[ruleID].totals = result[ruleID].totals.map(total => Math.round(total));
+              ruleResult.totals = ruleResult.totals.map(total => Math.round(total));
             }
             // Prevent a retry of the test.
             testSuccess = true;
             // If testing is to stop after a failure and the page failed the test:
-            if (
-              stopOnFail
-              && ruleOrTimeoutReport.totals
-              && ruleOrTimeoutReport.totals.some(total => total)) {
+            if (stopOnFail && ruleResult.totals && ruleResult.totals.some(total => total)) {
               // Stop testing.
               break;
             }
           }
           // Otherwise, i.e. if the test timed out:
           else {
+            // Report this.
+            data.rulePreventions.push(ruleID);
+            data.rulePreventionMessages[ruleID] = 'Timeout';
             // Stop retrying the test.
             break;
           }

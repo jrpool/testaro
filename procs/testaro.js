@@ -235,13 +235,13 @@ exports.doTest = async (
 };
 // Returns a result from a basic test.
 exports.getBasicResult = async (
-  page, withItems, ruleID, ordinalSeverity, summaryTagName, whats, preventionData, violations
+  page, withItems, ruleID, ordinalSeverity, summaryTagName, whats, data, violations
 ) => {
   // If the test was prevented:
-  if (preventionData.prevented) {
+  if (data.prevented) {
     // Return this.
     return {
-      data: preventionData,
+      data,
       totals: [0, 0, 0, 0],
       standardInstances: []
     };
@@ -259,7 +259,7 @@ exports.getBasicResult = async (
       // Get the bounding box of the element.
       const {tagName, id, location, excerpt} = elData;
       const box = location.type === 'box' ? location.spec : await boxOf(loc);
-      // Add a standard instance to the result.
+      // Add a standard instance to the instances.
       standardInstances.push({
         ruleID,
         what,
@@ -290,7 +290,7 @@ exports.getBasicResult = async (
   }
   // Return the result.
   return {
-    data: {},
+    data,
     totals,
     standardInstances
   };

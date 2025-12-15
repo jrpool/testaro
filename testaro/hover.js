@@ -66,7 +66,7 @@ exports.reporter = async (page, withItems) => {
   ].join(', '));
   const allLocs = await candidateLocs.all();
   const violations = [];
-  const preventionData = {};
+  const data = {};
   // For each locator:
   for (const loc of allLocs) {
     // Get the XPath of the element referenced by the locator.
@@ -89,12 +89,13 @@ exports.reporter = async (page, withItems) => {
       await loc.hover({timeout: 400});
       // Get the change in the count of the visible elements in the observation tree.
       const changeData = await getVisibleCountChange(rootLoc, elementCount0, 400, 75);
+      const {change, elapsedTime} = changeData;
       // If a change occurred:
-      if (changeData.change) {
+      if (change) {
         // Add the locator and a violation description to the array of violations.
         violations.push({
           loc,
-          what: getViolationDescription(changeData.change, changeData.elapsedTime)
+          what: getViolationDescription(change, elapsedTime)
         });
       }
       // Stop hovering over the element.
@@ -102,15 +103,15 @@ exports.reporter = async (page, withItems) => {
       // Await a reverse change in the count of the visible elements in the observation tree.
       await getVisibleCountChange(rootLoc, elementCount0 + change);
     }
-    // If hovering times out:
+    // If hovering throws an error:
     catch(error) {
       // Report that the test was prevented.
-      preventionData.prevented = true;
-      preventionData.error = 'ERROR hovering over an element';
+      data.prevented = true;
+      data.error = `ERROR hovering over an element (${error.message})`;
       break;
     }
   }
   // Get and return a result.
   const whats = 'Hovering over elements changes the number of related visible elements';
-  return await getBasicResult(page, withItems, 'hover', 0, '', whats, preventionData, violations);
+  return await getBasicResult(page, withItems, 'hover', 0, '', whats, data, violations);
 };
