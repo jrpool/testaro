@@ -40,8 +40,8 @@ const {getBasicResult, getVisibleCountChange} = require('../procs/testaro');
 // ########## FUNCTIONS
 
 // Gets a violation description.
-const getViolationDescription = change =>
-  `Hovering over the element changes the number of related visible elements by ${change}`;
+const getViolationDescription = (change, elapsedTime) =>
+  `Hovering over the element changes the related visible element count by ${change} in ${elapsedTime}ms`;
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   // Initialize the locators and result.
@@ -88,13 +88,13 @@ exports.reporter = async (page, withItems) => {
       // Hover over the element.
       await loc.hover({timeout: 400});
       // Get the change in the count of the visible elements in the observation tree.
-      const change = await getVisibleCountChange(rootLoc, elementCount0, 400, 75);
+      const changeData = await getVisibleCountChange(rootLoc, elementCount0, 400, 75);
       // If a change occurred:
-      if (change) {
+      if (changeData.change) {
         // Add the locator and a violation description to the array of violations.
         violations.push({
           loc,
-          what: getViolationDescription(change)
+          what: getViolationDescription(changeData.change, changeData.elapsedTime)
         });
       }
       // Stop hovering over the element.

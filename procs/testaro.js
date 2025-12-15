@@ -299,6 +299,7 @@ exports.getBasicResult = async (
 exports.getVisibleCountChange = async (
   rootLoc, elementCount0, timeLimit = 400, settleInterval = 75
 ) => {
+  const startTime = Date.now();
   let timeout;
   let settleChecker;
   let elementCount1 = elementCount0;
@@ -326,6 +327,10 @@ exports.getVisibleCountChange = async (
   });
   // When a change occurs or the time limit expires:
   await Promise.race([timeoutPromise, settlePromise]);
+  const elapsedTime = Math.round(Date.now() - startTime);
   // Return the change.
-  return elementCount1 - elementCount0;
+  return {
+    change: elementCount1 - elementCount0,
+    elapsedTime
+  };
 };
