@@ -35,42 +35,10 @@
 // ########## IMPORTS
 
 // Module to perform common operations.
-const {getBasicResult} = require('../procs/testaro');
+const {getBasicResult, getVisibleCountChange} = require('../procs/testaro');
 
 // ########## FUNCTIONS
 
-// Returns an awaited change in a visible element count.
-const getVisibleCountChange = async (rootLoc, elementCount0) => {
-  let timeout;
-  let settleInterval;
-  let elementCount1 = elementCount0;
-  // Set a time limit on the change.
-  const timeoutPromise = new Promise(resolve => {
-    timeout = setTimeout(() => {
-      clearInterval(settleInterval);
-      resolve();
-    });
-  }, 400);
-  // Until the time limit expires, periodically:
-  const settlePromise = new Promise(resolve => {
-    settleInterval = setInterval(async () => {
-      const visiblesLoc = await rootLoc.locator('*:visible');
-      // Get the count.
-      elementCount1 = await visiblesLoc.count();
-      // If the count has changed:
-      if (elementCount1 !== elementCount0) {
-        // Stop.
-        clearTimeout(timeout);
-        clearInterval(settleInterval);
-        resolve();
-      }
-    });
-  }, 75);
-  // When a change occurs or the time limit expires:
-  await Promise.race([timeoutPromise, settlePromise]);
-  // Return the change.
-  return elementCount1 - elementCount0;
-};
 // Gets a violation description.
 const getViolationDescription = change =>
   `Hovering over the element changes the number of related visible elements by ${change}`;
@@ -93,8 +61,8 @@ exports.reporter = async (page, withItems) => {
    '[data-hover]:visible',
    '[data-menu]:visible',
    '[data-dropdown]:visible',
-   '[role="tab"]:visible',
-   '[role="combobox"]:visible'
+   '[role=tab]:visible',
+   '[role=combobox]:visible'
   ].join(', '));
   const allLocs = await candidateLocs.all();
   const violations = [];
@@ -120,7 +88,7 @@ exports.reporter = async (page, withItems) => {
       // Hover over the element.
       await loc.hover({timeout: 400});
       // Get the change in the count of the visible elements in the observation tree.
-      const change = await getVisibleCountChange(rootLoc, elementCount0);
+      const change = await getVisibleCountChange(rootLoc, elementCount0, 400, 75);
       // If a change occurred:
       if (change) {
         // Add the locator and a violation description to the array of violations.
@@ -133,7 +101,7 @@ exports.reporter = async (page, withItems) => {
     }
     // If hovering times out:
     catch(error) {
-      // Report the test prevented.
+      // Report that the test was prevented.
       preventionData.prevented = true;
       preventionData.error = 'ERROR hovering over an element';
       break;

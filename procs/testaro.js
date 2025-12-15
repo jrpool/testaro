@@ -294,3 +294,37 @@ exports.getBasicResult = async (
     standardInstances
   };
 };
+// Returns an awaited change in a visible element count.
+exports.getVisibleCountChange = async (
+  rootLoc, elementCount0, timeLimit = 400, settleInterval = 75
+) => {
+  let timeout;
+  let settleChecker;
+  let elementCount1 = elementCount0;
+  // Set a time limit on the change.
+  const timeoutPromise = new Promise(resolve => {
+    timeout = setTimeout(() => {
+      clearInterval(settleChecker);
+      resolve();
+    }, timeLimit);
+  });
+  // Until the time limit expires, periodically:
+  const settlePromise = new Promise(resolve => {
+    settleChecker = setInterval(async () => {
+      const visiblesLoc = await rootLoc.locator('*:visible');
+      // Get the count.
+      elementCount1 = await visiblesLoc.count();
+      // If the count has changed:
+      if (elementCount1 !== elementCount0) {
+        // Stop.
+        clearTimeout(timeout);
+        clearInterval(settleChecker);
+        resolve();
+      }
+    }, settleInterval);
+  });
+  // When a change occurs or the time limit expires:
+  await Promise.race([timeoutPromise, settlePromise]);
+  // Return the change.
+  return elementCount1 - elementCount0;
+};
