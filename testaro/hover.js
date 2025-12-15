@@ -68,7 +68,9 @@ exports.reporter = async (page, withItems) => {
     allLocs,
     locs: [],
     result: {
-      data: {},
+      data: {
+        populationRatio: 1
+      },
       totals: [0, 0, 0, 0],
       standardInstances: []
     }
@@ -106,17 +108,18 @@ exports.reporter = async (page, withItems) => {
       // Stop hovering over the element.
       console.log('XXX About stop hovering over the element');
       await page.mouse.move(0, 0);
+      let settlePromise;
       const timeoutPromise = new Promise(resolve => setTimeout(() => {
         clearTimeout(settlePromise);
         resolve();
       }, 400));
-      const settlePromise = new Promise(resolve => setInterval(async elementCount1 => {
+      settlePromise = new Promise(resolve => setInterval(async elementCount1 => {
         const elementCount2 = await loc1.count();
         if (elementCount2 < elementCount1) {
           clearTimeout(timeoutPromise);
           resolve();
         }
-      }, 100));
+      }, 75));
       await Promise.race([timeoutPromise, settlePromise]);
       console.log('XXX no longer hovering over the element');
       // If the count has changed:
