@@ -42,7 +42,6 @@ const {getRuleResult} = require('../procs/testaro');
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   // Initialize the locators and result.
-  console.log('XXX About to get triggerLocs');
   const triggerLocs = await page.locator([
    '[aria-controls]:visible',
    '[aria-expanded]:visible',
@@ -62,7 +61,6 @@ exports.reporter = async (page, withItems) => {
    '[role="tab"]:visible',
    '[role="combobox"]:visible'
   ].join(', '));
-  console.log('XXX Got triggerLocs');
   const allLocs = await triggerLocs.all();
   const all = {
     allLocs,
@@ -81,7 +79,6 @@ exports.reporter = async (page, withItems) => {
     await page.mouse.move(0, 0);
     // Get the XPath of the element referenced by the locator.
     let xPath = await loc.evaluate(element => getXPath(element));
-    console.log(`XXX xPath ${xPath}`);
     // Change it to the XPath of the desired observation root.
     const pathSegments = xPath.split('/');
     const {length} = pathSegments;
@@ -90,45 +87,42 @@ exports.reporter = async (page, withItems) => {
       pathSegments.pop();
     }
     xPath = pathSegments.join('/');
-    console.log(`XXX New xPath ${xPath}`);
     const rootLoc = page.locator(`xpath=${xPath}`);
     // Get a count of the visible elements in the observation tree.
     const loc0 = await rootLoc.locator('*:visible');
     const elementCount0 = await loc0.count();
-    console.log(`XXX elementCount0 ${elementCount0}`);
     try {
       // Hover over the element.
-      console.log('XXX About to hover');
       await loc.hover({timeout: 400});
-      console.log('XXX hovering');
       // Get a count of the visible elements in the observation tree.
       const loc1 = await rootLoc.locator('*:visible');
       const elementCount1 = await loc1.count();
-      console.log(`XXX elementCount1 ${elementCount1}`);
       // Stop hovering over the element.
-      console.log('XXX About stop hovering over the element');
       await page.mouse.move(0, 0);
-      let settlePromise;
-      const timeoutPromise = new Promise(resolve => setTimeout(() => {
-        clearTimeout(settlePromise);
-        resolve();
-      }, 400));
-      settlePromise = new Promise(resolve => setInterval(async elementCount1 => {
-        const elementCount2 = await loc1.count();
-        if (elementCount2 < elementCount1) {
-          clearTimeout(timeoutPromise);
+      let timeoutTimer;
+      let settleInterval;
+      const timeoutPromise = new Promise(resolve => {
+        timeoutTimer = setTimeout(() => {
+          clearTimeout(settleInterval);
           resolve();
-        }
-      }, 75));
+        });
+      }, 400);
+      settlePromise = new Promise(resolve => {
+        settleInterval = setInterval(async () => {
+          const elementCount2 = await loc1.count();
+          if (elementCount2 < elementCount1) {
+            clearTimeout(timeoutTimer);
+            clearInterval(settleInterval);
+            resolve();
+          }
+        });
+      }, 75);
       await Promise.race([timeoutPromise, settlePromise]);
-      console.log('XXX no longer hovering over the element');
       // If the count has changed:
       if (elementCount1 !== elementCount0) {
         // Add the locator and a violation description to the array of violation locators.
         const impact = elementCount1 - elementCount0;
         all.locs.push([loc, impact]);
-        // Increment the violation count.
-        all.result.totals[0]++;
       }
     }
     // If hovering times out:
@@ -137,7 +131,6 @@ exports.reporter = async (page, withItems) => {
       const {data} = all.result;
       data.prevented = true;
       data.error = 'ERROR hovering over an element';
-      console.log('XXX Error hovering over an element');
       break;
     }
   }

@@ -291,6 +291,7 @@ const browserClose = exports.browserClose = async () => {
 const launch = exports.launch = async (
   report, actIndex, headEmulation, tempBrowserID, tempURL, retries = 2
 ) => {
+  console.log('XXX Starting launch');
   const act = report.acts[actIndex] || {};
   const {device} = report;
   const deviceID = device && device.id;
@@ -304,6 +305,7 @@ const launch = exports.launch = async (
     const browserType = playwrightBrowsers[browserID];
     // Close any current browser.
     await browserClose();
+    console.log('XXX Closed any current browser');
     // Define the browser-option args, depending on the browser type and head-emulation level.
     const browserOptionArgs = [];
     if (browserID === 'chromium') {
@@ -366,6 +368,7 @@ const launch = exports.launch = async (
           'Upgrade-Insecure-Requests': '1'
         }
       };
+      console.log('XXX About to create context');
       browserContext = await browser.newContext(contextOptions);
       // Prevent default timeouts.
       browserContext.setDefaultTimeout(0);
@@ -430,6 +433,7 @@ const launch = exports.launch = async (
           }
         });
       });
+      console.log('XXX About to create new page');
       // Reassign the page variable to a new page (tab) of the context (window).
       page = await browserContext.newPage();
       // Wait until it is stable.
@@ -448,8 +452,10 @@ const launch = exports.launch = async (
       const isTestaroTest = act.type === 'test' && act.which === 'testaro';
       // If the launch is for a testaro test act:
       if (isTestaroTest) {
+        console.log('XXX Launch is for a testaro test act');
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
+          console.log('XXX Adding XPath method');
           window.getXPath = element => {
             if (! element || element.nodeType !== Node.ELEMENT_NODE) {
               return '';

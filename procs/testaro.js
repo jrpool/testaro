@@ -90,7 +90,7 @@ const getRuleResult = exports.getRuleResult = async (
     // If itemization is required:
     if (withItems) {
       // Get the bounding box of the element.
-      const {tagName,id, location, excerpt} = elData;
+      const {tagName, id, location, excerpt} = elData;
       const box = location.type === 'box' ? location.spec : await boxOf(loc);
       // Add a standard instance to the result.
       standardInstances.push({
