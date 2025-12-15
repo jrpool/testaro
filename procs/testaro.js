@@ -254,14 +254,15 @@ exports.getBasicResult = async (
   if (withItems) {
     // For each violation:
     for (const violation of violations) {
-      const elData = await getLocatorData(violation[0]);
+      const {loc, what} = violation;
+      const elData = await getLocatorData(loc);
       // Get the bounding box of the element.
       const {tagName, id, location, excerpt} = elData;
       const box = location.type === 'box' ? location.spec : await boxOf(loc);
       // Add a standard instance to the result.
       standardInstances.push({
         ruleID,
-        what: violation[1],
+        what,
         ordinalSeverity,
         tagName,
         id,
@@ -277,7 +278,7 @@ exports.getBasicResult = async (
     // Add a summary instance to the instances.
     standardInstances.push({
       ruleID,
-      What: whats,
+      what: whats,
       ordinalSeverity,
       summaryTagName,
       id: '',

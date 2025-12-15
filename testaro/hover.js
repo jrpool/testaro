@@ -92,11 +92,14 @@ exports.reporter = async (page, withItems) => {
       // If a change occurred:
       if (change) {
         // Add the locator and a violation description to the array of violations.
-        violations.push([loc, getViolationDescription(change)]);
+        violations.push({
+          loc,
+          what: getViolationDescription(change)
+        });
       }
       // Stop hovering over the element.
       await page.mouse.move(0, 0);
-      // Await a change in the count of the visible elements in the observation tree.
+      // Await a reverse change in the count of the visible elements in the observation tree.
       await getVisibleCountChange(rootLoc, elementCount0 + change);
     }
     // If hovering times out:
