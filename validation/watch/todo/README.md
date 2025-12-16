@@ -2,11 +2,11 @@
 
 Directory watched by executor `watchDir`.
 
-/*
-  © 2023 CVS Health and/or one of its affiliates. All rights reserved.
+## License
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+© 2023 CVS Health and/or one of its affiliates. All rights reserved.
 
-  SPDX-License-Identifier: MIT
-*/
+Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
+at the project root for details.
+
+SPDX-License-Identifier: MIT

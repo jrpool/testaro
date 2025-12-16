@@ -1,4 +1,16 @@
-# Major decisions for JavaScript to TypeScript conversion
+# UPGRADES
+
+## License
+
+© 2025 CVS Health and/or one of its affiliates. All rights reserved.
+© 2025 Jonathan Robert Pool.
+
+Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
+at the project root for details.
+
+SPDX-License-Identifier: MIT
+
+## Major decisions for JavaScript to TypeScript conversion
 
 _Exported on 9/24/2025 at 20:24:42 PDT from Cursor (1.6.45)_
 
@@ -2518,18 +2530,6 @@ describe('Database queries', () => {
   });
 });
 ```
-
-## License
-
-/*
-  © 2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
-
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
-
-  SPDX-License-Identifier: MIT
-*/
 
 ## Performance improvements
 

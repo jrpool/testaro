@@ -32,12 +32,10 @@ Preparing a PR:
 
 ## License
 
-/*
-  © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+© 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+© 2025 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
+at the project root for details.
 
-  SPDX-License-Identifier: MIT
-*/
+SPDX-License-Identifier: MIT
