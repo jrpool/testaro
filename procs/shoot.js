@@ -1,5 +1,5 @@
 /*
-  © 2025 Jonathan Robert Pool. All rights reserved.
+  © 2025 Jonathan Robert Pool.
   Licensed under the MIT License. See LICENSE file for details.
 */
 

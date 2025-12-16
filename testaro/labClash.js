@@ -1,25 +1,11 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool.
 
-  MIT License
+  Licensed under the MIT License. See LICENSE file at the project root or
+  https://opensource.org/license/mit/ for details.
 
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
+  SPDX-License-Identifier: MIT
 */
 
 /*
@@ -29,42 +15,37 @@
   labels are additive, not conflicting.
 */
 
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
+// IMPORTS
 
-// ########## FUNCTIONS
+const {doTest} = require('../procs/testaro');
+
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Initialize the locators and result.
-  const all = await init(100, page, 'button, input:not([type=hidden]), select, textarea');
-  // For each locator:
-  for (const loc of all.allLocs) {
-    // Get the label types of its element.
-    const labelTypes = await loc.evaluate(el => {
-      const labelTypes = [];
-      // Attribute and reference labels.
-      ['aria-label', 'aria-labelledby'].forEach(type => {
-        if (el.hasAttribute(type)) {
-          labelTypes.push(type);
-        }
-      });
-      // Explicit and implicit labels.
-      const labels = Array.from(el.labels);
-      if (labels.length) {
-        labelTypes.push('label');
+  const getBadWhat = element => {
+    // Get the label types of the element.
+    const labelTypes = [];
+    // Attribute and reference labels.
+    ['aria-label', 'aria-labelledby'].forEach(type => {
+      if (element.hasAttribute(type)) {
+        labelTypes.push(type);
       }
-      return labelTypes;
     });
-    // If it has more than 1:
-    if (labelTypes.length > 1) {
-      // Add the locator and a list of them to the array of violators.
-      all.locs.push([loc, labelTypes.join(', ')]);
+    // Explicit and implicit labels.
+    const labels = Array.from(element.labels);
+    if (labels.length) {
+      labelTypes.push('label');
     }
-  }
-  // Populate and return the result.
-  const whats = [
-    'Element has inconsistent label types (__param__)', 'Elements have inconsistent label types'
-  ];
-  return await getRuleResult(withItems, all, 'labClash', whats, 2);
+    // If it has more than 1 label type:
+    if (labelTypes.length > 1) {
+      // Return a violation description.
+      return `Element has inconsistent label types (${labelTypes.join(', ')})`;
+    }
+  };
+  const selector = 'button, input:not([type=hidden]), select, textarea';
+  const whats = 'Elements have inconsistent label types';
+  return await doTest(
+    page, withItems, 'labClash', selector, whats, 2, null, getBadWhat.toString()
+  );
 };
