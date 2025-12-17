@@ -39,6 +39,7 @@
     "@siteimprove/alfa-rules": "*",
     "@wally-ax/wax-dev": "npm:@jrpool/wax-dev@^1.0.0",
     "accessibility-checker": "*",
+    "aria-query": "*",
     "aslint-testaro": "*",
     "axe-playwright": "*",
     "dotenv": "*",
