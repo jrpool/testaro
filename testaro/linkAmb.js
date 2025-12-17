@@ -22,61 +22,66 @@ const {getBasicResult} = require('../procs/testaro');
 
 // FUNCTIONS
 
-// Gets a violation description.
-const getViolationDescription = (text, count) =>
-  `${count} links have the same text (${text}) but not all have the same destination`;
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   const violationData = await page.evaluate(() => {
-    const allLinks = Array.from(document.body.getElementsByTagName('li'));
+    const allLinks = Array.from(document.body.getElementsByTagName('a'));
     const visibleLinks = allLinks.filter(link => link.checkVisibility({
       contentVisibilityAuto: true,
       opacityProperty: true,
       visibilityProperty: true
     }));
-    const linkData = {};
+    const tally = {};
     // For each visible link on the page:
     visibleLinks.forEach(link => {
+      // Get its trimmed and lowercased text.
       const text = link.textContent.trim().toLowerCase();
-      linkData[text] ??= {
+      tally[text] ??= {
         linkCount: 0,
         hrefCount: 0,
         hrefs: {}
       };
       const href = link.getAttribute('href');
-      // Tally its text and destination.
-      linkData[text].linkCount++;
-      if (! linkData[text].hrefs[href]) {
-        linkData[text].hrefCount++;
-        linkData[text].hrefs[href] = true;
+      // Add its data to the tally.
+      tally[text].linkCount++;
+      if (! tally[text].hrefs[href]) {
+        tally[text].hrefCount++;
+        tally[text].hrefs[href] = true;
       }
     });
-    // Get the texts of violator links and the destination counts of the texts.
-    const violationEntries = Object.entries(linkData).filter((entry => entry[1].hrefCount > 1));
-    const textData = {};
+    // Get the violation entries from the tally.
+    const violationEntries = Object.entries(tally).filter((entry => entry[1].hrefCount > 1));
+    const data = {};
+    // Get violation data from the violation entries.
     violationEntries.forEach(entry => {
-      textData[entry[0]] = entry[1].hrefCount;
+      data[entry[0]] = {
+        linkCount: entry[1].linkCount,
+        hrefCount: entry[1].hrefCount,
+      };
     });
     // Return the data.
-    return textData;
+    return data;
   });
-  // Get locators for all visible links.
-  const linksLoc = page.locator('a[href]:visible');
-  const linkLocs = await linksLoc.all();
   const violations = [];
-  // For each of them:
-  for (const loc of linkLocs) {
-    const text = (await loc.textContent()).trim().toLowerCase();
-    // If it is a violator:
-    if (violationData[text]) {
-      // Add the locator and a violation description to the array of violations.
-      violations.push({
-        loc,
-        what: `${violationData[text]} links with the same text have different destinations`
-      });
+  // For each violating text:
+  for (const text of Object.keys(violationData)) {
+    // Get locators for visible links containing at least it.
+    const textPlusLinksLoc = await page.locator('a[href]:visible', {hasText: text});
+    const textPlusLinksLocs = await textPlusLinksLoc.all();
+    // For each of those locators:
+    for (const loc of textPlusLinksLocs) {
+      const locText = await loc.textContent();
+      // If the trimmed and lowercased text content of its link is the violating text:
+      if (locText.trim().toLowerCase() === text) {
+        // Add the locator and a violation description to the violations.
+        violations.push({
+          loc,
+          what: `${violationData[text].linkCount} links with this text have ${violationData[text].hrefCount} different destinations`
+        });
+      }
     }
   }
   // Get and return a result.
   const whats = 'Links have the same text but different destinations';
-  return await getBasicResult(page, withItems, 'linkAmb', 2, 'LI', whats, {}, violations);
+  return await getBasicResult(page, withItems, 'linkAmb', 2, 'A', whats, {}, violations);
 };
