@@ -155,6 +155,7 @@ exports.doTest = async (
 ) => {
   // Return totals and standard instances for the rule.
   return await page.evaluate(async args => {
+    // Get the arguments (summaryTagName must be upper-case or null).
     const [
       withItems,
       ruleID,
