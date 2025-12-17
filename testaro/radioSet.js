@@ -1,5 +1,6 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -9,101 +10,68 @@
 
 /*
   radioSet
-  This test reports nonstandard grouping of radio buttons. It defines standard grouping to require
-  that two or more radio buttons with the same name, and no other radio buttons, be grouped in a
-  'fieldset' element with a valid 'legend' element.
+  This test reports nonstandard groupings of radio buttons. It defines a standard grouping to
+  require that two or more radio buttons with the same name, and no other radio buttons, be grouped
+  in a fieldset element with a valid legend element.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Initialize the locators and result.
-  const all = await init(100, page, 'input[type=radio]');
-  const params = {
-    nameLeak: 'shares a name with others outside its field set',
-    fsMixed: 'shares a field set with others having different names',
-    only1RB: 'is the only one with its name in its field set',
-    legendBad: 'is in a field set without a valid legend',
-    noFS: 'is not in a field set',
-    noName: 'has no name attribute'
-  };
-  // For each locator:
-  for (const loc of all.allLocs) {
-    // Get whether and, if so, how it violates the rule.
-    const howBad = await loc.evaluate(el => {
-      // Get its name.
-      const elName = el.name;
-      // If it has one:
-      if (elName) {
-        // Identify the field set of the element.
-        const elFS = el.closest('fieldset');
-        // If it has one:
-        if (elFS) {
-          // Get the first child element of the field set.
-          const fsChild1 = elFS.firstElementChild;
-          // Get whether the child is a legend with text content.
-          const legendOK = fsChild1.tagName === 'LEGEND'
-          && fsChild1.textContent.replace(/\s/g, '').length;
-          // If it is:
-          if (legendOK) {
-            // Get the count of radio buttons with the same name in the field set.
-            const nameGroupSize = elFS
-            .querySelectorAll(`input[type=radio][name=${elName}]`)
-            .length;
-            // If the count is at least 2:
-            if (nameGroupSize > 1) {
-              // Get the count of radio buttons in the field set.
-              const groupSize = elFS.querySelectorAll('input[type=radio]').length;
-              // If it is the same:
-              if (groupSize === nameGroupSize) {
-                // Get the count of radio buttons with the same name in the document.
-                const nameDocSize = document
-                .querySelectorAll(`input[type=radio][name=${elName}]`)
-                .length;
-                // If none of them is outside the field set:
-                if (nameDocSize === nameGroupSize) {
-                  // Return rule conformance.
-                  return false;
-                }
-                else {
-                  return 'nameLeak';
-                }
-              }
-              else {
-                return 'fsMixed';
-              }
-            }
-            else {
-              return 'only1RB';
-            }
-          }
-          else {
-            return 'legendBad';
-          }
-        }
-        else {
-          return 'noFS';
-        }
-      }
-      else {
-        return 'noName';
-      }
-    });
-    // If it does:
-    if (howBad) {
-      // Add the locator to the array of violators.
-      all.locs.push([loc, params[howBad]]);
+  const getBadWhat = element => {
+    // Get the name of the element.
+    const elName = element.name;
+    // If it has none:
+    if (! elName) {
+      // Return a violation description.
+      return 'radio button has no name attribute';
     }
-  }
-  // Populate and return the result.
-  const whats = [
-    'Radio button __param__', 'Radio buttons are not validly grouped in fieldsets with legends'
-  ];
-  return await getRuleResult(withItems, all, 'radioSet', whats, 2, 'INPUT');
+    // Identify the field set of the element.
+    const elFS = element.closest('fieldset');
+    // If it has none:
+    if (! elFS) {
+      // Return a violation description.
+      return 'radio button is not in a field set';
+    }
+    // Get the first child element of the field set.
+    const fsChild1 = elFS.firstElementChild;
+    // Get whether the child is a legend with text content.
+    const legendOK = fsChild1.tagName === 'LEGEND'
+    && fsChild1.textContent.replace(/\s/g, '').length;
+    // If it is not:
+    if (! legendOK) {
+      // Return a violation description.
+      return 'radio button is in a field set without a valid legend';
+    }
+    // Get the count of radio buttons with the same name in the field set.
+    const nameGroupSize = elFS.querySelectorAll(`input[type=radio][name=${elName}]`).length;
+    // If the count is only 1:
+    if (nameGroupSize === 1) {
+      // Return a violation description.
+      return 'radio button is the only one with its name in its field set';
+    }
+    // Get the count of radio buttons in the field set.
+    const groupSize = elFS.querySelectorAll('input[type=radio]').length;
+    // If it is greater than the count of radio buttons with the same name in the field set:
+    if (groupSize > nameGroupSize) {
+      // Return a violation description.
+      return 'radio button shares a field set with differently named others';
+    }
+    // Get the count of radio buttons with the same name in the document.
+    const nameDocSize = document.querySelectorAll(`input[type=radio][name=${elName}]`).length;
+    // If it is greater, and thus some such radio button is outside the field set:
+    if (nameDocSize > nameGroupSize) {
+      // Return a violation description.
+      return 'radio button shares a name with others outside its field set';
+    }
+  };
+  const whats = 'Radio buttons are not validly grouped in fieldsets with legends';
+  return await doTest(
+    page, withItems, 'radioSet', 'input[type=radio]', whats, 2, 'INPUT', getBadWhat.toString()
+  );
 };
