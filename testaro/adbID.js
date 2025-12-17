@@ -1,6 +1,6 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Juan S. Casado. All rights reserved.
+  © 2025 Juan S. Casado.
   © 2025 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or

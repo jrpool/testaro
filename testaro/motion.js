@@ -45,7 +45,7 @@ exports.reporter = async page => {
   // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
   let shoot0PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-0.png`);
   let shoot1PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-1.png`);
-  // Delete the buffers files.
+  // Delete the buffer files.
   await fs.unlink(`${tmpDir}/testaro-shoot-0.png`);
   await fs.unlink(`${tmpDir}/testaro-shoot-1.png`);
   // If both buffers exist:
