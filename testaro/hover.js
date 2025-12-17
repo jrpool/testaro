@@ -17,12 +17,12 @@
   the rule is considered violated.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
 // Module to perform common operations.
 const {getBasicResult, getVisibleCountChange} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Gets a violation description.
 const getViolationDescription = (change, elapsedTime) =>
