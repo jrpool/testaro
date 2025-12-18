@@ -16,7 +16,7 @@
 // IMPORTS
 
 const {elementRoles} = require('aria-query');
-const {doTest} = require('../procs/testaro');
+const {getBasicResult} = require('../procs/testaro');
 
 // CONSTANTS
 
@@ -27,15 +27,23 @@ const implicitRoles = new Set(Array.from(elementRoles.values()).flat());
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const getBadWhat = element => {
-    // Get the explicit role of the element.
-    const role = element.getAttribute('role');
-    // If it is also implicit:
-    if (implicitRoles.has(role)) {
-      // Return a violation description.
-      return `Explicit ${role} role of the element is also an implicit HTML element role`;
+  // Get locators for the elements with explicit roles.
+  const loc = page.locator('[role]');
+  const locs = await loc.all();
+  const violations = [];
+  // Get data on those with roles that are also implicit.
+  for (const loc of locs) {
+    const roleSpec = await loc.getAttribute('role');
+    const roles = roleSpec.split(/\s+/);
+    const badRole = roles.find(role => implicitRoles.has(role));
+    if (badRole) {
+      violations.push({
+        loc,
+        what: `Explicit ${badRole} role of the element is also an implicit HTML element role`
+      });
     }
-  };
+  }
+  // Get and return a result.
   const whats = 'Elements have roles assigned that are also implicit HTML element roles';
-  return await doTest(page, withItems, 'role', whats, 0, null, getBadWhat.toString());
+  return await getBasicResult(page, withItems, 'role', 0, null, whats, {}, violations);
 };
