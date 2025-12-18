@@ -1,6 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
+  © 2025 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -10,35 +11,41 @@
 
 /*
   secHeading
-  Flag headings that are a lower-numbered heading (e.g., H2 after H3) than the
-  immediately preceding heading within the same sectioning container.
+  This test reports sectioning containers that have child headings of which the first has a level
+  lower than at least one of the others. An example is a section element whose first heading child
+  is an h3 element and whose subsequent heading children include an h2 element. The first child
+  heading is presumed the principal heading of the container, so this pattern merits scrutiny.
 */
 
-const {init, getRuleResult} = require('../procs/testaro');
+// IMPORTS
 
+const {doTest} = require('../procs/testaro');
+
+// FUNCTIONS
+
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const all = await init(200, page, 'h1,h2,h3,h4,h5,h6');
-  for (const loc of all.allLocs) {
-    const isBad = await loc.evaluate(el => {
-      // find nearest sectioning ancestor
-      let ancestor = el.parentElement;
-      while (ancestor && !['SECTION','ARTICLE','NAV','ASIDE','MAIN','BODY','HTML'].includes(ancestor.tagName)) {
-        ancestor = ancestor.parentElement;
+  const getBadWhat = element => {
+    // Get the children of the element.
+    const children = Array.from(element.children);
+    // Get the headings among them.
+    const headingChildren = children.filter(child => /^H[1-6]$/.test(child.tagName));
+    // If there are 2 or more of them:
+    if (headingChildren.length > 1) {
+      // Get the level of the first of them.
+      const firstHeadingLevel = Number(headingChildren[0].tagName.slice(1));
+      // If any subsequent heading has a higher level:
+      if (
+        headingChildren.slice(1).some(child => Number(child.tagName.slice(1)) < firstHeadingLevel)
+      ) {
+        // Return a violation description.
+        return `First child heading is H${firstHeadingLevel}, but not the highest-level child heading`;
       }
-      if (!ancestor) return false;
-      const headings = Array.from(ancestor.querySelectorAll('h1,h2,h3,h4,h5,h6'));
-      const idx = headings.indexOf(el);
-      if (idx <= 0) return false;
-      const prev = headings[idx - 1];
-      const curLevel = Number(el.tagName.substring(1));
-      const prevLevel = Number(prev.tagName.substring(1));
-      return curLevel < prevLevel;
-    });
-    if (isBad) all.locs.push(loc);
-  }
-  const whats = [
-    'Element violates the logical level order in its sectioning container',
-    'Heading elements violate the logical level order in their sectioning containers'
-  ];
-  return await getRuleResult(withItems, all, 'secHeading', whats, 1);
+    }
+  };
+  const selector = 'SECTION, ARTICLE, NAV, ASIDE, MAIN';
+  const whats = 'Sectioning containers start with lower-level child headings than later child headings';
+  return await doTest(
+    page, withItems, 'secHeading', selector, whats, 0, null, getBadWhat.toString()
+  );
 };
