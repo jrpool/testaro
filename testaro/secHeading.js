@@ -39,12 +39,12 @@ exports.reporter = async (page, withItems) => {
         headingChildren.slice(1).some(child => Number(child.tagName.slice(1)) < firstHeadingLevel)
       ) {
         // Return a violation description.
-        return `First child heading is H${firstHeadingLevel}, but not the highest-level child heading`;
+        return `First child heading is H${firstHeadingLevel}, but a later one is higher`;
       }
     }
   };
   const selector = 'SECTION, ARTICLE, NAV, ASIDE, MAIN';
-  const whats = 'Sectioning containers start with lower-level child headings than later child headings';
+  const whats = 'Highest-level child heading is not the first child heading';
   return await doTest(
     page, withItems, 'secHeading', selector, whats, 0, null, getBadWhat.toString()
   );
