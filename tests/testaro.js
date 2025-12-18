@@ -191,7 +191,7 @@ const allRules = [
     id: 'linkAmb',
     what: 'links with identical texts but different destinations',
     launchRole: 'sharer',
-    timeOut: 5,
+    timeOut: 50,
     defaultOn: true
   },
   {
@@ -212,7 +212,7 @@ const allRules = [
     id: 'linkTitle',
     what: 'links with title attributes repeating text content',
     launchRole: 'sharer',
-    timeOut: 5,
+    timeOut: 10,
     defaultOn: true
   },
   {
@@ -296,7 +296,7 @@ const allRules = [
     id: 'targetSmall',
     what: 'buttons, inputs, and non-inline links smaller than 44 pixels wide and high',
     launchRole: 'sharer',
-    timeOut: 5,
+    timeOut: 10,
     defaultOn: true
   },
   {

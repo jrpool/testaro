@@ -25,46 +25,28 @@ const {getBasicResult} = require('../procs/testaro');
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
   const violationData = await page.evaluate(() => {
-    // Get all links.
     const allLinks = Array.from(document.body.getElementsByTagName('a'));
-    // Get the visible ones.
     const visibleLinks = allLinks.filter(link => link.checkVisibility({
       contentVisibilityAuto: true,
       opacityProperty: true,
       visibilityProperty: true
     }));
-    // Initialize the data.
-    const linksData = {
-      elements: [],
-      textTotals: {}
-    };
-    // For each visible link:
-    visibleLinks.forEach(element => {
+    const tally = {};
+    // For each visible link on the page:
+    visibleLinks.forEach(link => {
       // Get its trimmed and lowercased text.
-      const text = element.textContent.trim().toLowerCase();
-      // Get its destination.
-      const href = element.getAttribute('href');
-      // Add to the data.
-      linksData.elements.push([element, text, href]);
-      linksData.textTotals[text] ??= {
+      const text = link.textContent.trim().toLowerCase();
+      tally[text] ??= {
         linkCount: 0,
-        hrefs: new Set()
+        hrefCount: 0,
+        hrefs: {}
       };
-      const linkData = linksData.textTotals[text];
-      linkData.linkCount++;
-      linkData.hrefs.add(href);
-    });
-    // For each visible link:
-    visibleLinks.forEach(element => {
-      // Get whether it violates the rule.
-      const isBad =
-      // Get its trimmed and lowercased text.
-      const text = element.textContent.trim().toLowerCase();
-      // Get its destination.
-      const href = element.getAttribute('href');
-      if (! linkData.textTotals[text].hrefs[href]) {
-        linkData.textTotals[text].hrefCount++;
-        linkData.textTotals[text].hrefs[href] = true;
+      const href = link.getAttribute('href');
+      // Add its data to the tally.
+      tally[text].linkCount++;
+      if (! tally[text].hrefs[href]) {
+        tally[text].hrefCount++;
+        tally[text].hrefs[href] = true;
       }
     });
     // Get the violation entries ([text, tally[text]]) from the tally.
