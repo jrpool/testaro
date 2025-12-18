@@ -24,7 +24,8 @@ const {getBasicResult} = require('../procs/testaro');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const violationData = await page.evaluate(() => {
+  // Return totals and standard instances for the rule.
+  return await page.evaluate(withItems => {
     // Get all links.
     const allLinks = Array.from(document.body.getElementsByTagName('a'));
     // Get the visible ones.
@@ -35,7 +36,7 @@ exports.reporter = async (page, withItems) => {
     }));
     // Initialize the data.
     const linksData = {
-      elements: [],
+      elementData: [],
       textTotals: {}
     };
     // For each visible link:
@@ -45,7 +46,7 @@ exports.reporter = async (page, withItems) => {
       // Get its destination.
       const href = element.getAttribute('href');
       // Add to the data.
-      linksData.elements.push([element, text, href]);
+      linksData.elementData.push([text, href]);
       linksData.textTotals[text] ??= {
         linkCount: 0,
         hrefs: new Set()
@@ -54,52 +55,34 @@ exports.reporter = async (page, withItems) => {
       linkData.linkCount++;
       linkData.hrefs.add(href);
     });
+    let violationCount = 0;
+    const instances = [];
     // For each visible link:
-    visibleLinks.forEach(element => {
-      // Get whether it violates the rule.
-      const isBad =
-      // Get its trimmed and lowercased text.
-      const text = element.textContent.trim().toLowerCase();
-      // Get its destination.
-      const href = element.getAttribute('href');
-      if (! linkData.textTotals[text].hrefs[href]) {
-        linkData.textTotals[text].hrefCount++;
-        linkData.textTotals[text].hrefs[href] = true;
+    visibleLinks.forEach((element, index) => {
+      const text = linksData.elementData[index][0];
+      const {linkCount, hrefs} = linksData.textTotals[text];
+      // If it violates the rule:
+      if (hrefs.size > 1) {
+        // Increment the violation count.
+        violationCount++;
+        // If itemization is required:
+        if (withItems) {
+          const what = `${linkCount} links with this text have ${hrefs.size} different destinations`;
+          // Add an instance to the instances.
+          instances.push(window.getInstance(element, 'linkAmb', what, 1, 2));
+        }
       }
     });
-    // Get the violation entries ([text, tally[text]]) from the tally.
-    const violationEntries = Object.entries(tally).filter((entry => entry[1].hrefCount > 1));
-    const data = {};
-    // Get violation data ({text: {linkCount, hrefCount}}) from the violation entries.
-    violationEntries.forEach(entry => {
-      data[entry[0]] = {
-        linkCount: entry[1].linkCount,
-        hrefCount: entry[1].hrefCount,
-      };
-    });
-    // Return the data.
-    return data;
-  });
-  const violations = [];
-  // For each violating text:
-  for (const text of Object.keys(violationData)) {
-    // Get locators for visible links containing at least it.
-    const textPlusLinksLoc = await page.locator('a[href]:visible', {hasText: text});
-    const textPlusLinksLocs = await textPlusLinksLoc.all();
-    // For each of those locators:
-    for (const loc of textPlusLinksLocs) {
-      const locText = await loc.textContent();
-      // If the trimmed and lowercased text content of its link is the violating text:
-      if (locText.trim().toLowerCase() === text) {
-        // Add the locator and a violation description to the violations.
-        violations.push({
-          loc,
-          what: `${violationData[text].linkCount} links with this text have ${violationData[text].hrefCount} different destinations`
-        });
-      }
+    // If there were any violations and itemization is not required:
+    if (violationCount && ! withItems) {
+      const what = 'Links have the same text but different destinations';
+      // Add a summary instance to the instances.
+      instances.push(window.getInstance(null, 'linkAmb', what, violationCount, 2, 'A'));
     }
-  }
-  // Get and return a result.
-  const whats = 'Links have the same text but different destinations';
-  return await getBasicResult(page, withItems, 'linkAmb', 2, 'A', whats, {}, violations);
+    return {
+      data: {},
+      totals: [0, 0, violationCount, 0],
+      standardInstances: instances
+    };
+  }, withItems);
 };

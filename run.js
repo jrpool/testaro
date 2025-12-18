@@ -494,7 +494,7 @@ const launch = exports.launch = async (
           window.getInstance = (
             element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
           ) => {
-            // If the element exists:
+            // If an element has been specified:
             if (element) {
               // Get its properties.
               const boxData = element.getBoundingClientRect();
@@ -503,8 +503,9 @@ const launch = exports.launch = async (
               });
               const {x, y, width, height} = boxData;
               const {tagName, id = ''} = element;
-              const rawExcerpt = element.textContent.trim() || element.outerHTML.trim();
-              const excerpt = rawExcerpt.replace(/\s+/g, ' ').slice(0, 200);
+              const rawExcerpt = (element.textContent.trim() || element.outerHTML.trim())
+              .replace(/\s+/g, ' ');
+              const excerpt = rawExcerpt.slice(0, 200);
               // Return an itemized instance.
               return {
                 ruleID,
@@ -528,7 +529,7 @@ const launch = exports.launch = async (
                 pathID: window.getXPath(element)
               };
             }
-            // Otherwise, i.e. if no element exists, return a summary instance.
+            // Otherwise, i.e. if no element has been specified, return a summary instance.
             return {
               ruleID,
               what,
