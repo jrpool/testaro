@@ -14,6 +14,7 @@
   A link is classified as inline unless its declared or effective display is block.
 */
 
+// Returns whether a locator references an inline link.
 exports.isInlineLink = async loc => await loc.evaluate(element => {
   // Returns the normalized text content of an element.
   const realTextOf = element => element ? element.textContent.replace(/\s/g, '') : '';
