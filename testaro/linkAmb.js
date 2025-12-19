@@ -15,11 +15,6 @@
   Text contents are compared case-insensitively.
 */
 
-// IMPORTS
-
-// Module to perform common operations.
-const {getBasicResult} = require('../procs/testaro');
-
 // FUNCTIONS
 
 // Runs the test and returns the result.
