@@ -13,21 +13,32 @@
   Report semantically vague inline elements: i, b, small
 */
 
-const {init, getRuleResult} = require('../procs/testaro');
+// IMPORTS
 
+const {doTest} = require('../procs/testaro');
+
+// FUNCTIONS
+
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const all = await init(100, page, 'i, b, small');
-  for (const loc of all.allLocs) {
-    // Consider only elements with visible text
-    const isBad = await loc.evaluate(el => {
-      const text = (el.textContent || '').trim();
-      return !!text;
+  const getBadWhat = element => {
+    const isVisible = element.checkVisibility({
+      contentVisibilityAuto: true,
+      opacityProperty: true,
+      visibilityProperty: true
     });
-    if (isBad) all.locs.push(loc);
-  }
-  const whats = [
-    'Element is semantically vague',
-    'Semantically vague elements i, b, and/or small are used'
-  ];
-  return await getRuleResult(withItems, all, 'textSem', whats, 0);
+    // If the element is visible:
+    if (isVisible) {
+      // If it has text content:
+      if (element.textContent.trim().replace(/\s/g, '')) {
+        // Return a violation description.
+        return `Element type (${element.tagName}) is semantically vague`;
+      }
+    }
+  };
+  const selector = 'i, b, small';
+  const whats = 'Semantically vague elements i, b, and/or small are used';
+  return await doTest(
+    page, withItems, 'textSem', selector, whats, 0, null, getBadWhat.toString()
+  );
 };

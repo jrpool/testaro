@@ -48,15 +48,15 @@ exports.reporter = async (page, withItems) => {
     const instances = [];
     // For each visible pointer target:
     visiblePTs.forEach((element, index) => {
+      const [centerX, centerY] = ptsData[index];
+      const otherPTsData = ptsData.toSpliced(index, 1);
       // Get the minimum of the vertical distances of its centerpoint from those of the others.
-      const minYDiff = ptsData[index][1] - Math.abs(
-        Math.min(...ptsData.splice(index, 1).map(ptData => ptData[1]))
-      );
+      const minYDiff = Math.min(...otherPTsData.map(ptData => Math.abs(centerY - ptData[1])));
       // If it is close enough to make a violation possible:
       if (minYDiff < 44) {
         // Get the centerpoint coordinates of those within that vertical distance.
-        const yNearPTsData = ptsData.splice(index, 1).filter(
-          ptData => Math.abs(ptData[1] - ptsData[index][1]) < 44
+        const yNearPTsData = otherPTsData.filter(
+          ptData => Math.abs(ptData[1] - centerY) < 44
         );
         // Get the minimum of their planar distances.
         const minPlanarDistance = Math.min(...yNearPTsData.map(ptData => {

@@ -11,7 +11,7 @@
 <html lang="en-US">
   <head>
     <meta charset="utf-8">
-    <title>Page with variously sized interaction targets</title>
+    <title>Page with variously sized and spaced interaction targets</title>
     <meta name="description" content="tester">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
@@ -34,6 +34,10 @@
         padding-top: 0;
         padding-bottom: 0;
       }
+      button.tiny {
+        width: 0.25rem;
+        height: 0.25rem;
+      }
       #defaultbutton {
         min-height: 25px;
       }
@@ -49,9 +53,12 @@
       <h1>Page with variously sized interaction targets</h1>
       <h2>Buttons</h2>
       <p>Here are three buttons:</p>
-      <p><button style="min-width: 3rem; min-height: 3rem" type="button">Big enough</button></p>
-      <p><button id="defaultbutton" type="button">Default (small)</button></p>
-      <p><button style="height: 1.25rem" type="button">Tiny</button></p>
+      <p><button style="min-width: 3rem; min-height: 3rem" type="button">Very big</button></p>
+      <p><button id="defaultbutton" type="button">Big</button></p>
+      <p><button style="height: 1.25rem" type="button">Moderate</button></p>
+      <p>Here are three more that are tiny:</p>
+      <p><button class="tiny" type="button">X</button><button class="tiny" type="button">Y</button><button class="tiny" type="button">Z</button></p>
+      <p><button style="width: 0.5rem; height: 0.5rem" type="button"></button></p>
       <h2>Inputs</h2>
       <p>Here are three inputs:</p>
       <p><label>Big box: <input style="min-width: 3rem; min-height: 3rem" size="20" maxlength="30"></label></p>
@@ -68,9 +75,7 @@
         <li style="min-height: 3rem">W3C: <a class="deep" href="https://w3c.org">World Wide Web Consortium (big)</a></li>
         <li>WF: <a href="https://wikimedia.org">Wikimedia Foundation (small but inline)</a></li>
         <li>WF: <a href="https://wikimedia.org">Wikimedia Foundation (tiny but inline)</a></li>
-        <h2>Violations</h2>
-        <p>Small: 2 buttons, 2 inputs, 2 links</p>
-        <p>Tiny: 1 button, 1 input, 1 link</p>
+        <p>Violations to be determined after refactoring and redefinition</p>
       </ul>
     </main>
   </body>

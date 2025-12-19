@@ -5,7 +5,7 @@
     {
       "type": "launch",
       "target": {
-        "url": "file://validation/tests/targets/targetSize/index.html",
+        "url": "file://validation/tests/targets/targetSmall/index.html",
         "what": "page with variously sized interaction targets"
       }
     },
