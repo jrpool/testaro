@@ -10,7 +10,8 @@
 
 /*
   imageLink
-  Clean-room rule: flag anchor elements whose `href` points to an image file.
+  Clean-room rule.
+  This test reports anchor elements whose href attributes point to image files.
 */
 
 const {simplify} = require('../procs/testaro');

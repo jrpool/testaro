@@ -9,8 +9,13 @@
 
 /*
   textNodes
-  This test reports data about specified text nodes. Meanings of detailLevel values:   0. Only total node count; no detail.   1-3. Count of ancestry levels to provide data on (1 = text node, 2 = also parent,     3 = also grandparent)
+  This test reports data about specified text nodes. Meanings of detailLevel values:
+  0. Only total node count; no detail.
+  1-3. Count of ancestry levels to provide data on (1 = text node, 2 = also parent, 3 = also grandparent)
 */
+
+// FUNCTIONS
+
 exports.reporter = async (page, withItems, detailLevel, text = '') => {
   let data = {};
   // Get the data on the text nodes.

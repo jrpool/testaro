@@ -11,10 +11,8 @@
 
 /*
   adbID
-  Clean-room rule:This test reports elements referencing aria-describedby targets that are missing
-  or, because of duplicate IDs, ambiguous. An earlier version of this test was
-  originally developed under a clean-room procedure to ensure its independence from
-  the implementation of a test for a similar rule in the Tenon tool.
+  Clean-room rule
+  This test reports elements referencing aria-describedby targets that are missing or, because of duplicate IDs, ambiguous. An earlier version of this test was originally developed under a clean-room procedure to ensure its independence from the implementation of a test for a similar rule in the Tenon tool.
 */
 
 // IMPORTS

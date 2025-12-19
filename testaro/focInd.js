@@ -13,14 +13,9 @@
 
   This test reports focusable elements without standard focus indicators. The standard focus indicator is deemed to be a solid outline with a line thickness of at least 2 pixels and a non-transparent color, and only if the element, when not focused, has no outline.
 
-  The focus indicator is checked immediately after the element is focused. Thus, a delayed focus
-  indicator is ignored. Indication delayed is treated as indication denied. The bases for this
-  treatment are that delayed indication interferes with rapid human or mechanized document
-  consumption and also, if it must be respected, slows accessibility testing.
+  The focus indicator is checked immediately after the element is focused. Thus, a delayed focus indicator is ignored. Indication delayed is treated as indication denied. The bases for this treatment are that delayed indication interferes with rapid human or mechanized document consumption and also, if it must be respected, slows accessibility testing.
 
-  Solid outlines are the standard and thus most familiar focus indicator. Other focus indicators
-  are likely to be misunderstood. For example, underlines may be mistaken for selection or link
-  indicators.
+  Solid outlines are the standard and thus most familiar focus indicator. Other focus indicators are likely to be misunderstood. For example, underlines may be mistaken for selection or link indicators.
 
   WARNING: This test fails to recognize outlines when run with firefox.
 */

@@ -11,7 +11,7 @@
 
 /*
   captionLoc
-  Report caption elements that are not the first children of table elements.
+  This test reports caption elements that are not the first children of table elements.
 */
 
 // IMPORTS

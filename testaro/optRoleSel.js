@@ -10,7 +10,8 @@
 
 /*
   optRoleSel
-  Clean-room rule: elements with role="option" should have an aria-selected attribute.
+  Clean-room rule.
+  This test reports elements with role="option" that are missing aria-selected attributes.
 */
 
 const {simplify} = require('../procs/testaro');

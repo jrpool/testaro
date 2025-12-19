@@ -11,10 +11,8 @@
 
 /*
   phOnly
-  Clean-room rule: This test reports input elements that have placeholders but no accessible names.
-  The standard for accessible name computation is employed; it accepts title attributes as
-  sources for accessible names. Thus, this test does not report reliance on title attributes for
-  accessible names, although such reliance is generally considered a poor practice.
+  Clean-room rule.
+  This test reports input elements that have placeholders but no accessible names. The standard for accessible name computation is employed; it accepts title attributes as sources for accessible names. Thus, this test does not report reliance on title attributes for accessible names, although such reliance is generally considered a poor practice.
 */
 
 // IMPORTS

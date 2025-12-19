@@ -10,12 +10,7 @@
 
 /*
   bulk
-  This test reports the count of visible elements.
-
-  The test assumes that simplicity and compactness, with one page having one purpose,
-  is an accessibility virtue. Users with visual, motor, and cognitive disabilities
-  often have trouble finding what they want or understanding the purpose of a page
-  if the page is cluttered with content.
+  This test reports the count of visible elements. The test assumes that simplicity and compactness, with one page having one purpose, is an accessibility virtue. Users with visual, motor, and cognitive disabilities often have trouble finding what they want or understanding the purpose of a page if the page is cluttered with content.
 */
 exports.reporter = async page => {
   // Get a count of elements deemed visible by Playwright.

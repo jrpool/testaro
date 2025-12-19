@@ -11,7 +11,7 @@
 
 /*
   altScheme
-  Identify img elements whose alt attribute is a URL or file name.
+  This test reports img elements whose alt attributes are URLs or file names.
 */
 
 // IMPORTS

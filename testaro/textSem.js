@@ -10,7 +10,7 @@
 
 /*
   textSem
-  Report semantically vague inline elements: i, b, small
+  This test reports semantically vague inline elements: i, b, small.
 */
 
 // IMPORTS

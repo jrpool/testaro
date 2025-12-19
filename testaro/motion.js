@@ -7,15 +7,9 @@
   motion
   This test reports motion in a page by comparing the first and last of the screenshots previously made by the shoot0 and shoot1 tests.
 
-  For minimal accessibility, standards require motion to be brief, or else stoppable by the user.
-  But stopping motion can be difficult or impossible, and, by the time a user manages to stop
-  motion, the motion may have caused annoyance or harm. For superior accessibility, a page contains
-  no motion until and unless the user authorizes it. The test reports a rule violation if any
-  pixels differ between the screenshots. The larger the change fraction, the greater the
-  ordinal severity.
+  For minimal accessibility, standards require motion to be brief, or else stoppable by the user. But stopping motion can be difficult or impossible, and, by the time a user manages to stop motion, the motion may have caused annoyance or harm. For superior accessibility, a page contains no motion until and unless the user authorizes it. The test reports a rule violation if any pixels differ between the screenshots. The larger the change fraction, the greater the ordinal severity.
 
-  WARNING: The shoot test uses the procs/screenShot module. See the warning in that module about
-  browser types.
+  WARNING: The shoot test uses the procs/screenShot module. See the warning in that module about browser types.
 */
 
 // IMPORTS

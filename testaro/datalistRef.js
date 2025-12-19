@@ -11,7 +11,7 @@
 
 /*
   datalistRef
-  Report inputs whose list attribute references a missing or ambiguous datalist
+  This test reports inputs whose list attributes reference missing or ambiguous datalists.
 */
 
 // IMPORTS

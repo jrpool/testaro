@@ -10,7 +10,8 @@
 
 /*
   legendLoc
-  Clean-room rule: flag legend elements that are not the first child of a fieldset element.
+  Clean-room rule.
+  This test reports legend elements that are not the first children of fieldset elements.
 */
 
 const {simplify} = require('../procs/testaro');
