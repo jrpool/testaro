@@ -294,14 +294,7 @@ const allRules = [
   },
   {
     id: 'targetSmall',
-    what: 'buttons, inputs, and non-inline links smaller than 44 pixels wide and high',
-    launchRole: 'sharer',
-    timeOut: 10,
-    defaultOn: true
-  },
-  {
-    id: 'targetTiny',
-    what: 'buttons, inputs, and non-inline links smaller than 24 pixels wide and high',
+    what: 'labels, buttons, inputs, and links too near each other',
     launchRole: 'sharer',
     timeOut: 5,
     defaultOn: true
