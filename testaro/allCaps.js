@@ -11,8 +11,7 @@
 /*
   allCaps
   Related to Tenon rule 153.
-  This test reports elements with native or transformed upper-case text at least 8 characters long.
-  Blocks of upper-case text are difficult to read.
+  This test reports elements with native or transformed upper-case text at least 8 characters long. Blocks of upper-case text are difficult to read.
 */
 
 // ########## IMPORTS

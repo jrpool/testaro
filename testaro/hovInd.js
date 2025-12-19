@@ -10,8 +10,7 @@
 
 /*
   hovInd
-  This test reports nonstandard hover indication.
-  */
+  This test reports nonstandard hover indication. */
 
 // IMPORTS
 

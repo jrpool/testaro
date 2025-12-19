@@ -12,14 +12,7 @@
   focAndOp
   Related to Tenon rule 190.
 
-  This test reports discrepancies between Tab-focusability and operability. The standard practice
-  is to make focusable elements operable and operable elements focusable. If focusable elements are
-  not operable, users are likely to be surprised that nothing happens when they try to operate such
-  elements. Conversely, if operable elements are not focusable, users who navigate with a
-  keyboard are prevented from operating those elements.  The test considers an element
-  Tab-focusable if its tabIndex property has the value 0. The test considers an element operable if
-  it has a non-inherited pointer cursor and is not a 'LABEL' element, has an operable tag name, has
-  an interactive explicit role, or has an 'onclick' attribute.
+  This test reports discrepancies between Tab-focusability and operability. The standard practice is to make focusable elements operable and operable elements focusable. If focusable elements are not operable, users are likely to be surprised that nothing happens when they try to operate such elements. Conversely, if operable elements are not focusable, users who navigate with a keyboard are prevented from operating those elements.  The test considers an element Tab-focusable if its tabIndex property has the value 0. The test considers an element operable if it has a non-inherited pointer cursor and is not a 'LABEL' element, has an operable tag name, has an interactive explicit role, or has an 'onclick' attribute.
 */
 
 // IMPORTS

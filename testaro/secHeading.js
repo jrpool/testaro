@@ -11,11 +11,7 @@
 
 /*
   secHeading
-  This test reports sectioning containers that have child headings of which the first has a depth
-  (i.e. level) lower than at least one of the others. An example is a section element whose first
-  heading child is an h3 element and whose subsequent heading children include an h2 element. The
-  first child heading is presumed the principal heading of the container, so this pattern merits
-  scrutiny.
+  This test reports sectioning containers that have child headings of which the first has a depth (i.e. level) lower than at least one of the others. An example is a section element whose first heading child is an h3 element and whose subsequent heading children include an h2 element. The first child heading is presumed the principal heading of the container, so this pattern merits scrutiny.
 */
 
 // IMPORTS

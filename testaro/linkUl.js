@@ -10,12 +10,7 @@
 
 /*
   linkUl
-  This test reports failures to underline inline links. Underlining and color are the traditional
-  style properties that identify links. Lists of links containing only links can be recognized
-  without underlines, but other links are difficult or impossible to distinguish visually from
-  surrounding text if not underlined. Underlining adjacent links only on hover provides an
-  indicator valuable only to mouse users, and even they must traverse the text with a mouse
-  merely to discover which passages are links.
+  This test reports failures to underline inline links. Underlining and color are the traditional style properties that identify links. Lists of links containing only links can be recognized without underlines, but other links are difficult or impossible to distinguish visually from surrounding text if not underlined. Underlining adjacent links only on hover provides an indicator valuable only to mouse users, and even they must traverse the text with a mouse merely to discover which passages are links.
 */
 
 // ########## IMPORTS

@@ -9,10 +9,7 @@
 
 /*
   embAc
-  This test reports interactive elements (links, buttons, inputs, and select lists)
-  contained by links or buttons. Such embedding not only violates the HTML standard,
-  but also complicates user interaction and creates risks of error. It becomes
-  non-obvious what a user will activate with a click.
+  This test reports interactive elements (links, buttons, inputs, and select lists) contained by links or buttons. Such embedding not only violates the HTML standard, but also complicates user interaction and creates risks of error. It becomes non-obvious what a user will activate with a click.
 */
 
 // IMPORTS

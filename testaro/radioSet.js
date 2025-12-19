@@ -10,9 +10,7 @@
 
 /*
   radioSet
-  This test reports nonstandard groupings of radio buttons. It defines a standard grouping to
-  require that two or more radio buttons with the same name, and no other radio buttons, be grouped
-  in a fieldset element with a valid legend element.
+  This test reports nonstandard groupings of radio buttons. It defines a standard grouping to require that two or more radio buttons with the same name, and no other radio buttons, be grouped in a fieldset element with a valid legend element.
 */
 
 // IMPORTS

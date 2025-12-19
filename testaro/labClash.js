@@ -10,9 +10,7 @@
 
 /*
   labClash
-  This test reports redundant labeling of buttons, non-hidden inputs, select lists, and text areas.
-  Redundant labels are labels that are superseded by other labels. Explicit and implicit (wrapped)
-  labels are additive, not conflicting.
+  This test reports redundant labeling of buttons, non-hidden inputs, select lists, and text areas. Redundant labels are labels that are superseded by other labels. Explicit and implicit (wrapped) labels are additive, not conflicting.
 */
 
 // IMPORTS

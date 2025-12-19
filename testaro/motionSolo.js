@@ -10,13 +10,7 @@
 
 /*
   motion
-  This test reports motion in a page. For minimal accessibility, standards require motion to be
-  brief, or else stoppable by the user. But stopping motion can be difficult or impossible, and,
-  by the time a user manages to stop motion, the motion may have caused annoyance or harm. For
-  superior accessibility, a page contains no motion until and unless the user authorizes it. The
-  test compares two screen shots of the viewport 2 seconds and 6 seconds after page load. It
-  reports a rule violation if any pixels change. The larger the change fraction, the greater the
-  ordinal severity.
+  This test reports motion in a page. For minimal accessibility, standards require motion to be brief, or else stoppable by the user. But stopping motion can be difficult or impossible, and, by the time a user manages to stop motion, the motion may have caused annoyance or harm. For superior accessibility, a page contains no motion until and unless the user authorizes it. The test compares two screen shots of the viewport 2 seconds and 6 seconds after page load. It reports a rule violation if any pixels change. The larger the change fraction, the greater the ordinal severity.
 
   This test is an alternative to the motion test. Whereas the motion test relies on screenshots made
   earlier in the same job by the shoot test, this test makes its own screenshots. MotionSolo waits

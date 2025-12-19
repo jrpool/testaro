@@ -9,10 +9,7 @@
 
 /*
   styleDiff
-  This test reports style differences among links, buttons, and headings. It assumes
-  that an accessible page employs few or only one style for adjacent links, and likewise
-  for list links, buttons, and headings at each level. The test considers only
-  particular style properties, listed in the 'mainStyles' and 'headingStyles' arrays.
+  This test reports style differences among links, buttons, and headings. It assumes that an accessible page employs few or only one style for adjacent links, and likewise for list links, buttons, and headings at each level. The test considers only particular style properties, listed in the 'mainStyles' and 'headingStyles' arrays.
 */
 
 // FUNCTIONS

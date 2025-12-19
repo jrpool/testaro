@@ -5,8 +5,7 @@
 
 /*
   motion
-  This test reports motion in a page by comparing the first and last of the screenshots previously
-  made by the shoot0 and shoot1 tests.
+  This test reports motion in a page by comparing the first and last of the screenshots previously made by the shoot0 and shoot1 tests.
 
   For minimal accessibility, standards require motion to be brief, or else stoppable by the user.
   But stopping motion can be difficult or impossible, and, by the time a user manages to stop

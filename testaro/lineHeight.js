@@ -11,10 +11,7 @@
 /*
   lineHeight
   Related to Tenon rule 144.
-  This test reports elements whose line heights are less than 1.5 times their font sizes. Even
-  such elements with no text create accessibility risk, because any text node added to one of
-  them would have a substandard line height. Nonetheless, elements with no non-spacing text in
-  their subtrees are excluded.
+  This test reports elements whose line heights are less than 1.5 times their font sizes. Even such elements with no text create accessibility risk, because any text node added to one of them would have a substandard line height. Nonetheless, elements with no non-spacing text in their subtrees are excluded.
 */
 
 // IMPORTS

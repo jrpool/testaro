@@ -11,8 +11,7 @@
 /*
   allSlanted
   Related to Tenon rule 154.
-  This test reports elements with italic or oblique text at least 40 characters long. Blocks of
-  slanted text are difficult to read.
+  This test reports elements with italic or oblique text at least 40 characters long. Blocks of slanted text are difficult to read.
 */
 
 // ########## IMPORTS

@@ -11,8 +11,7 @@
 /*
   distortion
   Related to Tenon rule 271.
-  This test reports elements whose transform style properties distort the content. Distortion makes
-  text difficult to read.
+  This test reports elements whose transform style properties distort the content. Distortion makes text difficult to read.
 */
 
 // ########## IMPORTS

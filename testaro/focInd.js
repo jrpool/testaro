@@ -11,9 +11,7 @@
 /*
   focInd
 
-  This test reports focusable elements without standard focus indicators. The standard focus
-  indicator is deemed to be a solid outline with a line thickness of at least 2 pixels and a
-  non-transparent color, and only if the element, when not focused, has no outline.
+  This test reports focusable elements without standard focus indicators. The standard focus indicator is deemed to be a solid outline with a line thickness of at least 2 pixels and a non-transparent color, and only if the element, when not focused, has no outline.
 
   The focus indicator is checked immediately after the element is focused. Thus, a delayed focus
   indicator is ignored. Indication delayed is treated as indication denied. The bases for this

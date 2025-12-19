@@ -10,8 +10,7 @@
 
 /*
   tabNav
-  This test reports nonstandard keyboard navigation among tab elements in visible tab lists.
-  Standards are based on https://www.w3.org/TR/wai-aria-practices-1.1/#tabpanel.
+  This test reports nonstandard keyboard navigation among tab elements in visible tab lists. Standards are based on https://www.w3.org/TR/wai-aria-practices-1.1/#tabpanel.
 */
 
 // CONSTANTS

@@ -11,11 +11,7 @@
 /*
   targetSmall
   Related to Tenon rule 152.
-  This test reports visible pointer targets, i.e. labels, buttons, inputs, and links, that are
-  small enough or near enough to other targets to make pointer interaction difficult. This test
-  relates to WCAG 2.2 Success Criteria 2.5.5 and 2.5.8, but does not attempt to implement either
-  of them precisely. For example, the test reports a small pointer target that is far from all
-  other targets, although it conforms to the Success Criteria.
+  This test reports visible pointer targets, i.e. labels, buttons, inputs, and links, that are small enough or near enough to other targets to make pointer interaction difficult. This test relates to WCAG 2.2 Success Criteria 2.5.5 and 2.5.8, but does not attempt to implement either of them precisely. For example, the test reports a small pointer target that is far from all other targets, although it conforms to the Success Criteria.
 */
 
 // FUNCTIONS

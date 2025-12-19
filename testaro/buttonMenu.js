@@ -10,12 +10,7 @@
 
 /*
   buttonMenu
-  This test reports nonstandard navigation among menu items of button-controlled menus.
-  Standards are based on https://www.w3.org/TR/wai-aria-practices-1.1/#menu. The trialKeys argument
-  is an array of strings, each of which may be 'Home', 'End', '+', or '-'. The '+' string represents
-  the ArrowDown or ArrowRight key, and the '-' string represents the ArrowUp or ArrowLeft key,
-  depending on the orientation of the current menu. When the trialKeys argument is missing or is an
-  empty array, 12 keys are selected at random.
+  This test reports nonstandard navigation among menu items of button-controlled menus. Standards are based on https://www.w3.org/TR/wai-aria-practices-1.1/#menu. The trialKeys argument is an array of strings, each of which may be 'Home', 'End', '+', or '-'. The '+' string represents the ArrowDown or ArrowRight key, and the '-' string represents the ArrowUp or ArrowLeft key, depending on the orientation of the current menu. When the trialKeys argument is missing or is an empty array, 12 keys are selected at random.
 */
 
 // ########## IMPORTS

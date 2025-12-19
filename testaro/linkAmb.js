@@ -11,8 +11,7 @@
 /*
   linkAmb
   Related to Tenon rule 98.
-  This test reports text contents that are shared by links with distinct destinations.
-  Text contents are compared case-insensitively.
+  This test reports text contents that are shared by links with distinct destinations. Text contents are compared case-insensitively.
 */
 
 // FUNCTIONS
