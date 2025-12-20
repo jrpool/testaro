@@ -169,12 +169,13 @@ exports.doTest = async (
     const candidates = document.body.querySelectorAll(candidateSelector);
     let violationCount = 0;
     const instances = [];
-    // Get a violation function.
+    // Get a function that returns a violation description, if any, for the candidate.
     const getBadWhat = eval(`(${getBadWhatString})`);
     // For each candidate:
     for (const candidate of candidates) {
+      // Get the violation description, if any.
       const violationWhat = await getBadWhat(candidate);
-      // If it violates the rule:
+      // If the candidate violates the rule:
       if (violationWhat) {
         // Increment the violation count.
         violationCount++;
