@@ -83,7 +83,7 @@ exports.reporter = async (page, report, actIndex) => {
         else {
           try {
             // Treat the output as a JSON result reporting rule violations.
-            nuResult = JSON.stringify(JSON.parse(error.message));
+            nuResult = JSON.parse(error.message);
             // But, if parsing it as JSON fails:
           } catch (error) {
             // Report this.
