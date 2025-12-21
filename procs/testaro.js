@@ -15,8 +15,6 @@
 
 // ########## IMPORTS
 
-// Module to sample a population.
-const {getSample} = require('../procs/sample');
 // Module to get locator data.
 const {getLocatorData} = require('../procs/getLocatorData');
 // Module to get element IDs.

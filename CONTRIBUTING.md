@@ -6,7 +6,7 @@ Testaro can benefit from contributions of various types, such as:
 
 - Adding other tools to the tools that it integrates.
 - Improving its execution speed.
-- Improving its own rule implementations.
+- Improving the rule implementations of the `testaro` tool.
 - Implementing new rules.
 
 ## Adding tools
@@ -17,21 +17,23 @@ Tools that may merit consideration include:
 
 ## Improving execution speed
 
-To come.
+Major improvements in execution speed were made in 2025 with efficiency improvements in the `testaro` tool, which previously consumed more time than any other tool. The `testaro` tests were refactored to perform their computations within the browser environment. This increased execution speed by about 2 orders of magnitude, permitting the elimination of element sampling.
+
+Further improvements in execution speed are hypothesized to require parallelization, so that multiple tools perform their tests simultaneously.
 
 ## Improving rule implementations
 
-To come.
+Testaro relies mainly on the integrated tools for rule implementation. The rules of the `testaro` tool are intended to fill gaps not covered by the integrated tools. The tests for those rules are typically more crude than the tests of the integrated tools, so improvements in implementation quality are possible.
 
 ## Implementing new rules
 
-Testaro has about 50 of its own rules, in addition to the approximately 900 rules of the other tools that it integrates. According to the issue classifications in the [Testilo](https://www.npmjs.com/package/testilo) package, these 950 or so rules can be classified into about 290 accessibility _issues_, because some rules of some tools at least approximately duplicate some rules of other tools.
+Testaro has about 50 of its own rules, in addition to the approximately 950 rules of the other tools that it integrates. According to the issue classifications in the [Testilo](https://www.npmjs.com/package/testilo) package, these 1000 or so rules can be classified into about 300 accessibility _issues_, because some rules of some tools at least approximately duplicate some rules of other tools.
 
 However, many other significant accessibility issues exist that are not covered by any of the existing rules. Thus, Testaro welcomes contributions of new rules for such issues.
 
 ### Step 1
 
-The first step in contributing a new rule to Testaro is to satisfy yourself that it will not duplicate existing rules. The latest `procs/score/tic….js` file in the Testilo package should be helpful here.
+The first step in contributing a new rule to Testaro is to satisfy yourself that it will not duplicate existing rules. The `procs/score/tic.js` file in the Testilo package should be helpful here.
 
 ### Step 2
 
@@ -46,57 +48,19 @@ Inspecting some of the jobs and targets in the `validation/tests` directory can 
 
 ### Step 3
 
-The third step is to add an entry to the `evalRules` or `etcRules` object in the `tests/testaro.js` file.
+The third step is to add an entry to the `allRules` object in the `tests/testaro.js` file.
 
 ### Step 4
 
-The fourth step is to implement the new rule by creating a JavaScript or JSON file and saving it in the `testaro` directory.
+The fourth step is to implement the new rule by creating a JavaScript file and saving it in the `testaro` directory.
 
 To optimize quality, it may be wise for one person to perform steps 1, 2, and 3, and then for a second person independently to perform step 4 (“clean-room” development).
 
 At any time after an implementation is attempted or revised, the developer can run the validation on it, simply by executing the statement `npm test xyz` (replacing `xyz` with the name of the new rule). When the implementation fails validation, diagnosis may find fault either with the implementation or with the validator.
 
-Whether a new rule should be implemented in JSON or JavaScript depends on the complexity of the rule. The JSON format is effective for simple rules, and JavaScript is needed for more complex rules.
+Whether a new rule should be implemented with support from the `doTest` function or the `getBasicResult` function depends on the requirements of the rule. If operations on each element suffice to determine whether and how that element violates the rule, the `doTest` function is appropriate. If, however, the verdict on an element requires features offered by Playwright or other dependencies that cannot be replicated easily in the browser environment, or if the verdict on one element depends on the state or properties of other elements, then the `getBasicResult` function is appropriate.
 
-### Simple rules
-
-You can create a JSON-defined rule if a single CSS selector can identify all and only the elements on a page that violate the rule.
-
-Suppose, for example, that you want a rule prohibiting `i` elements (because `i` represents confusingly many different semantic properties). A single CSS selector, namely `"i"`, will identify all the `i` elements on the page, so this rule can be defined with JSON.
-
-Substantially more complex rules, too, can satisfy this criterion. An example is the `titledEl` rule, which prohibits an element from having a `title` attribute unless the element type is `input`, `button`, `textarea`, `select`, or `iframe`. Its CSS selector is `"[title]:not(input, button, textarea, select, iframe)"`. The CSS selector in a JSON-defined rule may include [custom Playwright pseudo-classes](https://playwright.dev/docs/other-locators#css-locator).
-
-You can copy and revise any of the existing JSON files in the `testaro` directory to implement a new rule. If, for example, you start with a copy of the `titledEl` file, you can change its properties to fit your new rule. In particular:
-
-```json
-{
-  "ruleID": "titledEl",
-  "selector": "[title]:not(input, button, textarea, select, iframe):visible",
-  "complaints": {
-    "instance": "Ineligible element has a title attribute",
-    "summary": "Ineligible elements have title attributes"
-  },
-  "ordinalSeverity": 2,
-  "summaryTagName": ""
-}
-```
-
-- Assign a violation description for a single instance to `complaints.instance`.
-- Assign a violation description for a summary instance (when itemization has been turned off) to `complaints.summary`.
-- Assign an integer from 0 through 3 to `ordinalSeverity`.
-- If all instances of violations of the rule necessarily involve elements of the same type, assign its tag name (such as `"BUTTON"`) to `summaryTagName`.
-
-### Simplifiable rules
-
-More complex Testaro rules are implemented in JavaScript. Some rules are _simplifiable_. These can be implemented with JavaScript modules like the one for the `allSlanted` rule. To implement such a rule, you can copy an existing module and replace the values of the 6 properties of the`ruleData` object. The significant decisions here are about the values of the `selector` and `pruner` properties.
-
-The `selector` value is a CSS selector that identifies candidate elements for violation reporting. What makes this rule simplifiable, instead of simple, is that these elements may or may not be determined to violate the rule. Each of the elements identified by the selector must be further analyzed by the pruner. The pruner takes a Playwright locator as its argument and returns `true` if it finds that the element located by the locator violates the rule, or `false` if not.
-
-### Complex rules
-
-Even more complex Testaro rules require analysis that cannot fit into the simple or simplifiable category. You can begin with existing JavaScript rules, or the `data/template.js` file, as an example.
-
-Some utility functions in modules in the `procs` directory are available for support of new rules. Among these modules are `testaro` (used in many tests), `isInlineLink`, `operable`, and `visChange`.
+The existing `testaro` tests can serve as templates for new ones. At present, only the `hover` and `role` tests make use of the `getBasicResult` function.
 
 ## License agreement
 
