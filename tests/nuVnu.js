@@ -62,9 +62,38 @@ exports.reporter = async (page, report, actIndex) => {
     const pageTypes = [['pageContent', pagePath], ['rawPage', sourcePath]];
     // For each page type:
     for (const page of pageTypes) {
+      let nuResult;
       try {
-        // Get a Nu Html Checker report on it.
-        const nuResult = await vnu.check(['--format', 'json', '--stdout', page[1]]);
+        // Get Nu Html Checker output on it.
+        const nuOutput = await vnu.check(['--format', 'json', '--stdout', page[1]]);
+        // Consider the JSON output to be the result.
+        nuResult = nuOutput;
+      }
+      // If any error was thrown:
+      catch (error) {
+        let errorMessage = error.message;
+        // If it was due to an incompatible Java version:
+        if (errorMessage.includes('Unsupported major.minor version')) {
+          // Revise the error messageand report this.
+          errorMessage = `Installed version of Java is incompatible. Details: ${errorMessage}`;
+          data.docTypes[page[0]].prevented = true;
+          data.docTypes[page[0]].error = errorMessage;
+        }
+        // Otherwise, i.e. if it was not due to an incompatible Java version:
+        else {
+          try {
+            // Treat the output as a JSON result reporting rule violations.
+            nuResult = JSON.stringify(JSON.parse(error.message));
+            // But, if parsing it as JSON fails:
+          } catch (error) {
+            // Report this.
+            data.docTypes[page[0]].prevented = true;
+            data.docTypes[page[0]].error = `Error getting result (${error.message.slice(0, 300)});`;
+          }
+        }
+      }
+      // If a result with or without reported violations was obtained:
+      if (nuResult) {
         // Delete left and right quotation marks and their erratic invalid replacements.
         const nuResultClean = JSON.parse(JSON.stringify(nuResult).replace(/[\u{fffd}“”]/ug, ''));
         result[page[0]] = nuResultClean;
@@ -85,19 +114,7 @@ exports.reporter = async (page, report, actIndex) => {
           }));
         }
       }
-      // If an error occurred:
-      catch (error) {
-        // Report it.
-        let errorMessage = error.message;
-        if (errorMessage.includes('Unsupported major.minor version')) {
-          errorMessage = `Installed version of Java is incompatible. Details: ${errorMessage}`;
-        }
-        const message = `ERROR getting results for ${page[0]} (${errorMessage})`;
-        console.log(message);
-        data.docTypes[page[0]].prevented = true;
-        data.docTypes[page[0]].error = message;
-      };
-    };
+    }
     // If both page types prevented testing:
     if (pageTypes.every(pageType => data.docTypes[pageType[0]].prevented)) {
       // Report this.
