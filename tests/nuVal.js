@@ -42,7 +42,7 @@ exports.reporter = async (page, report, actIndex) => {
     }
   };
   const result = {};
-  // If it was not obtained:
+  // If the source was not obtained:
   if (sourceData.prevented) {
     // Report this.
     data.prevented = true;
@@ -63,13 +63,29 @@ exports.reporter = async (page, report, actIndex) => {
     // For each page type:
     for (const page of pageTypes) {
       try {
-        // Get a Nu Html Checker report on it.
         fetchOptions.body = page[1];
+        // Get a Nu Html Checker report on it.
         const nuResult = await fetch(nuURL, fetchOptions);
-        const nuData = await nuResult.json();
-        // Delete left and right quotation marks and their erratic invalid replacements.
-        const nuDataClean = JSON.parse(JSON.stringify(nuData).replace(/[\u{fffd}“”]/ug, ''));
-        result[page[0]] = nuDataClean;
+        // If the request failed:
+        if (! nuResult.ok) {
+          // Get the response body as text.
+          const text = await nuResult.text();
+          // Add a failure report to the data.
+          result[page[0]] = {
+            prevented: true,
+            error: `HTTP ${nuResult.status}: ${nuResult.statusText}`,
+            rawBody: text
+          };
+          data.docTypes[page[0]] = result[page[0]];
+        }
+        // Otherwise, i.e. if it succeeded:
+        else {
+          // Get the response body as JSON.
+          const nuData = await nuResult.json();
+          // Delete left and right quotation marks and their erratic invalid replacements.
+          const nuDataClean = JSON.parse(JSON.stringify(nuData).replace(/[\u{fffd}“”]/ug, ''));
+          result[page[0]] = nuDataClean;
+        }
         // If there is a report and rules were specified:
         if (! result[page[0]].error && rules && Array.isArray(rules) && rules.length) {
           // Remove all messages except those specified.
@@ -87,8 +103,10 @@ exports.reporter = async (page, report, actIndex) => {
           }));
         }
       }
+      // If an error occurred:
       catch (error) {
-        const message = `ERROR getting results for ${page[0]} (${error.message})`;
+        // Report it.
+        const message = `ERROR getting results for ${page[0]} (${error.message}; status ${nuResult.status}, body ${JSON.stringify(nuResult?.body, null, 2)}`;
         console.log(message);
         data.docTypes[page[0]].prevented = true;
         data.docTypes[page[0]].error = message;
