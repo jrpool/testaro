@@ -15,10 +15,18 @@
 
 // IMPORTS
 
+// Module to perform file operations.
+const fs = require('fs/promises');
+// Module to define the operating-system temporary-file directory.
+const os = require('os');
 // Module to run tests.
 const {vnu} = require('vnu-jar');
 // Module to get the document source.
 const {getSource} = require('../procs/getSource');
+
+// CONSTANTS
+
+const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
@@ -28,6 +36,9 @@ exports.reporter = async (page, report, actIndex) => {
   const {rules} = act;
   // Get the browser-parsed page.
   const pageContent = await page.content();
+  const pagePath = `${tmpDir}/nuVnu-page.html`;
+  // Save it.
+  await fs.writeFile(pagePath, pageContent);
   // Get the source.
   const sourceData = await getSource(page);
   const data = {
@@ -45,12 +56,15 @@ exports.reporter = async (page, report, actIndex) => {
   }
   // Otherwise, i.e. if it was obtained:
   else {
-    const pageTypes = [['pageContent', pageContent], ['rawPage', sourceData.source]];
+    const sourcePath = `${tmpDir}/nuVnu-source.html`;
+    // Save the source.
+    await fs.writeFile(sourcePath, sourceData.source);
+    const pageTypes = [['pageContent', pagePath], ['rawPage', sourcePath]];
     // For each page type:
     for (const page of pageTypes) {
       try {
         // Get a Nu Html Checker report on it.
-        const nuResult = await vnu.check(page[1]);
+        const nuResult = await vnu.check(['--format', 'json', '--stdout', page[1]]);
         // Delete left and right quotation marks and their erratic invalid replacements.
         const nuResultClean = JSON.parse(JSON.stringify(nuResult).replace(/[\u{fffd}“”]/ug, ''));
         result[page[0]] = nuResultClean;
