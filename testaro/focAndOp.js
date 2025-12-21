@@ -70,19 +70,18 @@ exports.reporter = async (page, withItems) => {
       ]);
       // Initialize the operabilities of the element.
       const opHow = [];
-      let hasPointer = false;
       // If the element is not a label:
       if (element.tagName !== 'LABEL') {
-        const styleDec = window.getComputedStyle(element);
-        hasPointer = styleDec.cursor === 'pointer';
+        const liveStyleDec = window.getComputedStyle(element);
         // If it has a pointer cursor:
-        if (hasPointer) {
+        if (liveStyleDec.cursor === 'pointer') {
           // Neutralize the cursor style of the parent element of the element.
           element.parentElement.style.cursor = 'default';
-          // Get whether, after this, the element still has a pointer cursor.
-          hasPointer = styleDec.cursor === 'pointer';
-          // Add this to the operabilities of the element.
-          opHow.push('pointer cursor');
+          // If, after this, the element still has a pointer cursor:
+          if (liveStyleDec.cursor === 'pointer') {
+            // Add this to the operabilities of the element.
+            opHow.push('pointer cursor');
+          }
         }
       }
       // If the element has a click event listener:
