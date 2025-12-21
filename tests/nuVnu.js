@@ -74,7 +74,11 @@ exports.reporter = async (page, report, actIndex) => {
       // If an error occurred:
       catch (error) {
         // Report it.
-        const message = `ERROR getting results for ${page[0]} (${error.message})`;
+        let errorMessage = error.message;
+        if (errorMessage.includes('Unsupported major.minor version')) {
+          errorMessage = `Installed version of Java is incompatible. Details: ${errorMessage}`;
+        }
+        const message = `ERROR getting results for ${page[0]} (${errorMessage})`;
         console.log(message);
         data.docTypes[page[0]].prevented = true;
         data.docTypes[page[0]].error = message;
