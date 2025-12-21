@@ -1,6 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
+  © 2025 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -14,30 +15,24 @@
   This test reports legend elements that are not the first children of fieldset elements.
 */
 
-const {simplify} = require('../procs/testaro');
+// IMPORTS
 
+const {doTest} = require('../procs/testaro');
+
+// FUNCTIONS
+
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const ruleData = {
-    ruleID: 'legendLoc',
-    selector: 'legend',
-    pruner: async (loc) => await loc.evaluate(el => {
-      const parent = el.parentElement;
-      if (!parent) return true;
-      if (parent.tagName.toUpperCase() !== 'FIELDSET') return true;
-      // Check if this legend is the first element child of the fieldset
-      for (const child of parent.children) {
-        if (child.nodeType === 1) {
-          return child !== el; // true if not first child
-        }
-      }
-      return true;
-    }),
-    complaints: {
-      instance: 'Element is not the first child of a fieldset element',
-      summary: 'legend elements are not the first children of fieldset elements'
-    },
-    ordinalSeverity: 3,
-    summaryTagName: 'LEGEND'
+  const getBadWhat = element => {
+    const parent = element.parentElement;
+    // If the element violates the rule:
+    if (! (parent && parent.tagName === 'FIELDSET' && parent.firstElementChild === element)) {
+      // Return a violation description.
+      return 'Element is not the first child of a fieldset element';
+    }
   };
-  return await simplify(page, withItems, ruleData);
+  const whats = 'Legend elements are not the first children of fieldset elements';
+  return await doTest(
+    page, withItems, 'legendLoc', 'legend', whats, 3, 'LEGEND', getBadWhat.toString()
+  );
 };

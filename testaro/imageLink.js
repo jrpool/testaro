@@ -1,6 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
+  © 2025 Jonathan Robert Pool
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -11,25 +12,27 @@
 /*
   imageLink
   Clean-room rule.
-  This test reports anchor elements whose href attributes point to image files.
+  This test reports links whose destinations are image files.
 */
 
-const {simplify} = require('../procs/testaro');
+// IMPORTS
 
+const {doTest} = require('../procs/testaro');
+
+// FUNCTIONS
+
+// Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  const ruleData = {
-    ruleID: 'imageLink',
-    selector: 'a[href]',
-    pruner: async loc => await loc.evaluate(el => {
-      const href = el.getAttribute('href') || '';
-      return /\.(?:png|jpe?g|gif|svg|webp|ico)(?:$|[?#])/i.test(href);
-    }),
-    complaints: {
-      instance: 'Link destination is an image file',
-      summary: 'Links have image files as their destinations'
-    },
-    ordinalSeverity: 0,
-    summaryTagName: 'A'
+  const getBadWhat = element => {
+    const href = element.getAttribute('href') || '';
+    // If the destination of the element is an image file:
+    if (/\.(?:png|jpe?g|gif|svg|webp|ico)(?:$|[?#])/i.test(href)) {
+      // Return a violation description.
+      return 'Link destination is an image file';
+    }
   };
-  return await simplify(page, withItems, ruleData);
+  const whats = 'Links have image files as their destinations';
+  return await doTest(
+    page, withItems, 'imageLink', 'a[href]', whats, 0, 'A', getBadWhat.toString()
+  );
 };

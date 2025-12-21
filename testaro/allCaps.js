@@ -14,48 +14,44 @@
   This test reports elements with native or transformed upper-case text at least 8 characters long. Blocks of upper-case text are difficult to read.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {simplify} = require('../procs/testaro');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Specify the rule.
-  const ruleData = {
-    ruleID: 'allCaps',
-    selector: 'body *:not(style, script, svg)',
-    pruner: async loc => await loc.evaluate(el => {
-      // Get the concatenated and debloated text content of the element and its child text nodes.
-      const elText = Array
-      .from(el.childNodes)
-      .filter(node => node.nodeType === Node.TEXT_NODE)
-      .map(textNode => textNode.nodeValue)
-      .join(' ')
-      .replace(/\s{2,}/g, ' ')
-      .replace(/-{2,}/g, '-');
-      // If the element text includes 8 sequential upper-case letters, spaces, or hyphen-minuses:
-      if (/[- A-Z]{8}/.test(elText)) {
-        // Report this.
-        return true;
+  const getBadWhat = element => {
+    // Get the child text nodes of the element.
+    const childTextNodes = Array.from(element.childNodes).filter(
+      node => node.nodeType === Node.TEXT_NODE
+    );
+    // Get the concatenation of their texts that contain 8 or more consecutive letters.
+    let longText = childTextNodes
+    .map(node => node.nodeValue.trim())
+    .filter(text => /[A-Z]{8,}/i.test(text))
+    .join(' ');
+    // If there is any:
+    if (longText) {
+      // Get the style declaration of the element.
+      const styleDec = window.getComputedStyle(element);
+      const {textTransform} = styleDec;
+      // If the style declaration transforms the text to upper case:
+      if (textTransform === 'uppercase') {
+        // Return a violation description.
+        return 'Element text is rendered as all-capital';
       }
-      // Otherwise:
-      else {
-        // Report whether its text is at least 8 characters long and transformed to upper case.
-        const elStyleDec = window.getComputedStyle(el);
-        const transformStyle = elStyleDec.textTransform;
-        return transformStyle === 'uppercase' && elText.length > 7;
+      // Otherwise, if the text contains 8 or more consecutive upper-case letters:
+      if (/[A-Z]{8,}/.test(longText)) {
+        // Return a violation description.
+        return 'Element contains all-capital text';
       }
-    }),
-    complaints: {
-      instance: 'Element contains all-capital text',
-      summary: 'Elements contain all-capital text'
-    },
-    ordinalSeverity: 0,
-    summaryTagName: ''
+    }
   };
-  // Run the test and return the result.
-  return await simplify(page, withItems, ruleData);
+  const selector = 'body *:not(style, script, svg)';
+  const whats = 'Elements have all-capital text';
+  return await doTest(
+    page, withItems, 'allCaps', selector, whats, 0, null, getBadWhat.toString()
+  );
 };

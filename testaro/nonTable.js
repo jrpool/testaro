@@ -14,65 +14,49 @@
   This test reports tables used for layout.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {simplify} = require('../procs/testaro');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Specify the rule.
-  const ruleData = {
-    ruleID: 'nonTable',
-    selector: 'table',
-    pruner: async loc => await loc.evaluate(el => {
-      const role = el.getAttribute('role');
-      // If it contains another table:
-      if (el.querySelector('table')) {
-        // Return misuse.
-        return true;
-      }
-      // Otherwise, if it has only 1 column or 1 row:
-      else if (
-        el.querySelectorAll('tr').length === 1
-        || Math.max(
-          ... Array
-          .from(el.querySelectorAll('tr'))
-          .map(row => Array.from(row.querySelectorAll('th, td')).length)
-        ) === 1
-      ) {
-        // Return misuse.
-        return true;
-      }
-      // Otherwise, if it contains an object or player:
-      else if (el.querySelector('object, embed, applet, audio, video')) {
-        // Return misuse.
-        return true;
-      }
-      // Otherwise, if it contains a table-compatible element:
-      else if (
-        el.caption
-        || ['grid', 'treegrid'].includes(role)
-        || el.querySelector('col, colgroup, tfoot, thead, th')
-      ) {
-        // Return validity.
-        return false;
-      }
-      // Otherwise:
-      else {
-        // Return misuse.
-        return true;
-      }
-    }),
-    complaints: {
-      instance: 'Table is misused to arrange content',
-      summary: 'Tables are misused to arrange content'
-    },
-    ordinalSeverity: 2,
-    summaryTagName: 'TABLE'
+  const getBadWhat = element => {
+    // If the element contains another table:
+    if (element.querySelector('table')) {
+      // Return a violation description.
+      return 'Element contains another table';
+    }
+    const rowCount = element.querySelectorAll('tr').length;
+    const columnCount = Math.max(
+      ... Array
+      .from(element.querySelectorAll('tr'))
+      .map(row => Array.from(row.querySelectorAll('th, td')).length)
+    );
+    // Otherwise, if it has only 1 column or 1 row:
+    if (rowCount === 1 || columnCount === 1) {
+      // Return a violation description.
+      return 'Element has only one row or one column';
+    }
+    // Otherwise, if it contains an object or player:
+    if (element.querySelector('object, embed, applet, audio, video')) {
+      // Return a violation description.
+      return 'Element contains an object or player';
+    }
+    const role = element.getAttribute('role');
+    // Otherwise, if it has no table-compatible explicit role or descendant element:
+    if (! (
+      ['grid', 'treegrid'].includes(role)
+      || element.caption
+      || element.querySelector('col, colgroup, tfoot, th, thead')
+    )) {
+      // Return a violation description.
+      return 'Element has no table-compatible explicit role or descendant element';
+    }
   };
-  // Run the test and return the result.
-  return await simplify(page, withItems, ruleData);
+  const whats = 'table elements are misused for non-table content';
+  return await doTest(
+    page, withItems, 'nonTable', 'table', whats, 2, 'TABLE', getBadWhat.toString()
+  );
 };

@@ -15,12 +15,8 @@
 
 // IMPORTS
 
-// Module to perform common operations.
-const {init, getRuleResult} = require('../procs/testaro');
 // Function to launch a browser.
 const {launch} = require('../run');
-// Module to handle files.
-const fs = require('fs/promises');
 
 // CONSTANTS
 
@@ -44,7 +40,7 @@ const allRules = [
     id: 'allCaps',
     what: 'leaf elements with entirely upper-case text longer than 7 characters',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
@@ -114,14 +110,14 @@ const allRules = [
     id: 'distortion',
     what: 'distorted text',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
     id: 'docType',
     what: 'document without a doctype property',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
@@ -170,7 +166,7 @@ const allRules = [
     id: 'labClash',
     what: 'labeling inconsistencies',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
@@ -184,14 +180,14 @@ const allRules = [
     id: 'lineHeight',
     what: 'text with a line height less than 1.5 times its font size',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkAmb',
     what: 'links with identical texts but different destinations',
     launchRole: 'sharer',
-    timeOut: 50,
+    timeOut: 20,
     defaultOn: true
   },
   {
@@ -209,13 +205,6 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'linkTitle',
-    what: 'links with title attributes repeating text content',
-    launchRole: 'sharer',
-    timeOut: 10,
-    defaultOn: true
-  },
-  {
     id: 'linkTo',
     what: 'links without destinations',
     launchRole: 'sharer',
@@ -226,7 +215,7 @@ const allRules = [
     id: 'linkUl',
     what: 'missing underlines on inline links',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
@@ -275,7 +264,7 @@ const allRules = [
     id: 'role',
     what: 'native-replacing explicit roles',
     launchRole: 'sharer',
-    timeOut: 5,
+    timeOut: 20,
     defaultOn: true
   },
   {
@@ -303,7 +292,7 @@ const allRules = [
     id: 'textSem',
     what: 'semantically vague elements i, b, and/or small',
     launchRole: 'sharer',
-    timeOut: 10,
+    timeOut: 5,
     defaultOn: true
   },
   {
@@ -387,7 +376,7 @@ const allRules = [
     id: 'hover',
     what: 'hover-caused content changes',
     launchRole: 'waster',
-    timeOut: 300,
+    timeOut: 20,
     defaultOn: true
   },
   {
@@ -428,24 +417,6 @@ process.on('unhandledRejection', reason => {
 
 // FUNCTIONS
 
-// Conducts a JSON-defined test.
-const jsonTest = async (ruleID, ruleArgs) => {
-  const [page, withItems] = ruleArgs;
-  // Get the rule definition.
-  const ruleJSON = await fs.readFile(`${__dirname}/../testaro/${ruleID}.json`, 'utf8');
-  const ruleObj = JSON.parse(ruleJSON);
-  // Initialize the locators and result.
-  const all = await init(100, page, ruleObj.selector);
-  all.locs = all.allLocs;
-  // Populate and return the result.
-  const whats = [
-    ruleObj.complaints.instance,
-    ruleObj.complaints.summary
-  ];
-  return await getRuleResult(
-    withItems, all, ruleObj.ruleID, whats, ruleObj.ordinalSeverity, ruleObj.summaryTagName
-  );
-};
 // Waits.
 const wait = ms => {
   return new Promise(resolve => {

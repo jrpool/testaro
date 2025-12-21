@@ -10,7 +10,7 @@
 
 /*
   hover
-  This test reports unexpected impacts of hovering. The elements that are subjected to hovering (called “triggers”) include all the elements that have attributes associated with control over the visibility of other elements. If hovering over an element results in an increase or decrease in the total count of visible elements in the tree rooted in the grandparent of the trigger, the rule is considered violated.
+  This test reports unexpected impacts of hovering. The elements that are subjected to hovering (called “triggers”) include all the elements that have attributes associated with control over the visibility of other elements. If hovering over an element results in an increase or decrease in the total count of visible elements in the tree rooted in the grandparent of the trigger, the rule is considered violated. This test uses the getBasicResult function in order to use Playwright for the most realistic hover simulation.
 */
 
 // IMPORTS

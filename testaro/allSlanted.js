@@ -14,31 +14,26 @@
   This test reports elements with italic or oblique text at least 40 characters long. Blocks of slanted text are difficult to read.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {simplify} = require('../procs/testaro');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Specify the rule.
-  const ruleData = {
-    ruleID: 'allSlanted',
-    selector: 'body *:not(style, script, svg)',
-    pruner: async loc => await loc.evaluate(el => {
-      const elStyleDec = window.getComputedStyle(el);
-      const elText = el.textContent;
-      return ['italic', 'oblique'].includes(elStyleDec.fontStyle) && elText.length > 39;
-    }),
-    complaints: {
-      instance: 'Element contains all-italic or all-oblique text',
-      summary: 'Elements contain all-italic or all-oblique text'
-    },
-    ordinalSeverity: 0,
-    summaryTagName: ''
+  const getBadWhat = element => {
+    const styleDec = window.getComputedStyle(element);
+    const {textContent} = element;
+    // If the element contains 40 or more characters of slanted text:
+    if (['italic', 'oblique'].includes(styleDec.fontStyle) && textContent.length > 39) {
+      // Return a violation description.
+      return 'Element contains all-slanted text';
+    }
   };
-  // Run the test and return the result.
-  return await simplify(page, withItems, ruleData);
+  const selector = 'body *:not(style, script, svg)';
+  const whats = 'Elements contain all-slanted text';
+  return await doTest(
+    page, withItems, 'allSlanted', selector, whats, 0, null, getBadWhat.toString()
+  );
 };

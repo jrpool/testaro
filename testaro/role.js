@@ -10,7 +10,7 @@
 
 /*
   role
-  This test reports elements with native-replacing explicit role attributes.
+  This test reports elements with native-replacing explicit role attributes. This test uses the getBasicResult function in order to have access to the aria-query dependency.
 */
 
 // IMPORTS

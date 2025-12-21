@@ -10,43 +10,37 @@
 
 /*
   linkUl
-  This test reports failures to underline inline links. Underlining and color are the traditional style properties that identify links. Lists of links containing only links can be recognized without underlines, but other links are difficult or impossible to distinguish visually from surrounding text if not underlined. Underlining adjacent links only on hover provides an indicator valuable only to mouse users, and even they must traverse the text with a mouse merely to discover which passages are links.
+  This test reports failures to underline inline links. Underlining and color are the traditional style properties that identify links. Lists of links containing only links may be recognizable without underlines, but other links are difficult or impossible to distinguish visually from surrounding text if not underlined. Underlining adjacent links only on hover provides an indicator valuable only to mouse users, and even they must traverse the text with a mouse merely to discover which passages are links.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to perform common operations.
-const {simplify} = require('../procs/testaro');
-// Module to classify links.
-const {isInlineLink} = require('../procs/isInlineLink');
+const {doTest} = require('../procs/testaro');
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, withItems) => {
-  // Specify the rule.
-  const ruleData = {
-    ruleID: 'linkUl',
-    selector: 'a',
-    pruner: async loc => {
-      // Get whether each link is underlined.
-      const isUnderlined = await loc.evaluate(el => {
-        const styleDec = window.getComputedStyle(el);
-        return styleDec.textDecorationLine === 'underline';
-      });
-      // If it is not:
-      if (! isUnderlined) {
-        // Return whether it is a violator.
-        return await isInlineLink(loc);
+  const getBadWhat = element => {
+    const liAncestor = element.closest('li');
+    // If the element is not the only link inside a list item:
+    if (! (liAncestor && liAncestor.getElementsByTagName('a').length === 1)) {
+      const styleDec = window.getComputedStyle(element);
+      const {textDecoration} = styleDec;
+      // If the element text is not underlined:
+      if (! textDecoration.includes('underline')) {
+        const styleDec = window.getComputedStyle(element);
+        const {display} = styleDec;
+        // If the element has does not have a block display style:
+        if (display !== 'block') {
+          // Return a violation description.
+          return 'Element is not a list item but is not underlined';
+        }
       }
-    },
-    complaints: {
-      instance: 'Link is inline but has no underline',
-      summary: 'Inline links are missing underlines'
-    },
-    ordinalSeverity: 1,
-    summaryTagName: 'A'
+    }
   };
-  // Run the test and return the result.
-  return await simplify(page, withItems, ruleData);
+  const whats = 'Links that are not list items are not underlined';
+  return await doTest(
+    page, withItems, 'linkUl', 'a', whats, 1, 'A', getBadWhat.toString()
+  );
 };
