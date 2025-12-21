@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "60.18.2",
+  "version": "61.0.0",
   "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
@@ -48,7 +48,8 @@
     "playwright-dompath": "*",
     "playwright-extra": "*",
     "playwright-extra-plugin-stealth": "*",
-    "puppeteer-extra-plugin-stealth": "*"
+    "puppeteer-extra-plugin-stealth": "*",
+    "vnu-jar": "*"
   },
   "devDependencies": {
     "dom-accessibility-api": "*",

@@ -13,7 +13,7 @@
 
 - **Main dirs**: `/tests` (tool test definitions), `/procs` (shared procedures), `/validation` (test validators), root (core modules)
 - **Key files**: `run.js` (main executor), `actSpecs.js` (act specifications), `call.js` (CLI entry), `tests/testaro.js` (Testaro tool rules)
-- **Tools**: Integrates 11 a11y tools (Axe, Alfa, IBM Checker, QualWeb, ASLint, WAVE, WallyAX, Ed11y, HTML CodeSniffer, Nu Validator, Testaro)
+- **Tools**: Integrates 12 accessibility tools (Axe, Alfa, IBM Checker, QualWeb, ASLint, WAVE, WallyAX, Ed11y, HTML CodeSniffer, Nu Validator API, Nu Html Checker, Testaro)
 - **Data flow**: Jobs (JSON) → run.js → tool tests → reports (with standardized results)
 - **Env vars**: Required for WallyAX (`WAX_KEY`), WAVE (`WAVE_KEY`); optional `DEBUG`, `WAITS`, `JOBDIR`, `REPORTDIR`, `AGENT`
 

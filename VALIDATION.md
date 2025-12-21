@@ -1,4 +1,4 @@
-# Validation README
+# Validation
 
 Quick notes to run the Testaro validation tests locally (Windows PowerShell):
 

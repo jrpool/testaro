@@ -255,6 +255,45 @@ const doNuVal = (result, standardResult, docType) => {
     });
   }
 };
+// Converts issue instances from a nuVnu document type.
+const doNuVnu = (result, standardResult, docType) => {
+  const items = result[docType] && result[docType].messages;
+  if (items && items.length) {
+    items.forEach(item => {
+      const identifiers = getIdentifiers(item.extract);
+      if (! identifiers[0] && item.message) {
+        const tagNameLCArray = item.message.match(
+          /^Element ([^ ]+)|^An (img) element| (meta|script) element| element (script)| tag (script)/
+        );
+        if (tagNameLCArray && tagNameLCArray[1]) {
+          identifiers[0] = tagNameLCArray[1].toUpperCase();
+        }
+      }
+      // Include the message twice. A scoring procedure may replace the ruleID with a pattern.
+      const instance = {
+        ruleID: item.message,
+        what: item.message,
+        ordinalSeverity: -1,
+        tagName: identifiers[0],
+        id: identifiers[1],
+        location: {
+          doc: docType === 'pageContent' ? 'dom' : 'source',
+          type: 'line',
+          spec: item && item.lastLine && item.lastLine.toString() || ''
+        },
+        excerpt: cap(item.extract)
+      };
+      const {type, subType} = item;
+      if (type === 'info' && subType === 'warning') {
+        instance.ordinalSeverity = 0;
+      }
+      else if (type === 'error') {
+        instance.ordinalSeverity = subType === 'fatal' ? 3 : 2;
+      }
+      standardResult.instances.push(instance);
+    });
+  }
+};
 // Converts instances of a qualWeb rule class.
 const doQualWeb = (result, standardResult, ruleClassName) => {
   if (result.modules && result.modules[ruleClassName]) {
@@ -566,6 +605,15 @@ const convert = (toolName, data, result, standardResult) => {
     }
     if (result.rawPage) {
       doNuVal(result, standardResult, 'rawPage');
+    }
+  }
+  // nuVnu
+  else if (toolName === 'nuVnu' && (result.pageContent || result.rawPage)) {
+    if (result.pageContent) {
+      doNuVnu(result, standardResult, 'pageContent');
+    }
+    if (result.rawPage) {
+      doNuVnu(result, standardResult, 'rawPage');
     }
   }
   // qualWeb
