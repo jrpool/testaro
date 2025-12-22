@@ -25,92 +25,82 @@ const {getSource} = require('../procs/getSource');
 // Conducts and reports the Nu Html Checker tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
-  const {rules} = act;
-  // Get the browser-parsed page.
-  const pageContent = await page.content();
-  // Get the source.
-  const sourceData = await getSource(page);
+  const {rules, withSource} = act;
+  const sourceData = {};
   const data = {
-    docTypes: {
-      pageContent: {},
-      rawPage: {}
+    testTarget: {}
+  };
+  // Get the specified type of page content.
+  if (withSource) {
+    sourceData = await getSource(page);
+    data.testTarget = sourceData.source;
+  }
+  else {
+    data.testTarget = await page.pageContent();
+  }
+  const result = {};
+  const fetchOptions = {
+    method: 'post',
+    headers: {
+      'User-Agent': 'Mozilla/5.0',
+      'Content-Type': 'text/html; charset=utf-8'
     }
   };
-  const result = {};
-  // If the source was not obtained:
-  if (sourceData.prevented) {
-    // Report this.
-    data.prevented = true;
-    data.error = sourceData.error;
-  }
-  // Otherwise, i.e. if it was obtained:
-  else {
-    // Get results from validator.w3.org, a more reliable service than validator.nu.
-    const fetchOptions = {
-      method: 'post',
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Content-Type': 'text/html; charset=utf-8'
-      }
-    };
+  // If the page content was obtained:
+  if (data.testTarget && ! sourceData.prevented) {
+    // Specify the W3C validator URL for the testing.
     const nuURL = 'https://validator.w3.org/nu/?parser=html&out=json';
-    const pageTypes = [['pageContent', pageContent], ['rawPage', sourceData.source]];
-    // For each page type:
-    for (const page of pageTypes) {
-      try {
-        fetchOptions.body = page[1];
-        // Get a Nu Html Checker report on it.
-        const nuResult = await fetch(nuURL, fetchOptions);
-        // If the request failed:
-        if (! nuResult.ok) {
-          // Get the response body as text.
-          const text = await nuResult.text();
-          // Add a failure report to the data.
-          result[page[0]] = {
-            prevented: true,
-            error: `HTTP ${nuResult.status}: ${nuResult.statusText}`,
-            rawBody: text
-          };
-          data.docTypes[page[0]] = result[page[0]];
-        }
-        // Otherwise, i.e. if it succeeded:
-        else {
-          // Get the response body as JSON.
-          const nuData = await nuResult.json();
-          // Delete left and right quotation marks and their erratic invalid replacements.
-          const nuDataClean = JSON.parse(JSON.stringify(nuData).replace(/[\u{fffd}“”]/ug, ''));
-          result[page[0]] = nuDataClean;
-        }
-        // If there is a report and rules were specified:
-        if (! result[page[0]].error && rules && Array.isArray(rules) && rules.length) {
-          // Remove all messages except those specified.
-          result[page[0]].messages = result[page[0]].messages.filter(message => rules.some(rule => {
-            if (rule[0] === '=') {
-              return message.message === rule.slice(1);
-            }
-            else if (rule[0] === '~') {
-              return new RegExp(rule.slice(1)).test(message.message);
-            }
-            else {
-              console.log(`ERROR: Invalid nuVal rule ${rule}`);
-              return false;
-            }
-          }));
-        }
-        // Remove messages reporting duplicate blank IDs.
-        const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
-        result[page[0]].messages = result[page[0]].messages.filter(
-          message => ! badMessages.has(message.message)
-        );
+    try {
+      fetchOptions.body = data.testTarget;
+      // Get a Nu Html Checker report.
+      const nuResult = await fetch(nuURL, fetchOptions);
+      // If the request failed:
+      if (! nuResult.ok) {
+        // Get the response body as text.
+        const resultText = await nuResult.text();
+        // Add a failure report to the data.
+        result.prevented = true;
+        result.error = `HTTP ${nuResult.status}: ${nuResult.statusText}`;
+        result.rawBody = resultText;
+        data.docTypes[page[0]] = result[page[0]];
       }
-      // If an error occurred:
-      catch (error) {
-        // Report it.
-        const message = `ERROR getting results for ${page[0]} (${error.message}; status ${nuResult.status}, body ${JSON.stringify(nuResult?.body, null, 2)}`;
-        console.log(message);
-        data.docTypes[page[0]].prevented = true;
-        data.docTypes[page[0]].error = message;
-      };
+      // Otherwise, i.e. if it succeeded:
+      else {
+        // Get the response body as JSON.
+        const nuData = await nuResult.json();
+        // Delete left and right quotation marks and their erratic invalid replacements.
+        const nuDataClean = JSON.parse(JSON.stringify(nuData).replace(/[\u{fffd}“”]/ug, ''));
+        result[page[0]] = nuDataClean;
+      }
+      // If there is a report and rules were specified:
+      if (! result[page[0]].error && rules && Array.isArray(rules) && rules.length) {
+        // Remove all messages except those specified.
+        result[page[0]].messages = result[page[0]].messages.filter(message => rules.some(rule => {
+          if (rule[0] === '=') {
+            return message.message === rule.slice(1);
+          }
+          else if (rule[0] === '~') {
+            return new RegExp(rule.slice(1)).test(message.message);
+          }
+          else {
+            console.log(`ERROR: Invalid nuVal rule ${rule}`);
+            return false;
+          }
+        }));
+      }
+      // Remove messages reporting duplicate blank IDs.
+      const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
+      result[page[0]].messages = result[page[0]].messages.filter(
+        message => ! badMessages.has(message.message)
+      );
+    }
+    // If an error occurred:
+    catch (error) {
+      // Report it.
+      const message = `ERROR getting results for ${page[0]} (${error.message}; status ${nuResult.status}, body ${JSON.stringify(nuResult?.body, null, 2)}`;
+      console.log(message);
+      data.docTypes[page[0]].prevented = true;
+      data.docTypes[page[0]].error = message;
     };
     // If both page types prevented testing:
     if (pageTypes.every(pageType => data.docTypes[pageType[0]].prevented)) {
@@ -118,6 +108,12 @@ exports.reporter = async (page, report, actIndex) => {
       data.prevented = true;
       data.error = 'Both doc types prevented';
     }
+  }
+  // If the source was specified but not obtained:
+  else(sourceData.prevented) {
+    // Report this.
+    data.prevented = true;
+    data.error = sourceData.error;
   }
   return {
     data,

@@ -182,6 +182,18 @@ exports.actSpecs = {
         withNewContent: [true, 'boolean', '', 'whether to use a URL instead of page content']
       }
     ],
+    nuVal: [
+      'Perform NuVal tests',
+      {
+        withSource: [false, 'boolean', '', 'whether to use the page source and not the browser page']
+      }
+    ],
+    nuVnu: [
+      'Perform NuVnu tests',
+      {
+        withSource: [false, 'boolean', '', 'whether to use the page source and not the browser page']
+      }
+    ],
     testaro: [
       'Perform Testaro tests',
       {
