@@ -731,7 +731,7 @@ This instance says that a `button` element violates a rule named `rule01`.
 
 The element has no `id` attribute to distinguish it from other `button` elements, but the tool describes its location. This tool uses an XPath to do that. Tools use various methods for location description, namely:
 
-- `line` (line number in the code of the page): Nu Html Checker
+- `code` (line, starting column, and ending column): Nu Html Checker (API and installed)
 - `selector` (CSS selector): Axe, QualWeb, WAVE
 - `xpath`: Alfa, ASLint, Equal Access
 - `box` (coordinates, width, and height of the element box): Editoria11y, Testaro

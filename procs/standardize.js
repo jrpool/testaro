@@ -30,31 +30,24 @@ const cap = rawString => {
 };
 // Returns whether an id attribute value is valid without character escaping.
 const isBadID = id => /[^-\w]|^\d|^--|^-\d/.test(id);
-// Returns the tag name and the value of an id attribute from a substring of HTML code.
+// Returns a tag name and the value of an id attribute from a substring of HTML code.
 const getIdentifiers = code => {
-  let tagName = '';
-  let id = '';
-  // If the substring includes the start tag of an element:
-  if (code && typeof code === 'string' && code.length && /<\s*[a-zA-Z]/.test(code)) {
-    // Get the first start tag in the substring.
-    const startTag = code.replace(/^.*?<(?=[a-zA-Z])/s, '').replace(/[^a-zA-Z0-9].*$/s, '').trim();
-    // If it exists:
-    if (startTag && startTag.length) {
-      // Get its tag name, upper-cased.
-      tagName = startTag.replace(/\s.*$/s, '').toUpperCase();
-      // Get the value of the id attribute of the start tag, if any.
-      const idArray = startTag.match(/\sid="([^"<>]+)"/);
-      if (idArray && idArray.length === 2) {
-        id = idArray[1];
-      }
-      // If the id value is invalid without character escaping:
-      if (isBadID(id)) {
-        // Remove it.
-        id = '';
-      }
-    }
+  // Normalize the code.
+  code = code.replace(/\s+/g, ' ').replace(/\\"/g, '"');
+  // Get the first start tag of an element, if any.
+  const startTagData = code.match(/^.*?< ?([^>]*)/);
+  // If there is any:
+  if (startTagData) {
+    // Get the tag name.
+    const tagNameData = startTagData[1].match(/^[A-Za-z]+/);
+    const tagName = tagNameData ? tagNameData[0].toUpperCase() : '';
+    // Get the value of the id attribute, if any.
+    const idData = startTagData[1].match(/ id="([^"]+)"/);
+    const id = idData ? idData[1] : '';
+    // Return the tag name and the value of the id attribute, if any.
+    return [tagName, id];
   }
-  return [tagName, id];
+  return ['', ''];
 };
 /*
   Differentiates some rule IDs of aslint.
@@ -221,30 +214,34 @@ const doNuVal = (result, standardResult, docType) => {
   const items = result[docType] && result[docType].messages;
   if (items && items.length) {
     items.forEach(item => {
-      const identifiers = getIdentifiers(item.extract);
-      if (! identifiers[0] && item.message) {
-        const tagNameLCArray = item.message.match(
+      const {extract, firstColumn, lastColumn, lastLine, message, subType, type} = item;
+      const identifiers = getIdentifiers(extract);
+      if (! identifiers[0] && message) {
+        const tagNameLCArray = message.match(
           /^Element ([^ ]+)|^An (img) element| (meta|script) element| element (script)| tag (script)/
         );
         if (tagNameLCArray && tagNameLCArray[1]) {
           identifiers[0] = tagNameLCArray[1].toUpperCase();
         }
       }
-      // Include the message twice. A scoring procedure may replace the ruleID with a pattern.
+      let spec = '';
+      const locationSegments = [lastLine, firstColumn, lastColumn];
+      if (locationSegments.every(segment => typeof segment === 'number')) {
+        spec = locationSegments.join(':');
+      }
       const instance = {
-        ruleID: item.message,
-        what: item.message,
+        ruleID: message,
+        what: message,
         ordinalSeverity: -1,
         tagName: identifiers[0],
         id: identifiers[1],
         location: {
           doc: docType === 'pageContent' ? 'dom' : 'source',
-          type: 'line',
-          spec: item && item.lastLine && item.lastLine.toString() || ''
+          type: 'code',
+          spec
         },
-        excerpt: cap(item.extract)
+        excerpt: cap(extract)
       };
-      const {type, subType} = item;
       if (type === 'info' && subType === 'warning') {
         instance.ordinalSeverity = 0;
       }
@@ -260,30 +257,34 @@ const doNuVnu = (result, standardResult, docType) => {
   const items = result[docType] && result[docType].messages;
   if (items && items.length) {
     items.forEach(item => {
-      const identifiers = getIdentifiers(item.extract);
-      if (! identifiers[0] && item.message) {
-        const tagNameLCArray = item.message.match(
+      const {extract, firstColumn, lastColumn, lastLine, message, subType, type} = item;
+      const identifiers = getIdentifiers(extract);
+      if (! identifiers[0] && message) {
+        const tagNameLCArray = message.match(
           /^Element ([^ ]+)|^An (img) element| (meta|script) element| element (script)| tag (script)/
         );
         if (tagNameLCArray && tagNameLCArray[1]) {
           identifiers[0] = tagNameLCArray[1].toUpperCase();
         }
       }
-      // Include the message twice. A scoring procedure may replace the ruleID with a pattern.
+      let spec = '';
+      const locationSegments = [lastLine, firstColumn, lastColumn];
+      if (locationSegments.every(segment => typeof segment === 'number')) {
+        spec = locationSegments.join(':');
+      }
       const instance = {
-        ruleID: item.message,
-        what: item.message,
+        ruleID: message,
+        what: message,
         ordinalSeverity: -1,
         tagName: identifiers[0],
         id: identifiers[1],
         location: {
           doc: docType === 'pageContent' ? 'dom' : 'source',
-          type: 'line',
-          spec: item && item.lastLine && item.lastLine.toString() || ''
+          type: 'code',
+          spec
         },
-        excerpt: cap(item.extract)
+        excerpt: cap(extract)
       };
-      const {type, subType} = item;
       if (type === 'info' && subType === 'warning') {
         instance.ordinalSeverity = 0;
       }
