@@ -115,6 +115,11 @@ exports.reporter = async (page, report, actIndex) => {
             }
           }));
         }
+        // Remove messages reporting duplicate blank IDs.
+        const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
+        result[page[0]].messages = result[page[0]].messages.filter(
+          message => ! badMessages.has(message.message)
+        );
       }
     }
     // If both page types prevented testing:
