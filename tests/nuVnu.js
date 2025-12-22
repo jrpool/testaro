@@ -36,7 +36,7 @@ exports.reporter = async (page, report, actIndex) => {
   const {rules} = act;
   // Get the browser-parsed page.
   const pageContent = await page.content();
-  const pagePath = `${tmpDir}/nuVnu-page.html`;
+  const pagePath = `${tmpDir}/nuVnu-page-${report.id}.html`;
   // Save it.
   await fs.writeFile(pagePath, pageContent);
   // Get the source.
@@ -56,7 +56,7 @@ exports.reporter = async (page, report, actIndex) => {
   }
   // Otherwise, i.e. if it was obtained:
   else {
-    const sourcePath = `${tmpDir}/nuVnu-source.html`;
+    const sourcePath = `${tmpDir}/nuVnu-source-${report.id}.html`;
     // Save the source.
     await fs.writeFile(sourcePath, sourceData.source);
     const pageTypes = [['pageContent', pagePath], ['rawPage', sourcePath]];
@@ -92,6 +92,8 @@ exports.reporter = async (page, report, actIndex) => {
           }
         }
       }
+      // Delete the temporary file.
+      await fs.unlink(page[1]);
       // If a result with or without reported violations was obtained:
       if (nuResult) {
         // Delete left and right quotation marks and their erratic invalid replacements.
