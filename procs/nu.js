@@ -22,6 +22,7 @@ const {getSource} = require('./getSource');
 // Gets the content for a nuVal or nuVnu test.
 exports.getContent = async (page, withSource) => {
   const data = {
+    withSource,
     testTarget: null
   };
   // If the specified content type was the page source:
@@ -49,7 +50,9 @@ exports.getContent = async (page, withSource) => {
   return data;
 };
 // Postprocesses a result from nuVal or nuVnu tests.
-exports.curate = (nuData, rules) => {
+exports.curate = (data, nuData, rules) => {
+  // Delete most of the test target from the data.
+  data.testTarget = `${data.testTarget.slice(0, 200)}…`;
   let result;
   // If a result was obtained:
   if (nuData) {

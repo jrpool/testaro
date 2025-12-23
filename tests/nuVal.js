@@ -65,7 +65,7 @@ exports.reporter = async (page, report, actIndex) => {
       data.error = message;
     };
     // Postprocess the response data.
-    result = curate(nuData, rules);
+    result = curate(data, nuData, rules);
   }
   // Otherwise, i.e. if the page content was not obtained:
   else {

@@ -209,9 +209,9 @@ const doHTMLCS = (result, standardResult, severity) => {
     });
   }
 };
-// Converts issue instances from a nuVal document type.
-const doNuVal = (result, standardResult, docType) => {
-  const items = result[docType] && result[docType].messages;
+// Converts issue instances from a nuVal or nuVnu result..
+const doNu = (withSource, result, standardResult) => {
+  const items = result && result.messages;
   if (items && items.length) {
     items.forEach(item => {
       const {extract, firstColumn, lastColumn, lastLine, message, subType, type} = item;
@@ -236,7 +236,7 @@ const doNuVal = (result, standardResult, docType) => {
         tagName: identifiers[0],
         id: identifiers[1],
         location: {
-          doc: docType === 'pageContent' ? 'dom' : 'source',
+          doc: withSource ? 'source' : 'dom',
           type: 'code',
           spec
         },
@@ -252,48 +252,13 @@ const doNuVal = (result, standardResult, docType) => {
     });
   }
 };
-// Converts issue instances from a nuVnu document type.
-const doNuVnu = (result, standardResult, docType) => {
-  const items = result[docType] && result[docType].messages;
-  if (items && items.length) {
-    items.forEach(item => {
-      const {extract, firstColumn, lastColumn, lastLine, message, subType, type} = item;
-      const identifiers = getIdentifiers(extract);
-      if (! identifiers[0] && message) {
-        const tagNameLCArray = message.match(
-          /^Element ([^ ]+)|^An (img) element| (meta|script) element| element (script)| tag (script)/
-        );
-        if (tagNameLCArray && tagNameLCArray[1]) {
-          identifiers[0] = tagNameLCArray[1].toUpperCase();
-        }
-      }
-      let spec = '';
-      const locationSegments = [lastLine, firstColumn, lastColumn];
-      if (locationSegments.every(segment => typeof segment === 'number')) {
-        spec = locationSegments.join(':');
-      }
-      const instance = {
-        ruleID: message,
-        what: message,
-        ordinalSeverity: -1,
-        tagName: identifiers[0],
-        id: identifiers[1],
-        location: {
-          doc: docType === 'pageContent' ? 'dom' : 'source',
-          type: 'code',
-          spec
-        },
-        excerpt: cap(extract)
-      };
-      if (type === 'info' && subType === 'warning') {
-        instance.ordinalSeverity = 0;
-      }
-      else if (type === 'error') {
-        instance.ordinalSeverity = subType === 'fatal' ? 3 : 2;
-      }
-      standardResult.instances.push(instance);
-    });
-  }
+// Converts issue instances from a nuVal result.
+const doNuVal = (withSource, result, standardResult) => {
+  doNu(withSource, result, standardResult);
+};
+// Converts issue instances from a nuVnu result.
+const doNuVnu = (withSource, result, standardResult) => {
+  doNu(withSource, result, standardResult);
 };
 // Converts instances of a qualWeb rule class.
 const doQualWeb = (result, standardResult, ruleClassName) => {
@@ -600,22 +565,12 @@ const convert = (toolName, data, result, standardResult) => {
     }
   }
   // nuVal
-  else if (toolName === 'nuVal' && (result.pageContent || result.rawPage)) {
-    if (result.pageContent) {
-      doNuVal(result, standardResult, 'pageContent');
-    }
-    if (result.rawPage) {
-      doNuVal(result, standardResult, 'rawPage');
-    }
+  else if (toolName === 'nuVal' && result) {
+    doNuVal(data.withSource, result, standardResult);
   }
   // nuVnu
-  else if (toolName === 'nuVnu' && (result.pageContent || result.rawPage)) {
-    if (result.pageContent) {
-      doNuVnu(result, standardResult, 'pageContent');
-    }
-    if (result.rawPage) {
-      doNuVnu(result, standardResult, 'rawPage');
-    }
+  else if (toolName === 'nuVnu' && result) {
+    doNuVnu(data.withSource, result, standardResult);
   }
   // qualWeb
   else if (

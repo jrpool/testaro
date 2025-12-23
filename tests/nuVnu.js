@@ -74,7 +74,7 @@ exports.reporter = async (page, report, actIndex) => {
     // Delete the temporary file.
     await fs.unlink(pagePath);
     // Postprocess the result.
-    result = curate(nuData, rules);
+    result = curate(data, nuData, rules);
   }
   // Otherwise, i.e. if the content was not obtained:
   else {
