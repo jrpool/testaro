@@ -76,12 +76,12 @@ exports.curate = (data, nuData, rules) => {
         return false;
       }
     }));
+    // Remove messages reporting duplicate blank IDs.
+    const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
+    result.messages = result.messages.filter(
+      message => ! badMessages.has(message.message)
+    );
   }
-  // Remove messages reporting duplicate blank IDs.
-  const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
-  result.messages = result.messages.filter(
-    message => ! badMessages.has(message.message)
-  );
   // Return the result.
   return result;
 };

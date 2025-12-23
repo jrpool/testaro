@@ -702,6 +702,6 @@ exports.standardize = act => {
     convert(which, data, result, standardResult);
   }
   else {
-    console.log('ERROR: Result of incomplete act cannot be standardized');
+    console.log(`ERROR: Result of incomplete ${which || 'unknown'}act cannot be standardized`);
   }
 };
