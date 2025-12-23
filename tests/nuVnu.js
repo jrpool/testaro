@@ -21,8 +21,8 @@ const fs = require('fs/promises');
 const os = require('os');
 // Module to run tests.
 const {vnu} = require('vnu-jar');
-// Module to get the document source.
-const {getSource} = require('../procs/getSource');
+// Module to get the content.
+const {curate, getContent} = require('../procs/nu');
 
 // CONSTANTS
 
@@ -33,101 +33,54 @@ const tmpDir = os.tmpdir();
 // Conducts and reports the Nu Html Checker tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
-  const {rules} = act;
-  // Get the browser-parsed page.
-  const pageContent = await page.content();
-  const pagePath = `${tmpDir}/nuVnu-page-${report.id}.html`;
-  // Save it.
-  await fs.writeFile(pagePath, pageContent);
-  // Get the source.
-  const sourceData = await getSource(page);
-  const data = {
-    docTypes: {
-      pageContent: {},
-      rawPage: {}
+  const {rules, withSource} = act;
+  // Get the content.
+  const data = await getContent(page, withSource, data);
+  let result;
+  // If it was obtained:
+  if (data.testTarget) {
+    const pagePath = `${tmpDir}/nuVnu-page-${report.id}.html`;
+    // Save it in a temporary file.
+    await fs.writeFile(pagePath, data.testTarget);
+    let nuData;
+    try {
+      // Get Nu Html Checker output on it.
+      nuData = await vnu.check(['--format', 'json', '--stdout', pagePath]);
     }
-  };
-  const result = {};
-  // If the source was not obtained:
-  if (sourceData.prevented) {
+    // If any error was thrown:
+    catch (error) {
+      let errorMessage = error.message;
+      // If it was due to an incompatible Java version:
+      if (errorMessage.includes('Unsupported major.minor version')) {
+        // Revise the error message and report this.
+        errorMessage = `Installed version of Java is incompatible. Details: ${errorMessage}`;
+        data.prevented = true;
+        data.error = errorMessage;
+      }
+      // Otherwise, i.e. if it was not due to an incompatible Java version:
+      else {
+        try {
+          // Treat the error message as a JSON result reporting rule violations.
+          nuData = JSON.parse(error.message);
+        }
+        // But, if parsing it as JSON fails:
+        catch (error) {
+          // Report this.
+          data.prevented = true;
+          data.error = `Error getting result (${error.message.slice(0, 300)});`;
+        }
+      }
+    }
+    // Delete the temporary file.
+    await fs.unlink(pagePath);
+    // Postprocess the result.
+    result = curate(nuData, rules);
+  }
+  // Otherwise, i.e. if the content was not obtained:
+  else {
     // Report this.
     data.prevented = true;
-    data.error = sourceData.error;
-  }
-  // Otherwise, i.e. if it was obtained:
-  else {
-    const sourcePath = `${tmpDir}/nuVnu-source-${report.id}.html`;
-    // Save the source.
-    await fs.writeFile(sourcePath, sourceData.source);
-    const pageTypes = [['pageContent', pagePath], ['rawPage', sourcePath]];
-    // For each page type:
-    for (const page of pageTypes) {
-      let nuResult;
-      try {
-        // Get Nu Html Checker output on it.
-        const nuOutput = await vnu.check(['--format', 'json', '--stdout', page[1]]);
-        // Consider the JSON output to be the result.
-        nuResult = nuOutput;
-      }
-      // If any error was thrown:
-      catch (error) {
-        let errorMessage = error.message;
-        // If it was due to an incompatible Java version:
-        if (errorMessage.includes('Unsupported major.minor version')) {
-          // Revise the error messageand report this.
-          errorMessage = `Installed version of Java is incompatible. Details: ${errorMessage}`;
-          data.docTypes[page[0]].prevented = true;
-          data.docTypes[page[0]].error = errorMessage;
-        }
-        // Otherwise, i.e. if it was not due to an incompatible Java version:
-        else {
-          try {
-            // Treat the output as a JSON result reporting rule violations.
-            nuResult = JSON.parse(error.message);
-            // But, if parsing it as JSON fails:
-          } catch (error) {
-            // Report this.
-            data.docTypes[page[0]].prevented = true;
-            data.docTypes[page[0]].error = `Error getting result (${error.message.slice(0, 300)});`;
-          }
-        }
-      }
-      // Delete the temporary file.
-      await fs.unlink(page[1]);
-      // If a result with or without reported violations was obtained:
-      if (nuResult) {
-        // Delete left and right quotation marks and their erratic invalid replacements.
-        const nuResultClean = JSON.parse(JSON.stringify(nuResult).replace(/[\u{fffd}“”]/ug, ''));
-        result[page[0]] = nuResultClean;
-        // If there is a report and rules were specified:
-        if (! result[page[0]].error && rules && Array.isArray(rules) && rules.length) {
-          // Remove all messages except those specified.
-          result[page[0]].messages = result[page[0]].messages.filter(message => rules.some(rule => {
-            if (rule[0] === '=') {
-              return message.message === rule.slice(1);
-            }
-            else if (rule[0] === '~') {
-              return new RegExp(rule.slice(1)).test(message.message);
-            }
-            else {
-              console.log(`ERROR: Invalid nuVal rule ${rule}`);
-              return false;
-            }
-          }));
-        }
-        // Remove messages reporting duplicate blank IDs.
-        const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
-        result[page[0]].messages = result[page[0]].messages.filter(
-          message => ! badMessages.has(message.message)
-        );
-      }
-    }
-    // If both page types prevented testing:
-    if (pageTypes.every(pageType => data.docTypes[pageType[0]].prevented)) {
-      // Report this.
-      data.prevented = true;
-      data.error = 'Both doc types prevented';
-    }
+    data.error = 'Content not obtained';
   }
   return {
     data,
