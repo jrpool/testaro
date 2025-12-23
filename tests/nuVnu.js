@@ -35,7 +35,7 @@ exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
   const {rules, withSource} = act;
   // Get the content.
-  const data = await getContent(page, withSource, data);
+  const data = await getContent(page, withSource);
   let result;
   // If it was obtained:
   if (data.testTarget) {

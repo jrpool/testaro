@@ -43,7 +43,7 @@ exports.getContent = async (page, withSource) => {
   // Otherwise, i.e. if the specified content type was the Playwright page content:
   else {
     // Add it to the data.
-    data.testTarget = await page.pageContent();
+    data.testTarget = await page.content();
   }
   // Return the data.
   return data;
