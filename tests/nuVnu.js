@@ -49,26 +49,16 @@ exports.reporter = async (page, report, actIndex) => {
     }
     // If any error was thrown:
     catch (error) {
-      let errorMessage = error.message;
-      // If it was due to an incompatible Java version:
-      if (errorMessage.includes('Unsupported major.minor version')) {
-        // Revise the error message and report this.
-        errorMessage = `Installed version of Java is incompatible. Details: ${errorMessage}`;
+      const errorMessage = error.message;
+      try {
+      // Parse it as JSON, i.e. a benign nuVnu result with at least 1 violation.
+        nuData = JSON.parse(error.message);
+      }
+      // If parsing it as JSON fails:
+      catch (error) {
+        // Report a genuine error.
         data.prevented = true;
         data.error = errorMessage;
-      }
-      // Otherwise, i.e. if it was not due to an incompatible Java version:
-      else {
-        try {
-          // Treat the error message as a JSON result reporting rule violations.
-          nuData = JSON.parse(error.message);
-        }
-        // But, if parsing it as JSON fails:
-        catch (error) {
-          // Report this.
-          data.prevented = true;
-          data.error = `Error getting result (${error.message.slice(0, 300)});`;
-        }
       }
     }
     // Delete the temporary file.
