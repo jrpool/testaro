@@ -3292,3 +3292,14 @@ All of the tests with elapsed times longer than 2 seconds were not yet refactore
 Credit for the speed improvement in refactored tests is apparently owed to the encapsulation of the entire test logic in a browser function, versus the repeated element-by-element execution of the same logic in Node.js with Playwright methods.
 
 Evidence for this hypothesis is provided by the change in elapsed time after refactoring of the `focOp` and `opFoc` tests. These two tests consumed 18 seconds before the refactoring. The refactoring combined them into a single `focAndOp` test with functionality equivalent to both original tests. The refactored test on the same target consumed 2 seconds, even though it reported and itemized 223 violations.
+
+## Speed improvement for nuVnu tool
+
+The `nuVnu` tool has substantially longer elapsed times when performed on a virtual private server by Kilotest than when performed on a dedicated local host. Testing indicates that the difference is due largely to the overhead in the handling of the `vnu.check` method.
+
+A conceptual outline of a possible shortcut (by GPT-5.2) is:
+
+- spawn(javaPath, ['-jar', jarPath, '--format', 'json', '--stdout', pagePath], {stdio: ['ignore', outFd, 'pipe']})
+- collect stderr (or write it to a file too)
+- wait for close event
+- then read /tmp/out.json and parse it
