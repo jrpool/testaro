@@ -42,9 +42,24 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     timeout: timeLimit * 1000,
     monitor: false
   };
+  try {
     // Start the QualWeb core engine.
-  await qualWeb.start(clusterOptions, {headless: true});
-  // Specify the invariant test options.
+    await qualWeb.start(clusterOptions, {
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+  }
+  // If the start fails:
+  catch(error) {
+    return {
+      data: {
+        prevented: true,
+        error: `Core engine start failed (${error.message})`
+      },
+      result
+    };
+  }
+  // Otherwise, i.e. if the start succeeds, specify the invariant test options.
   const qualWebOptions = {
     log: {
       console: false,
@@ -128,8 +143,21 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       qualWebOptions.modules.push(bpModule);
       qualWebOptions.execute.bp = true;
     }
-    // Get the report.
-    let actReports = await qualWeb.evaluate(qualWebOptions);
+    try {
+      // Get the report.
+      let actReports = await qualWeb.evaluate(qualWebOptions);
+    }
+    catch(error) {
+      const message = `qualWeb evaluation failed (${error.message})`;
+      return {
+        data: {
+          prevented: true,
+          error: message
+        },
+        result
+      };
+    }
+    // Otherwise, i.e. if the evaluation succeeded, get the report.
     result = actReports[withNewContent ? qualWebOptions.url : 'customHtml'];
     // If it contains a copy of the DOM:
     if (result && result.system && result.system.page && result.system.page.dom) {
