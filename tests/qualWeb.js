@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -45,8 +46,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   try {
     // Start the QualWeb core engine.
     await qualWeb.start(clusterOptions, {
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: true
     });
   }
   // If the start fails:

@@ -23,6 +23,5 @@ module.exports = {
     'recommendation'
   ],
   cacheFolder: tmpDir,
-  outputFolder: tmpDir,
-  puppeteerArgs: ['--no-sandbox', '--disable-setuid-sandbox']
+  outputFolder: tmpDir
 };
