@@ -47,7 +47,9 @@ exports.reporter = async (page, withItems) => {
   ].join(', '));
   const allLocs = await candidateLocs.all();
   const violations = [];
-  const data = {};
+  const data = {
+    hoverableCount: allLocs.length
+  };
   // For each locator:
   for (const loc of allLocs) {
     // Get the XPath of the element referenced by the locator.
@@ -63,7 +65,7 @@ exports.reporter = async (page, withItems) => {
     // Get a locator for the observation root.
     const rootLoc = page.locator(`xpath=${xPath}`);
     const loc0 = await rootLoc.locator('*:visible');
-    // Get a count of the visible elements in the observation tree.
+    // Get a pre-hover count of the visible elements in the observation tree.
     const elementCount0 = await loc0.count();
     try {
       // Hover over the element.
@@ -86,9 +88,14 @@ exports.reporter = async (page, withItems) => {
     }
     // If hovering throws an error:
     catch(error) {
-      // Report that the test was prevented.
+      // If the error is a timeout:
+      if (error instanceof TimeoutError) {
+        // Skip the locator.
+        continue;
+      }
+      // Otherwise, i.e. if the error is not a timeout, report this and quit.
       data.prevented = true;
-      data.error = `ERROR hovering over an element (${error.message})`;
+      data.error = `ERROR hovering over an element (${error.message.slice(0, 200)})`;
       break;
     }
   }

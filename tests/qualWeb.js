@@ -143,22 +143,22 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       qualWebOptions.modules.push(bpModule);
       qualWebOptions.execute.bp = true;
     }
+    let qwReport;
     try {
       // Get the report.
-      let actReports = await qualWeb.evaluate(qualWebOptions);
+      qwReport = await qualWeb.evaluate(qualWebOptions);
     }
     catch(error) {
-      const message = `qualWeb evaluation failed (${error.message})`;
       return {
         data: {
           prevented: true,
-          error: message
+          error: `qualWeb evaluation failed (${error.message})`
         },
         result
       };
     }
     // Otherwise, i.e. if the evaluation succeeded, get the report.
-    result = actReports[withNewContent ? qualWebOptions.url : 'customHtml'];
+    result = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
     // If it contains a copy of the DOM:
     if (result && result.system && result.system.page && result.system.page.dom) {
       // Delete the copy.
@@ -212,24 +212,24 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
               }
               else {
                 data.prevented = true;
-                data.error = 'ERROR: No assertions';
+                data.error = 'No assertions';
               }
             }
             else {
               data.prevented = true;
-              data.error = `ERROR: No ${section} section`;
+              data.error = `No ${section} section`;
             }
           }
         }
       }
       else {
         data.prevented = true;
-        data.error = 'ERROR: No modules';
+        data.error = 'No modules';
       }
     }
     else {
       data.prevented = true;
-      data.error = 'ERROR: No DOM';
+      data.error = 'No DOM';
     }
     // Stop the QualWeb core engine.
     await qualWeb.stop();
@@ -238,20 +238,14 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       JSON.stringify(result);
     }
     catch(error) {
-      const message = `ERROR: qualWeb result cannot be made JSON (${error.message})`;
       data.prevented = true;
-      data.error = message;
-    };
+      data.error = `qualWeb result cannot be made JSON (${error.message})`;
+    }
   }
   catch(error) {
-    const message = error.message.slice(0, 200);
     data.prevented = true;
-    data.error = message;
-    result = {
-      prevented: true,
-      error: message
-    };
-  };
+    data.error = `qualWeb evaluation failed (${error.message})`;
+  }
   return {
     data,
     result

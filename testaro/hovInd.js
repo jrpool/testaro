@@ -123,7 +123,7 @@ exports.reporter = async (page, withItems, sampleSize = 20) => {
   // Get a sample of the triggers.
   const sampleIndexes = getSample(locsAll, sampleSize);
   const sample = locsAll.filter((loc, index) => sampleIndexes.includes(index));
-  // For each trigger in the sample:
+  // For each trigger:
   for (const loc of sample) {
     try {
       // Get its style properties.
@@ -135,7 +135,7 @@ exports.reporter = async (page, withItems, sampleSize = 20) => {
       // Blur it.
       await loc.blur({timeout: 500});
       // If blurring succeeds, try to hover over it.
-      await loc.hover({timeout: 500});
+      await loc.hover({timeout: 600});
       // If hovering succeeds, get its style properties.
       const hovStyles = await getHoverStyles(loc);
       // If all 3 style declarations belong to the same element:
