@@ -17,6 +17,8 @@
 
 // Module to perform common operations.
 const {getBasicResult, getVisibleCountChange} = require('../procs/testaro');
+// Module to perform Playwright operations.
+const playwright = require('playwright');
 
 // FUNCTIONS
 
@@ -89,7 +91,7 @@ exports.reporter = async (page, withItems) => {
     // If hovering throws an error:
     catch(error) {
       // If the error is a timeout:
-      if (error instanceof TimeoutError) {
+      if (error instanceof playwright.errors.TimeoutError) {
         // Skip the locator.
         continue;
       }
