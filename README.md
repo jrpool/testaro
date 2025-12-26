@@ -133,6 +133,10 @@ Once it is installed as a dependency, your application can use Testaro features 
 
 ### Prerequisites
 
+The host on which Testaro runs should have the latest long-term-support version of [Node.js](https://nodejs.org/en/).
+
+Testaro is configured so that, when Playwright or Puppeteer launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright and Puppeteer, and Testaro does not override that default.Any host running Testaro must therefore permit sandboxed browsers. Documentation on how to configure an Ubuntu Linux host for this purpose is available in the [`SERVICE.md` file of the Kilotest repository](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges). If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
+
 To make the Testaro features work, you will also need to provide the environment variables described below under “Environment variables”.
 
 All of the tests that Testaro can perform are free of cost, except those performed by the WallyAX and WAVE tools. The owners of those tools issue API keys. A free initial allowance of usage may be granted to you with a new API key. Before using Testaro to perform their tests, get your API keys for [WallyAX](mailto:technology@wallyax.com) and [WAVE](https://wave.webaim.org/api/). Then use those API keys to define environment variables, as described below under “Environment variables”.

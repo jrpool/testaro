@@ -297,8 +297,6 @@ const launch = exports.launch = async (
       );
       if (headEmulation === 'high') {
         browserOptionArgs.push(
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
           '--disable-gpu',
           '--disable-software-rasterizer',
           '--force-device-scale-factor=1',
