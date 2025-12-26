@@ -10,11 +10,9 @@
 
 /*
   ibm
-  This test implements the IBM Equal Access ruleset for accessibility.
-  The 'withNewContent' argument determines whether the test package should be
-  given the URL of the page to be tested (true) or the page content (false).
+  This tool implements the IBM Equal Access ruleset for accessibility. The 'withNewContent' argument determines whether the test package is given the URL of the page to be tested (true) or the page (false).
 
-  This test depends on aceconfig.js.
+  This tool depends on aceconfig.js.
 
   This tool is compatible with Windows only if the accessibility-checker package
   is revised. See README.md for details.
@@ -124,7 +122,7 @@ exports.reporter = async (page, report, actIndex) => {
   const {withItems, withNewContent, rules} = act;
   const contentType = withNewContent ? 'new' : 'existing';
   try {
-    const typeContent = contentType === 'existing' ? await page.content() : page.url();
+    const typeContent = contentType === 'existing' ? page : page.url();
     // Conduct the tests.
     const runReport = await run(typeContent);
     const {report} = runReport;

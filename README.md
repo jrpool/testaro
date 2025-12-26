@@ -490,7 +490,7 @@ These changes were proposed as [pull requests 1333 and 1334](https://github.com/
 
 The `ibm` tool is one of two tools (`testaro` is the other) with a `withItems` property. If you set `withItems` to `false`, the result includes the counts of “violations” and “recommendations”, but no information about the rules that gave rise to them.
 
-Experimentation indicates that the `ibm` tool emits untrappable errors for some targets when the content argument given to it is the page content rather than the page URL. Therefore, it is safer to use `true` as the value of `withNewContent` for the `ibm` tool.
+In a previous version of the package, the tool operated on the page content when the `withNewContent` property was `false`. In some cases the tool threw untrappable errors for some targets under that condition. The tool launched a Puppeteer browser to create pages to perform its tests on. On any host that did not permit sandboxed browsers to be launched, the `aceconfig.js` file needed to specify nonsandboxed browsers. Starting in December 2025, the tool operates on the page rather than the page content.
 
 #### Nu Html Checker
 
@@ -521,7 +521,9 @@ When no string pertains to a module, then QualWeb will test for all of the rules
 
 Thus, when the `rules` argument is omitted, QualWeb will test for all of the rules in all of these modules.
 
-The target can be provided to QualWeb either as an existing page or as a URL. Experience indicates that the results can differ between these methods, with each method reporting some rule violations or some instances that the other method does not report. For at least some cases, more rules are reported violated when an existing page is provided (`withNewItems: false`).
+The target can be provided to QualWeb either as HTML or as a URL. Experience indicates that the results can differ between these methods, with each method reporting some rule violations or some instances that the other method does not report. For at least some cases, more rules are reported violated when HTML is provided (`withNewItems: false`).
+
+QualWeb creates sandboxed Puppeteer pages to perform its tests on. Therefore, the host must permit sandboxed browsers to be launched. See the pertinent [Kilotest documentation](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges) for information about the configuration of an Ubuntu Linux host for this purpose.
 
 #### Testaro
 
