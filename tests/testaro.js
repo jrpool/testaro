@@ -443,7 +443,8 @@ exports.reporter = async (page, report, actIndex) => {
     rulePreventions: [],
     rulePreventionMessages: {},
     rulesInvalid: [],
-    ruleTestTimes: {}
+    ruleTestTimes: {},
+    ruleData: {}
   };
   const result = {};
   const allRuleIDs = allRules.map(rule => rule.id);
@@ -554,11 +555,11 @@ exports.reporter = async (page, report, actIndex) => {
         });
         // Perform the test, subject to the time limit.
         const ruleReport = require(`../testaro/${ruleID}`).reporter(... ruleArgs);
-        // Get the test result or a timeout result.
+        // Get the rule report or a timeout report.
         const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
         // If the test was completed:
         if (! ruleOrTimeoutReport.timedOut) {
-          // Add data from the test to the result.
+          // Add data from the rule report to the tool result.
           const endTime = Date.now();
           testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
           Object.keys(ruleOrTimeoutReport).forEach(key => {
@@ -566,7 +567,7 @@ exports.reporter = async (page, report, actIndex) => {
           });
           // If the test was prevented:
           if (ruleResult.data?.prevented && ruleResult.data.error) {
-            // Add this to the result.
+            // Add this to the tool result.
             data.rulePreventions.push(ruleID);
             data.rulePreventionMessages[ruleID] = ruleResult.data.error;
           }
@@ -575,6 +576,13 @@ exports.reporter = async (page, report, actIndex) => {
             // Round them.
             ruleResult.totals = ruleResult.totals.map(total => Math.round(total));
           }
+          const ruleDataMiscKeys = Object.keys(ruleResult.data).filter(key => ! ['prevented', 'error'].includes(key));
+          // For any other property of the rule report data object:
+          ruleDataMiscKeys.forEach(key => {
+            data.ruleData[ruleID] ??= {};
+            // Add it to the tool result.
+            data.ruleData[ruleID][key] = ruleResult.data[key];
+          });
           // Prevent a retry of the test.
           testSuccess = true;
           // If testing is to stop after a failure and the page failed the test:
