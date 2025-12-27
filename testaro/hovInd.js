@@ -17,23 +17,6 @@
 
 const {doTest} = require('../procs/testaro');
 
-// CONSTANTS
-
-// Standard non-default hover cursors
-const standardCursor = {
-  A: 'pointer',
-  INPUT: {
-    email: 'text',
-    image: 'pointer',
-    number: 'text',
-    password: 'text',
-    search: 'text',
-    tel: 'text',
-    text: 'text',
-    url: 'text'
-  }
-};
-
 // FUNCTIONS
 
 exports.reporter = async (page, withItems) => {
@@ -101,6 +84,7 @@ exports.reporter = async (page, withItems) => {
       element.blur();
       element.dispatchEvent(new MouseEvent('mouseenter'));
       const hoverStyleData = getStyleData();
+      const data = {};
       // If the cursor is confusing when the element is only hovered over:
       if (cursorIsBad(hoverStyleData.cursor)) {
         // Add this to the violation types.
@@ -111,17 +95,39 @@ exports.reporter = async (page, withItems) => {
       // If the neutral and hover styles are indistinguishable:
       if (areAlike(defaultStyleData, hoverStyleData)) {
         // Add this to the violation types.
-        violationTypes.push('indistinguishable styles when hovered over');
+        violationTypes.push('normal and hover styles are indistinguishable');
+        // Add the details to the data.
+        data.n_h = {
+          neutral: defaultStyleData,
+          hover: hoverStyleData
+        };
       }
-      // If the hover and focus styles are indistinguishable:
+      // If the focus and hoverstyles are indistinguishable:
       if (areAlike(focusStyleData, hoverStyleData)) {
         // Add this to the violation types.
-        violationTypes.push('styles when hovered over indistinguishable from when focused');
+        violationTypes.push('focus and hover styles are indistinguishable');
+        // Add the details to the data.
+        data.f_h = {
+          focus: focusStyleData,
+          hover: hoverStyleData
+        };
       }
       // If any violations occurred:
       if (violationTypes.length) {
-        // Return a violation description.
-        return `Element styles are confusing when hovered over (${violationTypes.join('; ')})`;
+        const description = `Element styles do not clearly indicate hovering ${violationTypes.join('; ')}`;
+        // If there are additional data:
+        if (Object.keys(data).length) {
+          // Return the violation description and data.
+          return {
+            description,
+            data
+          };
+        }
+        // Otherwise, i.e. if there are no additional data:
+        else {
+          // Return the violation description.
+          return description;
+        }
       }
     }
   };

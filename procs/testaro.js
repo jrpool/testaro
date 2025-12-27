@@ -50,9 +50,11 @@ exports.doTest = async (
     // Get all candidates.
     const candidates = document.body.querySelectorAll(candidateSelector);
     let violationCount = 0;
-    const instances = [];
+    const standardInstances = [];
     // Get a function that returns a violation description, if any, for the candidate.
     const getBadWhat = eval(`(${getBadWhatString})`);
+    const data = {};
+    const totals = [0, 0, 0, 0];
     // For each candidate:
     for (const candidate of candidates) {
       // Get the violation description, if any.
@@ -61,35 +63,55 @@ exports.doTest = async (
       if (violationWhat) {
         // Increment the violation count.
         violationCount++;
+        let ruleWhat;
+        const violationType = typeof violationWhat;
+        // If data on the violation were provided:
+        if (violationType === 'object') {
+          // Get the description and add the data to the rule data.
+          ruleWhat = violationWhat.description;
+          data[ruleID] = violationWhat.data;
+        }
+        // Otherwise, i.e. if only a description of the violation was provided:
+        else if (violationType === 'string') {
+          // Get it.
+          ruleWhat = violationWhat;
+        }
         // If itemization is required:
         if (withItems) {
-          const violationWhatStart = violationWhat.slice(0, 2);
-          let ruleSeverity = severity;
-          let ruleWhat = violationWhat
+          const ruleWhatStart = ruleWhat.slice(0, 2);
+          let instanceSeverity = severity;
           // If this violation has a custom severity:
-          if (/[0-3]:/.test(violationWhatStart)) {
-            // Get it and remove it from the violation description.
-            ruleSeverity = Number(violationWhat[0]);
-            ruleWhat = violationWhat.slice(2);
+          if (/[0-3]:/.test(ruleWhatStart)) {
+            // Get it.
+            instanceSeverity = Number(ruleWhat[0]);
+            // Remove it from the violation description.
+            ruleWhat = ruleWhat.slice(2);
+            // Increment the violation totals.
+            totals[instanceSeverity]++;
           }
           // Add an instance to the instances.
-          instances.push(
-            window.getInstance(candidate, ruleID, ruleWhat, 1, ruleSeverity)
+          standardInstances.push(
+            window.getInstance(candidate, ruleID, ruleWhat, 1, instanceSeverity)
           );
+        }
+        // Otherwise, i.e. if itemization is not required:
+        else {
+          // Increment the violation totals.
+          totals[severity]++;
         }
       }
     }
     // If there are any violations and itemization is not required:
     if (violationCount && ! withItems) {
       // Add a summary instance to the instances.
-      instances.push(
+      StandardInstances.push(
         window.getInstance(null, ruleID, whats, violationCount, severity, summaryTagName)
       );
     }
     return {
-      data: {},
-      totals: [0, 0, 0, violationCount],
-      standardInstances: instances
+      data,
+      totals,
+      standardInstances
     }
   }, [
       withItems,
