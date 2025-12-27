@@ -53,7 +53,7 @@ exports.doTest = async (
     const standardInstances = [];
     // Get a function that returns a violation description, if any, for the candidate.
     const getBadWhat = eval(`(${getBadWhatString})`);
-    const data = {};
+    let data = {};
     const totals = [0, 0, 0, 0];
     // For each candidate:
     for (const candidate of candidates) {
@@ -69,7 +69,7 @@ exports.doTest = async (
         if (violationType === 'object') {
           // Get the description and add the data to the rule data.
           ruleWhat = violationWhat.description;
-          data[ruleID] = violationWhat.data;
+          data = violationWhat.data;
         }
         // Otherwise, i.e. if only a description of the violation was provided:
         else if (violationType === 'string') {

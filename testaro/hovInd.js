@@ -77,9 +77,13 @@ exports.reporter = async (page, withItems) => {
       // FUNCTION DEFINITIONS END
       // Get its style data when neither focused nor hovered over.
       const defaultStyleData = getStyleData();
+      // Correct the cursor value.
+      defaultStyleData.cursor = 'default';
       // Get its style data when only focused.
       element.focus();
       const focusStyleData = getStyleData();
+      // Correct the cursor value.
+      defaultStyleData.cursor = 'default';
       // Get its style data when only hovered over.
       element.blur();
       element.dispatchEvent(new MouseEvent('mouseenter'));
@@ -114,7 +118,7 @@ exports.reporter = async (page, withItems) => {
       }
       // If any violations occurred:
       if (violationTypes.length) {
-        const description = `Element styles do not clearly indicate hovering ${violationTypes.join('; ')}`;
+        const description = `Element styles do not clearly indicate hovering (${violationTypes.join('; ')})`;
         // If there are additional data:
         if (Object.keys(data).length) {
           // Return the violation description and data.
