@@ -69,7 +69,7 @@ exports.doTest = async (
         if (violationType === 'object') {
           // Get the description and add the data to the rule data.
           ruleWhat = violationWhat.description;
-          data = violationWhat.data;
+          data[violationCount - 1] = violationWhat.data;
         }
         // Otherwise, i.e. if only a description of the violation was provided:
         else if (violationType === 'string') {
@@ -104,7 +104,7 @@ exports.doTest = async (
     // If there are any violations and itemization is not required:
     if (violationCount && ! withItems) {
       // Add a summary instance to the instances.
-      StandardInstances.push(
+      standardInstances.push(
         window.getInstance(null, ruleID, whats, violationCount, severity, summaryTagName)
       );
     }

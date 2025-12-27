@@ -63,6 +63,9 @@ exports.reporter = async (page, withItems) => {
           return hoverCursor !== 'pointer';
         }
         if (tagName === 'INPUT') {
+          if (['button', 'radio', 'reset', 'submit'].some(typeName => type === typeName)) {
+            return hoverCursor !== 'default';
+          }
           return hoverCursor !== 'text';
         }
         return ! ['auto', 'default'].includes(hoverCursor);
@@ -83,7 +86,7 @@ exports.reporter = async (page, withItems) => {
       element.focus();
       const focusStyleData = getStyleData();
       // Correct the cursor value.
-      defaultStyleData.cursor = 'default';
+      focusStyleData.cursor = 'default';
       // Get its style data when only hovered over.
       element.blur();
       element.dispatchEvent(new MouseEvent('mouseenter'));
@@ -118,7 +121,7 @@ exports.reporter = async (page, withItems) => {
       }
       // If any violations occurred:
       if (violationTypes.length) {
-        const description = `Element styles do not clearly indicate hovering (${violationTypes.join('; ')})`;
+        const description = `Element styles do not clearly indicate hovering: ${violationTypes.join('; ')}`;
         // If there are additional data:
         if (Object.keys(data).length) {
           // Return the violation description and data.

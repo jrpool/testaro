@@ -576,7 +576,9 @@ exports.reporter = async (page, report, actIndex) => {
             // Round them.
             ruleResult.totals = ruleResult.totals.map(total => Math.round(total));
           }
-          const ruleDataMiscKeys = Object.keys(ruleResult.data).filter(key => ! ['prevented', 'error'].includes(key));
+          const ruleDataMiscKeys = Object
+          .keys(ruleResult.data)
+          .filter(key => ! ['prevented', 'error'].includes(key));
           // For any other property of the rule report data object:
           ruleDataMiscKeys.forEach(key => {
             data.ruleData[ruleID] ??= {};

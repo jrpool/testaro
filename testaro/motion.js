@@ -51,6 +51,16 @@ exports.reporter = async page => {
       // Report this.
       data.prevented = true;
       data.error = 'Screenshot dimensions differ';
+      data.dimensions = {
+        shoot0: {
+          width: shoot0PNG.width,
+          height: shoot0PNG.height
+        },
+        shoot1: {
+          width: shoot1PNG.width,
+          height: shoot1PNG.height
+        }
+      }
     }
     // Otherwise, i.e. if their dimensions are identical:
     else {
