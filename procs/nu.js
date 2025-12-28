@@ -58,7 +58,6 @@ exports.getContent = async (page, withSource) => {
 };
 // Postprocesses a result from nuVal or nuVnu tests.
 exports.curate = async (page, data, nuData, rules) => {
-  console.log('XXX Curating');
   // Delete most of the test target from the data.
   data.testTarget = `${data.testTarget.slice(0, 200)}…`;
   let result;
@@ -87,7 +86,6 @@ exports.curate = async (page, data, nuData, rules) => {
   }
   // If there is a result:
   if (result) {
-    console.log('XXX Result exists');
     // Remove messages reporting duplicate blank IDs.
     const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
     result.messages = result.messages.filter(
@@ -95,12 +93,10 @@ exports.curate = async (page, data, nuData, rules) => {
     );
     // Add Testaro identifiers and location data to the messages.
     for (const message of result.messages) {
-      console.log('XXX Curating a message');
       const {extract} = message;
       const testaroIDArray = extract.match(/data-testaro-id="(\d+)#"/);
       if (testaroIDArray) {
         const testaroID = message.testaroID = testaroIDArray[1];
-        console.log(`XXX Found Testaro ID ${testaroID}`);
         message.elementLocation = await page.evaluate(testaroID => {
           const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
           if (element) {
@@ -119,7 +115,6 @@ exports.curate = async (page, data, nuData, rules) => {
           }
           return {};
         }, testaroID);
-        console.log(`XXX Element location:\n${JSON.stringify(message.elementLocation, null, 2)}`);
       }
     };
   }
