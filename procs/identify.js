@@ -22,6 +22,9 @@ const {xPath} = require('playwright-dompath');
 // Returns the bounding box of a locator.
 const boxOf = exports.boxOf = async locator => {
   try {
+    // XXX
+    const locatorText = await locator.textContent();
+    console.log(`XXX Text content: ${locatorText.slice(0, 200)}`);
     const isVisible = await locator.isVisible();
     if (isVisible) {
       const box = await locator.boundingBox({
@@ -31,17 +34,21 @@ const boxOf = exports.boxOf = async locator => {
         Object.keys(box).forEach(dim => {
           box[dim] = Math.round(box[dim], 0);
         });
+        console.log(`XXX Locator bounding box: ${JSON.stringify(box, null, 2)}`);
         return box;
       }
       else {
+        console.log(`XXX Locator bounding box is null`);
         return null;
       }
     }
     else {
+      console.log(`XXX Locator not visible`);
       return null;
     }
   }
   catch(error) {
+    console.log(`XXX Error getting bounding box of locator: ${error}`);
     return null;
   }
 }
@@ -209,7 +216,7 @@ exports.identify = async (instance, page) => {
         };
       }
     }
-    // Return the result (not yet getting IDs from Nu Html Checker lines and columns).
+    // Return the result.
     return elementID;
   }
 };

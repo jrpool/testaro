@@ -209,12 +209,22 @@ const doHTMLCS = (result, standardResult, severity) => {
     });
   }
 };
-// Converts issue instances from a nuVal or nuVnu result..
+// Converts issue instances from a nuVal or nuVnu result.
 const doNu = (withSource, result, standardResult) => {
   const items = result && result.messages;
   if (items && items.length) {
     items.forEach(item => {
-      const {extract, firstColumn, lastColumn, lastLine, message, subType, type} = item;
+      const {
+        extract,
+        firstColumn,
+        lastColumn,
+        lastLine,
+        message,
+        subType,
+        type,
+        testaroID,
+        elementLocation
+      } = item;
       const identifiers = getIdentifiers(extract);
       if (! identifiers[0] && message) {
         const tagNameLCArray = message.match(
@@ -240,7 +250,9 @@ const doNu = (withSource, result, standardResult) => {
           type: 'code',
           spec
         },
-        excerpt: cap(extract)
+        excerpt: cap(extract),
+        boxID: elementLocation?.box || {},
+        pathID: elementLocation?.xPath || ''
       };
       if (type === 'info' && subType === 'warning') {
         instance.ordinalSeverity = 0;

@@ -17,7 +17,6 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
-const path = require('path');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // FUNCTIONS
@@ -88,7 +87,9 @@ exports.reporter = async (page, report, actIndex) => {
               type: targetJ.type,
               tagName: targetJ.name || '',
               path: target.path(),
-              codeLines: codeLines.map(line => line.length > 300 ? `${line.slice(0, 300)}...` : line)
+              codeLines: codeLines.map(
+                line => line.length > 300 ? `${line.slice(0, 300)}...` : line
+              )
             }
           };
           // If the rule summary is missing:

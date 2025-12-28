@@ -43,14 +43,21 @@ exports.getContent = async (page, withSource) => {
   }
   // Otherwise, i.e. if the specified content type was the Playwright page content:
   else {
-    // Add it to the data.
+    // Annotate all elements in the page with unique identifiers.
+    await page.evaluate(() => {
+      let serialID = 0;
+      for (const element of Array.from(document.querySelectorAll('*'))) {
+        element.setAttribute('data-testaro-id', `${serialID++}#`);
+      }
+    });
+    // Add the annotated page content to the data.
     data.testTarget = await page.content();
   }
   // Return the data.
   return data;
 };
 // Postprocesses a result from nuVal or nuVnu tests.
-exports.curate = (data, nuData, rules) => {
+exports.curate = async (page, data, nuData, rules) => {
   // Delete most of the test target from the data.
   data.testTarget = `${data.testTarget.slice(0, 200)}…`;
   let result;
@@ -76,11 +83,34 @@ exports.curate = (data, nuData, rules) => {
         return false;
       }
     }));
+  }
+  // If there is a result:
+  if (result) {
     // Remove messages reporting duplicate blank IDs.
     const badMessages = new Set(['Duplicate ID .', 'The first occurrence of ID  was here.']);
     result.messages = result.messages.filter(
       message => ! badMessages.has(message.message)
     );
+    // Add Testaro identifiers and location data to the messages.
+    for (const message of result.messages) {
+      const {extract} = message;
+      const testaroIDArray = extract.match(/data-testaro-id="(\d+)#"/);
+      if (testaroIDArray) {
+        const testaroID = message.testaroID = testaroIDArray[1];
+        message.elementLocation = await page.evaluate(testaroID => {
+          const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
+          if (element) {
+            const box = element.getBoundingClientRect() || {};
+            const xPath = window.getXPath(element) || '';
+            return {
+              box,
+              xPath
+            };
+          }
+          return {};
+        }, testaroID);
+      }
+    };
   }
   // Return the result.
   return result;
