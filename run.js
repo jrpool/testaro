@@ -429,8 +429,9 @@ const launch = exports.launch = async (
         });
       });
       const isTestaroTest = act.type === 'test' && act.which === 'testaro';
-      // If the launch is for a testaro test act:
-      if (isTestaroTest) {
+      const isNuTest = act.type === 'test' && (['nuVal', 'nuVnu'].some(id => act.which === id));
+      // If the launch is for a testaro or Nu test act:
+      if (isTestaroTest || isNuTest) {
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
           window.getXPath = element => {
@@ -477,6 +478,9 @@ const launch = exports.launch = async (
             return `/${segments.join('/')}`;
           };
         });
+      }
+      // If the launch is for a testaro test act:
+      if (isTestaroTest) {
         // Add a script to the page to compute the accessible name of an element.
         await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
         // Add a script to the page to:
