@@ -5,22 +5,33 @@
 
 /*
   shoot1
-  This test makes and saves the second of two screenshots.
+  This test makes and saves the second of two screenshots. It aborts if the first screenshot was prevented.
 */
 
 // IMPORTS
 
+const fs = require('fs/promises');
+const os = require('os');
+const path = require('path');
 const {shoot} = require('../procs/shoot');
+
+// CONSTANTS
+
+const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
 exports.reporter = async page => {
-  // Make and save the second screenshot.
-  const pngPath = await shoot(page, 1);
-  // Return the file path or a failure result.
-  return {
-    data: {
-      prevented: ! pngPath
-    }
-  };
+  const tempFileNames = await fs.readdir(tmpDir);
+  // If there is a shoot0 file:
+  if (tempFileNames.includes('testaro-shoot-0.png')) {
+    // Make and save the second screenshot.
+    const pngPath = await shoot(page, 1);
+    // Return whether the screenshot was prevented.
+    return {
+      data: {
+        prevented: ! pngPath
+      }
+    };
+  }
 };

@@ -35,76 +35,84 @@ exports.reporter = async page => {
   const data = {};
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
-  // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
-  let shoot0PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-0.png`);
-  let shoot1PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-1.png`);
-  // Delete the buffer files.
-  await fs.unlink(`${tmpDir}/testaro-shoot-0.png`);
-  await fs.unlink(`${tmpDir}/testaro-shoot-1.png`);
-  // If both buffers exist:
-  if (shoot0PNGBuffer && shoot1PNGBuffer) {
-    // Parse them into PNG objects.
-    let shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
-    let shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
-    // If their dimensions differ:
-    if (shoot1PNG.width !== shoot0PNG.width || shoot1PNG.height !== shoot0PNG.height) {
-      // Report this.
-      data.prevented = true;
-      data.error = 'Screenshot dimensions differ';
-      data.dimensions = {
-        shoot0: {
-          width: shoot0PNG.width,
-          height: shoot0PNG.height
-        },
-        shoot1: {
-          width: shoot1PNG.width,
-          height: shoot1PNG.height
+  try {
+    // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
+    let shoot0PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-0.png`);
+    let shoot1PNGBuffer = await fs.readFile(`${tmpDir}/testaro-shoot-1.png`);
+    // Delete the buffer files.
+    await fs.unlink(`${tmpDir}/testaro-shoot-0.png`);
+    await fs.unlink(`${tmpDir}/testaro-shoot-1.png`);
+    // If both buffers exist:
+    if (shoot0PNGBuffer && shoot1PNGBuffer) {
+      // Parse them into PNG objects.
+      let shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
+      let shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
+      // If their dimensions differ:
+      if (shoot1PNG.width !== shoot0PNG.width || shoot1PNG.height !== shoot0PNG.height) {
+        // Report this.
+        data.prevented = true;
+        data.error = 'Screenshot dimensions differ';
+        data.dimensions = {
+          shoot0: {
+            width: shoot0PNG.width,
+            height: shoot0PNG.height
+          },
+          shoot1: {
+            width: shoot1PNG.width,
+            height: shoot1PNG.height
+          }
+        }
+      }
+      // Otherwise, i.e. if their dimensions are identical:
+      else {
+        const {width, height} = shoot0PNG;
+        // Get the count of differing pixels between the shots.
+        const pixelChanges = pixelmatch(shoot0PNG.data, shoot1PNG.data, null, width, height);
+        // Get the ratio of differing to all pixels as a percentage.
+        const changePercent = Math.round(100 * pixelChanges / (width * height));
+        // Free the memory used by screenshots.
+        shoot0PNG = shoot1PNG = shoot0PNGBuffer = shoot1PNGBuffer = null;
+        // If any pixels were changed:
+        if (pixelChanges) {
+          // Get the ordinal severity from the fractional pixel change.
+          const ordinalSeverity = Math.floor(Math.min(3, 0.4 * Math.sqrt(changePercent)));
+          // Add to the totals.
+          totals[ordinalSeverity] = 1;
+          // Get a summary standard instance.
+          standardInstances.push({
+            ruleID: 'motion',
+            what: `Content moves or changes spontaneously (${changePercent}% of pixels changed)`,
+            count: 1,
+            ordinalSeverity,
+            tagName: 'HTML',
+            id: '',
+            location: {
+              doc: 'dom',
+              type: 'box',
+              spec: {
+                x: 0,
+                y: 0,
+                width,
+                height
+              }
+            },
+            excerpt: '<html>…</html>'
+          });
         }
       }
     }
-    // Otherwise, i.e. if their dimensions are identical:
+    // Otherwise, i.e. if they do not both exist:
     else {
-      const {width, height} = shoot0PNG;
-      // Get the count of differing pixels between the shots.
-      const pixelChanges = pixelmatch(shoot0PNG.data, shoot1PNG.data, null, width, height);
-      // Get the ratio of differing to all pixels as a percentage.
-      const changePercent = Math.round(100 * pixelChanges / (width * height));
-      // Free the memory used by screenshots.
-      shoot0PNG = shoot1PNG = shoot0PNGBuffer = shoot1PNGBuffer = null;
-      // If any pixels were changed:
-      if (pixelChanges) {
-        // Get the ordinal severity from the fractional pixel change.
-        const ordinalSeverity = Math.floor(Math.min(3, 0.4 * Math.sqrt(changePercent)));
-        // Add to the totals.
-        totals[ordinalSeverity] = 1;
-        // Get a summary standard instance.
-        standardInstances.push({
-          ruleID: 'motion',
-          what: `Content moves or changes spontaneously (${changePercent}% of pixels changed)`,
-          count: 1,
-          ordinalSeverity,
-          tagName: 'HTML',
-          id: '',
-          location: {
-            doc: 'dom',
-            type: 'box',
-            spec: {
-              x: 0,
-              y: 0,
-              width,
-              height
-            }
-          },
-          excerpt: '<html>…</html>'
-        });
-      }
+      // Report this.
+      data.prevented = true;
+      data.error = 'At least 1 screenshot missing';
     }
   }
-  // Otherwise, i.e. if they do not both exist:
-  else {
+  // If getting or deleting either buffer file failed:
+  catch(error) {
     // Report this.
     data.prevented = true;
-    data.error = 'At least 1 screenshot missing';
+    data.error = `Screenshot file error (${error.message})`;
   }
   // Return the result.
   return {
