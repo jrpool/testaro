@@ -91,15 +91,18 @@ exports.curate = async (page, data, nuData, rules) => {
     result.messages = result.messages.filter(
       message => ! badMessages.has(message.message)
     );
-    // Add Testaro identifiers and location data to the messages.
+    // For each message:
     for (const message of result.messages) {
       const {extract} = message;
       const testaroIDArray = extract.match(/data-testaro-id="(\d+)#"/);
+      // If its extract contains a Testaro identifier:
       if (testaroIDArray) {
         const testaroID = message.testaroID = testaroIDArray[1];
         message.elementLocation = await page.evaluate(testaroID => {
           const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
+          // If any element has that identifier:
           if (element) {
+            // Get a box specification and an XPath for the element.
             const box = {};
             const boundingBox = element.getBoundingClientRect() || {};
             if (boundingBox.x) {
@@ -108,6 +111,7 @@ exports.curate = async (page, data, nuData, rules) => {
               });
             }
             const xPath = window.getXPath(element) || '';
+            // Treat them as the element location.
             return {
               box,
               xPath
@@ -116,7 +120,37 @@ exports.curate = async (page, data, nuData, rules) => {
           return {};
         }, testaroID);
       }
-    };
+      // Otherwise, i.e. if its extract contains no Testaro identifier:
+      else {
+        console.log('XXX No Testaro identifier');
+        const imgSrcArray = extract.match(/<img .*?src="([^"]+)"/);
+        // If it is an img element with a src attribute:
+        if (imgSrcArray) {
+          console.log(`XXX Found image with src ${imgSrcArray[1]}`);
+          message.elementLocation = await page.evaluate(imgSrc => {
+            const elementArray = document.querySelectorAll(`img[src="${imgSrc}"]`);
+            console.log(`XXX Matching element count ${elementArray.length}`);
+            // If exactly one img element has that src attribute:
+            if (elementArray.length === 1) {
+              // Get a box specification and an XPath for the element.
+              const box = {};
+              const boundingBox = element.getBoundingClientRect() || {};
+              if (boundingBox.x) {
+                ['x', 'y', 'width', 'height'].forEach(coordinate => {
+                  box[coordinate] = Math.round(boundingBox[coordinate]);
+                });
+              }
+              const xPath = window.getXPath(element) || '';
+              // Treat them as the element location.
+              return {
+                box,
+                xPath
+              };
+            }
+          }, imgSrcArray[1]);
+        }
+      }
+    }
   }
   // Return the result.
   return result;

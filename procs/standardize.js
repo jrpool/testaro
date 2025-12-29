@@ -18,8 +18,8 @@
 // Limits the length of and unilinearizes a string.
 const cap = rawString => {
   const string = (rawString || '').replace(/[\s\u2028\u2029]+/g, ' ');
-  if (string && string.length > 600) {
-    return `${string.slice(0, 300)} … ${string.slice(-300)}`;
+  if (string && string.length > 1000) {
+    return `${string.slice(0, 500)} … ${string.slice(-500)}`;
   }
   else if (string) {
     return string;
@@ -212,7 +212,9 @@ const doHTMLCS = (result, standardResult, severity) => {
 // Converts issue instances from a nuVal or nuVnu result.
 const doNu = (withSource, result, standardResult) => {
   const items = result && result.messages;
+  // If there are any messages:
   if (items && items.length) {
+    // For each one:
     items.forEach(item => {
       const {
         extract,
