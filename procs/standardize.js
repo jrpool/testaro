@@ -249,7 +249,7 @@ const doNu = (withSource, result, standardResult) => {
         id: identifiers[1],
         location: {
           doc: withSource ? 'source' : (notInDOM ? 'notInDOM' : 'dom'),
-          type: notInDOM ? 'none' :'code',
+          type: 'code',
           spec
         },
         excerpt: cap(extract),
