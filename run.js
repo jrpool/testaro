@@ -1674,6 +1674,39 @@ const doActs = async (report, opts = {}) => {
     // Close the last browser launched for standardization.
     await browserClose();
     console.log('Standardization completed');
+    // XXX
+    const {acts} = report;
+    const idData = {};
+    for (const act of acts) {
+      if (act.type === 'test') {
+        const {which} = act;
+        idData[which] ??= {
+          instanceCount: 0,
+          pathIDCount: 0,
+          boxIDCount: 0,
+          pathIDRatio: null,
+          boxIDRatio: null
+        };
+        const actIDData = idData[which];
+        const {standardResult} = act;
+        const {instances} = standardResult;
+        for (const instance of instances) {
+          const {boxID, pathID} = instance;
+          actIDData.instanceCount++;
+          if (boxID) {
+            actIDData.boxIDCount++;
+          }
+          if (pathID) {
+            actIDData.pathIDCount++;
+          }
+        }
+        if (actIDData.instanceCount) {
+          actIDData.boxIDRatio = (actIDData.boxIDCount / actIDData.instanceCount).toFixed(2);
+          actIDData.pathIDRatio = (actIDData.pathIDCount / actIDData.instanceCount).toFixed(2);
+        }
+      }
+    }
+    report.jobData.idData = idData;
   }
   // Delete the temporary report file.
   await fs.rm(reportPath, {force: true});
