@@ -15,7 +15,7 @@
 // IMPORTS
 
 // Module to add Testaro IDs to elements.
-const {addTestaroIDs} = require('../procs/nu');
+const {addTestaroIDs} = require('../procs/testaro');
 // Module to handle files.
 const fs = require('fs/promises');
 

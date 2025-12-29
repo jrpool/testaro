@@ -226,7 +226,7 @@ exports.getVisibleCountChange = async (
   };
 };
 // Annotates every element on a page with a unique identifier.
-const addTestaroIDs = async page => {
+exports.addTestaroIDs = async page => {
   await page.evaluate(() => {
     let serialID = 0;
     for (const element of Array.from(document.querySelectorAll('*'))) {
