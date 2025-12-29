@@ -35,12 +35,12 @@ const getIdentifiers = code => {
   // Normalize the code.
   code = code.replace(/\s+/g, ' ').replace(/\\"/g, '"');
   // Get the first start tag of an element, if any.
-  const startTagData = code.match(/^.*?< ?([^>]*)/);
+  const startTagData = code.match(/^.*?<([a-zA-][^>]*)/);
   // If there is any:
   if (startTagData) {
     // Get the tag name.
-    const tagNameData = startTagData[1].match(/^[A-Za-z0-9]+/);
-    const tagName = tagNameData ? tagNameData[0].toUpperCase() : '';
+    const tagNameArray = startTagData[1].match(/^[A-Za-z0-9]+/);
+    const tagName = tagNameArray ? tagNameArray[0].toUpperCase() : '';
     // Get the value of the id attribute, if any.
     const idData = startTagData[1].match(/ id="([^"]+)"/);
     const id = idData ? idData[1] : '';
@@ -222,7 +222,6 @@ const doNu = (withSource, result, standardResult) => {
         message,
         subType,
         type,
-        testaroID,
         elementLocation
       } = item;
       const identifiers = getIdentifiers(extract);
