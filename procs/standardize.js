@@ -189,7 +189,7 @@ const doHTMLCS = (result, standardResult, severity) => {
       const ruleData = result[severity][ruleID];
       Object.keys(ruleData).forEach(what => {
         ruleData[what].forEach(item => {
-          const {tagName, id, code} = item;
+          const {tagName, id, code, boxID, pathID} = item;
           const instance = {
             ruleID,
             what,
@@ -201,7 +201,9 @@ const doHTMLCS = (result, standardResult, severity) => {
               type: '',
               spec: ''
             },
-            excerpt: cap(code)
+            excerpt: cap(code),
+            boxID,
+            pathID
           };
           standardResult.instances.push(instance);
         });
@@ -253,8 +255,8 @@ const doNu = (withSource, result, standardResult) => {
           spec
         },
         excerpt: cap(extract),
-        boxID: elementLocation?.box || {},
-        pathID: elementLocation?.xPath || ''
+        boxID: elementLocation?.boxID || '',
+        pathID: elementLocation?.pathID || ''
       };
       if (type === 'info' && subType === 'warning') {
         instance.ordinalSeverity = 0;

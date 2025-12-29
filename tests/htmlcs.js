@@ -35,7 +35,7 @@ exports.reporter = async (page, report, actIndex) => {
   let messageStrings = [];
   // Define the rules to be employed as those of WCAG 2 level AAA.
   for (const actStandard of ['WCAG2AAA']) {
-    const nextIssues = await page.evaluate(args => {
+    const nextViolations = await page.evaluate(args => {
       // Add the HTMLCS script to the page.
       const scriptText = args[2];
       const scriptNonce = args[3];
@@ -53,18 +53,18 @@ exports.reporter = async (page, report, actIndex) => {
         }
         window.HTMLCS_WCAG2AAA.sniffs = rules;
       }
-      let issues = null;
+      let violations = null;
       // Run the tests.
       try {
-        issues = window.HTMLCS_RUNNER.run(actStandard);
+        violations = window.HTMLCS_RUNNER.run(actStandard);
       }
       catch(error) {
         console.log(`ERROR executing HTMLCS_RUNNER on ${document.URL} (${error.message})`);
       }
-      return issues;
+      return violations;
     }, [actStandard, rules, scriptText, scriptNonce]);
-    if (nextIssues && nextIssues.every(issue => typeof issue === 'string')) {
-      messageStrings.push(... nextIssues);
+    if (nextViolations && nextViolations.every(violation => typeof violation === 'string')) {
+      messageStrings.push(... nextViolations);
     }
     else {
       data.prevented = true;
@@ -73,36 +73,33 @@ exports.reporter = async (page, report, actIndex) => {
     }
   }
   if (! data.prevented) {
-    // Sort the issues by class and standard.
+    // Sort the violations by class and standard.
     messageStrings.sort();
-    // Remove any duplicate issues.
+    // Remove any duplicate violations.
     messageStrings = [... new Set(messageStrings)];
     // Initialize the result.
     result.Error = {};
     result.Warning = {};
-    // For each issue:
+    // For each violation:
     messageStrings.forEach(string => {
+      // Split its message into severity class, rule ID, tagname, ID, rule description, and excerpt.
       const parts = string.split(/\|/, 6);
       const partCount = parts.length;
       if (partCount < 6) {
-        console.log(`ERROR: Issue string ${string} has too few parts`);
+        console.log(`ERROR: Violation string ${string} has too few parts`);
       }
       // If it is an error or a warning (not a notice):
       else if (['Error', 'Warning'].includes(parts[0])) {
         /*
-          Add the issue to an issueClass.issueCode.description array in the result.
-          This saves space, because, although some descriptions are issue-specific, such as
+          Add the violation to an violationClass.violationCode.description array in the result.
+          This saves space, because, although some descriptions are violation-specific, such as
           descriptions that state the contrast ratio of an element, most descriptions are
           generic, so typically many violations share a description.
         */
-        const issueCode = parts[1].replace(/^WCAG2|\.Principle\d\.Guideline[\d_]+/g, '');
-        if (! result[parts[0]][issueCode]) {
-          result[parts[0]][issueCode] = {};
-        }
-        if (! result[parts[0]][issueCode][parts[4]]) {
-          result[parts[0]][issueCode][parts[4]] = [];
-        }
-        result[parts[0]][issueCode][parts[4]].push({
+        const ruleID = parts[1].replace(/^WCAG2|\.Principle\d\.Guideline[\d_]+/g, '');
+        result[parts[0]][ruleID] ??= {};
+        result[parts[0]][ruleID][parts[4]] ??= [];
+        result[parts[0]][ruleID][parts[4]].push({
           tagName: parts[2],
           id: parts[3],
           code: parts[5]

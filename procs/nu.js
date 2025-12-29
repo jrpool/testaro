@@ -100,19 +100,23 @@ exports.curate = async (page, data, nuData, rules) => {
           const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
           // If any element has that identifier:
           if (element) {
-            // Get a box specification and an XPath for the element.
+            // Get box and path IDs for the element.
             const box = {};
+            let boxID = '';
             const boundingBox = element.getBoundingClientRect() || {};
             if (boundingBox.x) {
               ['x', 'y', 'width', 'height'].forEach(coordinate => {
                 box[coordinate] = Math.round(boundingBox[coordinate]);
               });
             }
-            const xPath = window.getXPath(element) || '';
+            if (typeof box.x === 'number') {
+              boxID = Object.values(box).join(',');
+            }
+            const pathID = window.getXPath(element) || '';
             // Treat them as the element location.
             return {
-              box,
-              xPath
+              boxID,
+              pathID
             };
           }
           // Otherwise, i.e. if no element has it, make the location data empty.
@@ -124,8 +128,8 @@ exports.curate = async (page, data, nuData, rules) => {
         // Add a non-DOM location to the message.
         message.elementLocation = {
           notInDOM: true,
-          box: {},
-          xPath: ''
+          boxID: '',
+          pathID: ''
         };
       }
     }
