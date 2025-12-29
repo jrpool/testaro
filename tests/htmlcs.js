@@ -14,6 +14,8 @@
 
 // IMPORTS
 
+// Module to add Testaro IDs to elements.
+const {addTestaroIDs} = require('../procs/nu');
 // Module to handle files.
 const fs = require('fs/promises');
 
@@ -28,8 +30,10 @@ exports.reporter = async (page, report, actIndex) => {
   // Get the HTMLCS script.
   const scriptText = await fs.readFile(`${__dirname}/../htmlcs/HTMLCS.js`, 'utf8');
   const scriptNonce = report.jobData && report.jobData.lastScriptNonce;
-  // Define the rules to be employed as those of WCAG 2 level AAA.
+  // Annotate all elements on the page with unique identifiers.
+  await addTestaroIDs(page);
   let messageStrings = [];
+  // Define the rules to be employed as those of WCAG 2 level AAA.
   for (const actStandard of ['WCAG2AAA']) {
     const nextIssues = await page.evaluate(args => {
       // Add the HTMLCS script to the page.
@@ -49,8 +53,8 @@ exports.reporter = async (page, report, actIndex) => {
         }
         window.HTMLCS_WCAG2AAA.sniffs = rules;
       }
-      // Run the tests.
       let issues = null;
+      // Run the tests.
       try {
         issues = window.HTMLCS_RUNNER.run(actStandard);
       }

@@ -225,3 +225,12 @@ exports.getVisibleCountChange = async (
     elapsedTime
   };
 };
+// Annotates every element on a page with a unique identifier.
+const addTestaroIDs = async page => {
+  await page.evaluate(() => {
+    let serialID = 0;
+    for (const element of Array.from(document.querySelectorAll('*'))) {
+      element.setAttribute('data-testaro-id', `${serialID++}#`);
+    }
+  });
+};

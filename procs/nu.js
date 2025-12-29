@@ -14,6 +14,8 @@
 
 // ########## IMPORTS
 
+// Module to add Testaro IDs to elements.
+const {addTestaroIDs} = require('./testaro');
 // Module to get the document source.
 const {getSource} = require('./getSource');
 
@@ -43,13 +45,8 @@ exports.getContent = async (page, withSource) => {
   }
   // Otherwise, i.e. if the specified content type was the Playwright page content:
   else {
-    // Annotate all elements in the page with unique identifiers.
-    await page.evaluate(() => {
-      let serialID = 0;
-      for (const element of Array.from(document.querySelectorAll('*'))) {
-        element.setAttribute('data-testaro-id', `${serialID++}#`);
-      }
-    });
+    // Annotate all elements on the page with unique identifiers.
+    await addTestaroIDs(page);
     // Add the annotated page content to the data.
     data.testTarget = await page.content();
   }
