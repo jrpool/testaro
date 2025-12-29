@@ -1682,10 +1682,10 @@ const doActs = async (report, opts = {}) => {
         const {which} = act;
         idData[which] ??= {
           instanceCount: 0,
-          pathIDCount: 0,
           boxIDCount: 0,
-          pathIDPercent: null,
-          boxIDPercent: null
+          pathIDCount: 0,
+          boxIDPercent: null,
+          pathIDPercent: null
         };
         const actIDData = idData[which];
         const {standardResult} = act;
