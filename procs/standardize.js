@@ -240,6 +240,7 @@ const doNu = (withSource, result, standardResult) => {
       if (locationSegments.every(segment => typeof segment === 'number')) {
         spec = locationSegments.join(':');
       }
+      const {notInDOM} = elementLocation;
       const instance = {
         ruleID: message,
         what: message,
@@ -247,8 +248,8 @@ const doNu = (withSource, result, standardResult) => {
         tagName: identifiers[0],
         id: identifiers[1],
         location: {
-          doc: withSource ? 'source' : 'dom',
-          type: 'code',
+          doc: withSource ? 'source' : (notInDOM ? 'notInDOM' : 'dom'),
+          type: notInDOM ? 'none' :'code',
           spec
         },
         excerpt: cap(extract),

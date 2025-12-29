@@ -377,23 +377,8 @@ const launch = exports.launch = async (
           let indentedMsg = '';
           // If debugging is on:
           if (debug) {
-            // Log a summary of the message on the console.
-            const parts = [msgText.slice(0, 75)];
-            if (msgText.length > 75) {
-              parts.push(msgText.slice(75, 150));
-              if (msgText.length > 150) {
-                const tail = msgText.slice(150).slice(-150);
-                if (msgText.length > 300) {
-                  parts.push('...');
-                }
-                parts.push(tail.slice(0, 75));
-                if (tail.length > 75) {
-                  parts.push(tail.slice(75));
-                }
-              }
-            }
-            indentedMsg = parts.map(part => `    | ${part}`).join('\n');
-            console.log(`\n${indentedMsg}`);
+            // Log the start of the message on the console.
+            console.log(`\n${msgText.slice(0, 300)}`);
           }
           // Add statistics on the message to the report.
           const msgTextLC = msgText.toLowerCase();

@@ -98,6 +98,7 @@ exports.curate = async (page, data, nuData, rules) => {
       // If its extract contains a Testaro identifier:
       if (testaroIDArray) {
         const testaroID = message.testaroID = testaroIDArray[1];
+        // Add location data for the element to the message.
         message.elementLocation = await page.evaluate(testaroID => {
           const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
           // If any element has that identifier:
@@ -117,38 +118,18 @@ exports.curate = async (page, data, nuData, rules) => {
               xPath
             };
           }
+          // Otherwise, i.e. if no element has it, make the location data empty.
           return {};
         }, testaroID);
       }
       // Otherwise, i.e. if its extract contains no Testaro identifier:
       else {
-        console.log('XXX No Testaro identifier');
-        const imgSrcArray = extract.match(/<img .*?src="([^"]+)"/);
-        // If it is an img element with a src attribute:
-        if (imgSrcArray) {
-          console.log(`XXX Found image with src ${imgSrcArray[1]}`);
-          message.elementLocation = await page.evaluate(imgSrc => {
-            const elementArray = document.querySelectorAll(`img[src="${imgSrc}"]`);
-            console.log(`XXX Matching element count ${elementArray.length}`);
-            // If exactly one img element has that src attribute:
-            if (elementArray.length === 1) {
-              // Get a box specification and an XPath for the element.
-              const box = {};
-              const boundingBox = element.getBoundingClientRect() || {};
-              if (boundingBox.x) {
-                ['x', 'y', 'width', 'height'].forEach(coordinate => {
-                  box[coordinate] = Math.round(boundingBox[coordinate]);
-                });
-              }
-              const xPath = window.getXPath(element) || '';
-              // Treat them as the element location.
-              return {
-                box,
-                xPath
-              };
-            }
-          }, imgSrcArray[1]);
-        }
+        // Add a non-DOM location to the message.
+        message.elementLocation = {
+          notInDOM: true,
+          box: {},
+          xPath: ''
+        };
       }
     }
   }
