@@ -1684,8 +1684,8 @@ const doActs = async (report, opts = {}) => {
           instanceCount: 0,
           pathIDCount: 0,
           boxIDCount: 0,
-          pathIDRatio: null,
-          boxIDRatio: null
+          pathIDPercent: null,
+          boxIDPercent: null
         };
         const actIDData = idData[which];
         const {standardResult} = act;
@@ -1700,9 +1700,10 @@ const doActs = async (report, opts = {}) => {
             actIDData.pathIDCount++;
           }
         }
-        if (actIDData.instanceCount) {
-          actIDData.boxIDRatio = (actIDData.boxIDCount / actIDData.instanceCount).toFixed(2);
-          actIDData.pathIDRatio = (actIDData.pathIDCount / actIDData.instanceCount).toFixed(2);
+        const {instanceCount, boxIDCount, pathIDCount} = actIDData;
+        if (instanceCount) {
+          actIDData.boxIDPercent = Math.round(100 * boxIDCount / instanceCount);
+          actIDData.pathIDPercent = Math.round(100 * pathIDCount / instanceCount);
         }
       }
     }
