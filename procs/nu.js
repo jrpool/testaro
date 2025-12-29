@@ -15,7 +15,7 @@
 // ########## IMPORTS
 
 // Module to add Testaro IDs to elements.
-const {addTestaroIDs} = require('./testaro');
+const {addTestaroIDs, getLocationData} = require('./testaro');
 // Module to get the document source.
 const {getSource} = require('./getSource');
 
@@ -91,47 +91,8 @@ exports.curate = async (page, data, nuData, rules) => {
     // For each message:
     for (const message of result.messages) {
       const {extract} = message;
-      const testaroIDArray = extract.match(/data-testaro-id="(\d+)#"/);
-      // If its extract contains a Testaro identifier:
-      if (testaroIDArray) {
-        const testaroID = message.testaroID = testaroIDArray[1];
-        // Add location data for the element to the message.
-        message.elementLocation = await page.evaluate(testaroID => {
-          const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
-          // If any element has that identifier:
-          if (element) {
-            // Get box and path IDs for the element.
-            const box = {};
-            let boxID = '';
-            const boundingBox = element.getBoundingClientRect() || {};
-            if (boundingBox.x) {
-              ['x', 'y', 'width', 'height'].forEach(coordinate => {
-                box[coordinate] = Math.round(boundingBox[coordinate]);
-              });
-            }
-            if (typeof box.x === 'number') {
-              boxID = Object.values(box).join(',');
-            }
-            const pathID = window.getXPath(element) || '';
-            // Treat them as the element location.
-            return {
-              boxID,
-              pathID
-            };
-          }
-          // Otherwise, i.e. if no element has it, make the location data empty.
-          return {};
-        }, testaroID);
-      }
-      // Otherwise, i.e. if its extract contains no Testaro identifier:
-      else {
-        // Add a non-DOM location to the message.
-        message.elementLocation = {
-          notInDOM: true,
-          boxID: '',
-          pathID: ''
-        };
-      }
+      // Add location data for the element to the message.
+      message.elementLocation = await getLocationData(page, extract);
     }
   }
   // Return the result.
