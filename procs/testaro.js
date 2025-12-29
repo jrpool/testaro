@@ -255,7 +255,7 @@ exports.getLocationData = async (page, extract) => {
           });
         }
         if (typeof box.x === 'number') {
-          boxID = Object.values(box).join(',');
+          boxID = Object.values(box).join(':');
         }
         const pathID = window.getXPath(element) || '';
         // Return them.
