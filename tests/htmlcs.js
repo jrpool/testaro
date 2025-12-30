@@ -14,7 +14,7 @@
 
 // IMPORTS
 
-// Module to add Testaro IDs to elements.
+// Module to add and use unique element IDs.
 const {addTestaroIDs, getLocationData} = require('../procs/testaro');
 // Module to handle files.
 const fs = require('fs/promises');

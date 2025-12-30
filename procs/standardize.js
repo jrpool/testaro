@@ -667,13 +667,18 @@ const convert = (toolName, data, result, standardResult) => {
     result.violations.forEach(violation => {
       // Get its standard instance properties.
       const element = violation.element.replace(/\s+/g, ' ');
-      const {message, description, severity} = violation;
+      const {boxID, description, message, notInDOM, pathID, severity} = violation;
       const ordinalSeverity = ['Minor', 'Moderate', '', 'Severe'].indexOf(severity);
       const tagNameCandidate = element.replace(/^<| .*$/g, '');
       const tagName = /^[a-zA-Z0-9]+$/.test(tagNameCandidate) ? tagNameCandidate.toUpperCase() : '';
       let id = '';
       const location = {};
-      if (tagName) {
+      if (notInDOM) {
+        location.doc = 'notInDOM';
+        location.type = '';
+        location.spec = '';
+      }
+      else if (tagName) {
         const idTerm = element
         .replace(/>.*$/, '')
         .split(' ')
@@ -696,7 +701,9 @@ const convert = (toolName, data, result, standardResult) => {
         tagName,
         id,
         location,
-        excerpt: element
+        excerpt: element,
+        boxID,
+        pathID
       };
       // Add the instance to the standard result.
       standardResult.instances.push(instance);

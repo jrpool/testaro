@@ -15,7 +15,9 @@
 
 // IMPORTS
 
-// WAX
+// Module to add and use unique element IDs.
+const {addTestaroIDs, getLocationData} = require('../procs/testaro');
+// Modules to run WAX.
 const runWax = require('@wally-ax/wax-dev');
 const waxDev = {runWax};
 
@@ -26,15 +28,17 @@ exports.reporter = async (page, report, actIndex) => {
   // Initialize the act report.
   let data = {};
   let result = {};
-  // Run WAX.
   const act = report.acts[actIndex];
   const rules = act.rules || [];
+  // Annotate all elements on the page with unique identifiers.
+  await addTestaroIDs(page);
   const pageCode = await page.content();
   const waxOptions = {
     rules,
     apiKey: process.env.WAX_KEY || ''
   };
   try {
+    // Run WAX.
     const actReport = await waxDev.runWax(pageCode, waxOptions);
     // If WAX failed with a string report:
     if (typeof actReport === 'string') {
@@ -54,6 +58,12 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Otherwise, i.e. if it is a successful report:
       else {
+        // Add location data to its excerpts.
+        for (const violation of actReport) {
+          const {element} = violation;
+          const elementLocation = await getLocationData(page, element);
+          Object.assign(violation, elementLocation);
+        }
         // Populate the act report.
         result = {
           violations: actReport
@@ -81,7 +91,6 @@ exports.reporter = async (page, report, actIndex) => {
         data.error = 'wax failure';
       }
     }
-    // Return the results.
     try {
       JSON.stringify(data);
     }
@@ -92,6 +101,7 @@ exports.reporter = async (page, report, actIndex) => {
         error: message
       };
     }
+    // Return the results.
     return {
       data,
       result
