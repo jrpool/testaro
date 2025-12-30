@@ -140,10 +140,11 @@ exports.reporter = async (page, report, actIndex) => {
               if (statistics) {
                 data.pageTitle = statistics.pagetitle || '';
                 data.pageURL = statistics.pageurl || '';
-                data.time = statistics.time || null;
+                data.elapsedSeconds = statistics.time || null;
                 data.creditsRemaining = statistics.creditsremaining || null;
                 data.allItemCount = statistics.allitemcount || null;
                 data.totalElements = statistics.totalelements || null;
+                data.waveURL = statistics.waveurl || '';
               }
               // Return the result.
               resolve(actResult);
