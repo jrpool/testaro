@@ -465,7 +465,7 @@ const launch = exports.launch = async (
         });
       }
       // If the launch is for a testaro test act:
-      if (isTestaroTest) {
+      if (act.type === 'test' && act.which === 'testaro') {
         // Add a script to the page to compute the accessible name of an element.
         await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
         // Add a script to the page to:
