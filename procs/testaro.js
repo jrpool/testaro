@@ -235,9 +235,9 @@ exports.addTestaroIDs = async page => {
   });
 };
 // Returns location data from the extract of a standard instance.
-exports.getLocationData = async (page, extract) => {
-  const testaroIDArray = extract.match(/data-testaro-id="(\d+)#"/);
-  // If the extract contains a Testaro identifier:
+exports.getLocationData = async (page, excerpt) => {
+  const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#"/);
+  // If the excerpt contains a Testaro identifier:
   if (testaroIDArray) {
     const testaroID = testaroIDArray[1];
     // Return location data for the element.

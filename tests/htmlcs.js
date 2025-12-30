@@ -81,7 +81,7 @@ exports.reporter = async (page, report, actIndex) => {
     result.Error = {};
     result.Warning = {};
     // For each violation:
-    messageStrings.forEach(async string => {
+    for (const string of messageStrings) {
       // Split its message into severity class, rule ID, tagname, ID, rule description, and excerpt.
       const parts = string.split(/\|/, 6);
       const partCount = parts.length;
@@ -110,7 +110,7 @@ exports.reporter = async (page, report, actIndex) => {
           pathID
         });
       }
-    });
+    }
   }
   return {
     data,
