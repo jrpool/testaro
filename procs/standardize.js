@@ -13,7 +13,7 @@
   Converts test results to the standard format.
 */
 
-// ########## FUNCTIONS
+// FUNCTIONS
 
 // Limits the length of and unilinearizes a string.
 const cap = rawString => {
@@ -327,11 +327,11 @@ const doWAVE = (result, standardResult, categoryName) => {
     const {items} = category;
     if (items) {
       Object.keys(items).forEach(ruleID => {
-        items[ruleID].selectors.forEach(selector => {
+        items[ruleID].selectors.forEach(violationFacts => {
           let tagName = '';
           let id = '';
-          if (typeof selector === 'string') {
-            const finalTerm = selector.replace(/^.+\s/, '');
+          if (typeof violationFacts[0] === 'string') {
+            const finalTerm = violationFacts[0].replace(/^.+\s/, '');
             if (finalTerm.includes('#')) {
               const finalArray = finalTerm.split('#');
               tagName = finalArray[0].replace(/:.*/, '');
@@ -350,9 +350,9 @@ const doWAVE = (result, standardResult, categoryName) => {
             location: {
               doc: 'dom',
               type: 'selector',
-              spec: selector
+              spec: violationFacts[0]
             },
-            excerpt: ''
+            excerpt: violationFacts[1]
           };
           standardResult.instances.push(instance);
         });

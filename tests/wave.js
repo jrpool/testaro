@@ -96,19 +96,40 @@ exports.reporter = async (page, report, actIndex) => {
               // Add WCAG information from the WAVE documentation.
               const waveDocJSON = await fs.readFile('procs/wavedoc.json', 'utf8');
               const waveDoc = JSON.parse(waveDocJSON);
+              // For each rule category:
               Object.keys(categories).forEach(categoryName => {
                 const category = categories[categoryName];
-                // If any violations were reported:
+                // If any violations were reported in the category:
                 if (
                   category
                   && category.items
                   && Object.keys(category.items).length
                 ) {
                   const {items} = category;
+                  // For each rule violated (named item by WAVE):
                   Object.keys(items).forEach(issueName => {
                     const issueDoc = waveDoc.find((issue => issue.name === issueName));
                     const {guidelines} = issueDoc;
-                    items[issueName].wcag = guidelines;
+                    const rule = items[issueName];
+                    // Add WCAG information to the rule data.
+                    rule.wcag = guidelines;
+                    // Convert the violation selectors to arrays of selector and excerpt.
+                    rule.selectors = rule.selectors.map(selector => {
+                      const excerpt = page.evaluate(selector => {
+                        const element = document.querySelector(selector);
+                        // If the selector matches an element:
+                        if (element) {
+                          // Get an excerpt of the element.
+                          const rawExcerpt = element.textContent.trim() || element.outerHTML.trim();
+                          const normalizedExcerpt = rawExcerpt.replace(/\s+/g, ' ');
+                          return normalizedExcerpt.slice(0, 300);
+                        }
+                        else {
+                          return '';
+                        }
+                      }, selector);
+                      return [selector, excerpt];
+                    });
                   });
                 }
               });

@@ -477,7 +477,7 @@ const launch = exports.launch = async (
             && typeof window.computeAccessibleName === 'function';
             return nameIsComputable ? window.computeAccessibleName(element) : '';
           };
-          // Add a window method to return an instance.
+          // Add a window method to return a standard instance.
           window.getInstance = (
             element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
           ) => {
@@ -493,7 +493,7 @@ const launch = exports.launch = async (
               const rawExcerpt = (element.textContent.trim() || element.outerHTML.trim())
               .replace(/\s+/g, ' ');
               const excerpt = rawExcerpt.slice(0, 200);
-              // Return an itemized instance.
+              // Return an itemized standard instance.
               return {
                 ruleID,
                 what,
