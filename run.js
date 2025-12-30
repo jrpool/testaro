@@ -413,11 +413,10 @@ const launch = exports.launch = async (
           get: () => ['en-US', 'en']
         });
       });
-      const isTestaroTest = act.type === 'test' && act.which === 'testaro';
-      const isHTMLCSTest = act.type === 'test' && act.which === 'htmlcs';
-      const isNuTest = act.type === 'test' && (['nuVal', 'nuVnu'].some(id => act.which === id));
-      // If the launch is for a testaro,3 htmlcs, or Nu test act:
-      if (isTestaroTest || isHTMLCSTest || isNuTest) {
+      const needsXPath = act.type === 'test'
+      && ['testaro', 'htmlcs', 'nuVal', 'nuVnu', 'wax'].includes(act.which);
+      // If the launch is for a test act that requires XPaths:
+      if (needsXPath) {
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
           window.getXPath = element => {
