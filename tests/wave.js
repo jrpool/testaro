@@ -97,7 +97,7 @@ exports.reporter = async (page, report, actIndex) => {
               const waveDocJSON = await fs.readFile('procs/wavedoc.json', 'utf8');
               const waveDoc = JSON.parse(waveDocJSON);
               // For each rule category:
-              Object.keys(categories).forEach(categoryName => {
+              for (const categoryName of Object.keys(categories)) {
                 const category = categories[categoryName];
                 // If any violations were reported in the category:
                 if (
@@ -107,15 +107,17 @@ exports.reporter = async (page, report, actIndex) => {
                 ) {
                   const {items} = category;
                   // For each rule violated (named item by WAVE):
-                  Object.keys(items).forEach(issueName => {
-                    const issueDoc = waveDoc.find((issue => issue.name === issueName));
-                    const {guidelines} = issueDoc;
-                    const rule = items[issueName];
+                  for (const ruleName of Object.keys(items)) {
+                    const ruleDoc = waveDoc.find((rule => rule.name === ruleName));
+                    const {guidelines} = ruleDoc;
+                    const rule = items[ruleName];
                     // Add WCAG information to the rule data.
                     rule.wcag = guidelines;
-                    // Convert the violation selectors to arrays of selector and excerpt.
-                    rule.selectors = rule.selectors.map(selector => {
-                      const excerpt = page.evaluate(selector => {
+                    // For each violation:
+                    for (const index in rule.selectors) {
+                      const selector = rule.selectors[index];
+                      // Get an excerpt of the element.
+                      const excerpt = await page.evaluate(selector => {
                         const element = document.querySelector(selector);
                         // If the selector matches an element:
                         if (element) {
@@ -128,11 +130,12 @@ exports.reporter = async (page, report, actIndex) => {
                           return '';
                         }
                       }, selector);
-                      return [selector, excerpt];
-                    });
-                  });
+                      // Convert the violation selector to a selector-excerpt pair.
+                      rule.selectors[index] = [selector, excerpt];
+                    }
+                  }
                 }
-              });
+              };
               // Add important data to the result.
               if (statistics) {
                 data.pageTitle = statistics.pagetitle || '';
