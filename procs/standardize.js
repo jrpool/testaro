@@ -189,7 +189,7 @@ const doHTMLCS = (result, standardResult, severity) => {
       const ruleData = result[severity][ruleID];
       Object.keys(ruleData).forEach(what => {
         ruleData[what].forEach(item => {
-          const {tagName, id, code, boxID, pathID} = item;
+          const {tagName, id, excerpt, notInDOM, boxID, pathID} = item;
           const instance = {
             ruleID,
             what,
@@ -197,11 +197,11 @@ const doHTMLCS = (result, standardResult, severity) => {
             tagName: tagName.toUpperCase(),
             id: isBadID(id.slice(1)) ? '' : id.slice(1),
             location: {
-              doc: 'dom',
+              doc: notInDOM ? 'notInDOM' : 'dom',
               type: '',
               spec: ''
             },
-            excerpt: cap(code),
+            excerpt: cap(excerpt),
             boxID,
             pathID
           };

@@ -15,7 +15,7 @@
 // IMPORTS
 
 // Module to add Testaro IDs to elements.
-const {addTestaroIDs} = require('../procs/testaro');
+const {addTestaroIDs, getLocationData} = require('../procs/testaro');
 // Module to handle files.
 const fs = require('fs/promises');
 
@@ -81,7 +81,7 @@ exports.reporter = async (page, report, actIndex) => {
     result.Error = {};
     result.Warning = {};
     // For each violation:
-    messageStrings.forEach(string => {
+    messageStrings.forEach(async string => {
       // Split its message into severity class, rule ID, tagname, ID, rule description, and excerpt.
       const parts = string.split(/\|/, 6);
       const partCount = parts.length;
@@ -99,10 +99,15 @@ exports.reporter = async (page, report, actIndex) => {
         const ruleID = parts[1].replace(/^WCAG2|\.Principle\d\.Guideline[\d_]+/g, '');
         result[parts[0]][ruleID] ??= {};
         result[parts[0]][ruleID][parts[4]] ??= [];
+        const elementLocation = await getLocationData(page, parts[5]);
+        const {boxID, notInDOM, pathID} = elementLocation;
         result[parts[0]][ruleID][parts[4]].push({
           tagName: parts[2],
           id: parts[3],
-          code: parts[5]
+          notInDOM,
+          excerpt: parts[5],
+          boxID,
+          pathID
         });
       }
     });
