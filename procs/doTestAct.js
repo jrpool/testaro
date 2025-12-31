@@ -29,8 +29,8 @@ const tmpDir = os.tmpdir();
 // FUNCTIONS
 
 // Performs the tests of an act.
-const doTestAct = async actIndex => {
-  const reportPath = `${tmpDir}/report.json`;
+const doTestAct = async (reportPath, actIndex) => {
+  const reportPath = `${tmpDir}/${reportPath}`;
   // Get the report from the temporary directory.
   const reportJSON = await fs.readFile(reportPath, 'utf8');
   const report = JSON.parse(reportJSON);
@@ -121,4 +121,5 @@ const doTestAct = async actIndex => {
   }
 };
 
-doTestAct(Number.parseInt(process.argv[2]));
+const args = process.argv;
+doTestAct(args[2], Number.parseInt(args[3]));

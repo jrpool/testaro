@@ -800,7 +800,7 @@ const doActs = async (report, opts = {}) => {
   const {onProgress = null, signal = null} = opts;
   // Get the standardization specification.
   const standard = report.standard || 'only';
-  const reportPath = `${tmpDir}/report.json`;
+  const reportPath = `${tmpDir}/${report.id}.json`;
   // For each act in the report.
   for (const actIndex in acts) {
     if (signal && signal.aborted) throw new Error('doActs aborted');
@@ -909,7 +909,7 @@ const doActs = async (report, opts = {}) => {
         const actResult = await new Promise(resolve => {
           let closed = false;
           const child = fork(
-            `${__dirname}/procs/doTestAct`, [actIndex], {timeout: timeoutMultiplier * 1000 * (timeLimits[act.which] || 15)}
+            `${__dirname}/procs/doTestAct`, [reportPath, actIndex], {timeout: timeoutMultiplier * 1000 * (timeLimits[act.which] || 15)}
           );
           child.on('message', message => {
             if (! closed) {
