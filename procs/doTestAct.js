@@ -30,7 +30,6 @@ const tmpDir = os.tmpdir();
 
 // Performs the tests of an act.
 const doTestAct = async (reportPath, actIndex) => {
-  const reportPath = `${tmpDir}/${reportPath}`;
   // Get the report from the temporary directory.
   const reportJSON = await fs.readFile(reportPath, 'utf8');
   const report = JSON.parse(reportJSON);
