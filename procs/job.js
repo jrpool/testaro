@@ -179,7 +179,6 @@ exports.isValidJob = job => {
       observe,
       device,
       browserID,
-      timeLimit,
       creationTimeStamp,
       executionTimeStamp,
       target,
@@ -204,9 +203,6 @@ exports.isValidJob = job => {
     }
     if (! isBrowserID(browserID)) {
       return 'Bad job browserID';
-    }
-    if (typeof timeLimit !== 'number' || timeLimit < 1) {
-      return 'Bad job timeLimit';
     }
     if (
       ! (creationTimeStamp && typeof creationTimeStamp === 'string' && dateOf(creationTimeStamp))

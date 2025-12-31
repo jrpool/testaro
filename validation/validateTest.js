@@ -62,7 +62,6 @@ exports.validateTest = async testID => {
     job.standard = jobProperties.standard;
   }
   job.what = `validate Testaro test ${jobProperties.rule}`;
-  job.timeLimit = jobProperties.timeLimit;
   job.acts = jobProperties.acts;
   // Perform it.
   report = await doJob(job);
