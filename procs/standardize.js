@@ -346,7 +346,7 @@ const doWAVE = (result, standardResult, categoryName) => {
           // Otherwise, i.e. if the selector is not an element ID:
           else {
             // Get the element tagname from it.
-            tagName = finalTerm.replace(/:.*/, '');
+            tagName = finalTerm.replace(/:.*/, '') || 'HTML';
           }
           const {wcag} = item;
           // Get a violation description suffix from the WCAG data of the rule.
@@ -363,7 +363,7 @@ const doWAVE = (result, standardResult, categoryName) => {
             location: {
               doc: 'dom',
               type: 'selector',
-              spec: violationFacts[0]
+              spec: violationFacts[0] || 'html'
             },
             excerpt: violationFacts[1]
           };
