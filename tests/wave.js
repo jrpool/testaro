@@ -15,7 +15,6 @@
 
 // CONSTANTS
 
-const fs = require('fs/promises');
 const https = require('https');
 
 // FUNCTIONS
@@ -93,9 +92,9 @@ exports.reporter = async (page, report, actIndex) => {
                   }
                 });
               }
-              // Add WCAG information from the WAVE documentation.
-              const waveDocJSON = await fs.readFile('procs/wavedoc.json', 'utf8');
-              const waveDoc = JSON.parse(waveDocJSON);
+              // Get the WAVE WCAG documentation.
+              const waveDocResponse = await fetch('https://wave.webaim.org/api/docs');
+              const waveDoc = waveDocResponse.ok ? await waveDocResponse.json() : [];
               // For each rule category:
               for (const categoryName of Object.keys(categories)) {
                 const category = categories[categoryName];
@@ -112,7 +111,7 @@ exports.reporter = async (page, report, actIndex) => {
                     const {guidelines} = ruleDoc;
                     const rule = items[ruleName];
                     // Add WCAG information to the rule data.
-                    rule.wcag = guidelines;
+                    rule.wcag = guidelines || [];
                     // For each violation:
                     for (const index in rule.selectors) {
                       const selector = rule.selectors[index];
