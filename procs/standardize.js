@@ -341,9 +341,11 @@ const doWAVE = (result, standardResult, categoryName) => {
               tagName = finalTerm.replace(/:.*/, '');
             }
           }
+          const {wcag} = items[ruleID];
+          const wcagSuffix = wcag.length ? ` (${wcag.join(', ')})` : '';
           const instance = {
             ruleID,
-            what: items[ruleID].description,
+            what: `${items[ruleID].description}${wcagSuffix}`,
             ordinalSeverity,
             tagName,
             id,
