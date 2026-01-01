@@ -321,31 +321,42 @@ const doQualWeb = (result, standardResult, ruleClassName) => {
 };
 // Converts instances of a wave rule category.
 const doWAVE = (result, standardResult, categoryName) => {
+  // If results for the category are reported:
   if (result.categories && result.categories[categoryName]) {
     const category = result.categories[categoryName];
     const ordinalSeverity = categoryName === 'alert' ? 0 : 3;
     const {items} = category;
+    // If any violations in the category are reported:
     if (items) {
+      // For each rule violated:
       Object.keys(items).forEach(ruleID => {
-        items[ruleID].selectors.forEach(violationFacts => {
+        const item = items[ruleID];
+        // For each violation:
+        item.selectors.forEach(violationFacts => {
           let tagName = '';
           let id = '';
-          if (typeof violationFacts[0] === 'string') {
-            const finalTerm = violationFacts[0].replace(/^.+\s/, '');
-            if (finalTerm.includes('#')) {
-              const finalArray = finalTerm.split('#');
-              tagName = finalArray[0].replace(/:.*/, '');
-              id = isBadID(finalArray[1]) ? '' : finalArray[1];
-            }
-            else {
-              tagName = finalTerm.replace(/:.*/, '');
-            }
+          const finalTerm = violationFacts[0].replace(/^.+\s/, '');
+          // If the selector is an element ID:
+          if (finalTerm.includes('#')) {
+            const finalArray = finalTerm.split('#');
+            // Use it to get the element tagname and ID
+            tagName = finalArray[0].replace(/:.*/, '');
+            id = isBadID(finalArray[1]) ? '' : finalArray[1];
           }
-          const {wcag} = items[ruleID];
-          const wcagSuffix = wcag.length ? ` (${wcag.join(', ')})` : '';
+          // Otherwise, i.e. if the selector is not an element ID:
+          else {
+            // Get the element tagname from it.
+            tagName = finalTerm.replace(/:.*/, '');
+          }
+          const {wcag} = item;
+          // Get a violation description suffix from the WCAG data of the rule.
+          const wcagSuffix = wcag.length
+            ? ` (${wcag.map(wcagItem => wcagItem.name).join('; ')})`
+            : '';
+          // Get a standard instance.
           const instance = {
             ruleID,
-            what: `${items[ruleID].description}${wcagSuffix}`,
+            what: `${item.description}${wcagSuffix}`,
             ordinalSeverity,
             tagName,
             id,
@@ -356,6 +367,7 @@ const doWAVE = (result, standardResult, categoryName) => {
             },
             excerpt: violationFacts[1]
           };
+          // Add it to the standard result.
           standardResult.instances.push(instance);
         });
       });
