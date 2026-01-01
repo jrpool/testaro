@@ -114,21 +114,25 @@ exports.reporter = async (page, report, actIndex) => {
                     rule.wcag = guidelines || [];
                     // For each violation:
                     for (const index in rule.selectors) {
-                      const selector = rule.selectors[index];
-                      // Get an excerpt of the element.
-                      const excerpt = await page.evaluate(selector => {
-                        const element = document.querySelector(selector);
-                        // If the selector matches an element:
-                        if (element) {
-                          // Get an excerpt of the element.
-                          const rawExcerpt = element.textContent.trim() || element.outerHTML.trim();
-                          const normalizedExcerpt = rawExcerpt.replace(/\s+/g, ' ');
-                          return normalizedExcerpt.slice(0, 300);
-                        }
-                        else {
-                          return '';
-                        }
-                      }, selector);
+                      const selector = rule.selectors[index] || '';
+                      let excerpt = '';
+                      // If a selector is provided:
+                      if (selector) {
+                        // Get an excerpt of the element.
+                        excerpt = await page.evaluate(selector => {
+                          const element = document.querySelector(selector);
+                          // If the selector matches an element:
+                          if (element) {
+                            // Get an excerpt of the element.
+                            const rawExcerpt = element.textContent.trim() || element.outerHTML.trim();
+                            const normalizedExcerpt = rawExcerpt.replace(/\s+/g, ' ');
+                            return normalizedExcerpt.slice(0, 300);
+                          }
+                          else {
+                            return '';
+                          }
+                        }, selector);
+                      }
                       // Convert the violation selector to a selector-excerpt pair.
                       rule.selectors[index] = [selector, excerpt];
                     }
