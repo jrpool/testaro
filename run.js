@@ -1674,7 +1674,6 @@ const doActs = async (report, opts = {}) => {
     // Close the last browser launched for standardization.
     await browserClose();
     console.log('Standardization completed');
-    // XXX
     const {acts} = report;
     const idData = {};
     for (const act of acts) {

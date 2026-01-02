@@ -759,6 +759,8 @@ Some tools limit the efficacy of the current algorithm for standard identifiers:
 - HTML CodeSniffer does not report element locations, and the reported code excerpts exclude all text content.
 - Nu Html Checker reports line and column boundaries of element start tags and truncates element text content in reported code excerpts.
 
+Testaro aims to overcome these limitations by inserting uniquely identifying attributes into all elements of the pages being tested by these tools. Those attribute values appear in the excerpts produced by the tools and permit Testaro to identify the elements in the tested page. Except for elements excluded from the DOM, such as descendants of `noscript` elements, this mechanism allows Testaro to provide a `pathID` property in almost all standard instances. The `boxID` property is less universal, since some elements, such as `script` elements and hidden elements, have no bounding boxes.
+
 Testing can change the pages being tested, and such changes can cause a particular element to change its physical or logical location. In such cases, an element may appear multiple times in a tool report with different `boxID` or `pathID` values, even though it is, for practical purposes, the same element.
 
 ##### Standardization configuration
@@ -782,7 +784,7 @@ This standard format reflects some judgments. For example:
 
 You are not dependent on the judgments incorporated into the standard format, because Testaro can give you the original reports from the tools as the `result` property of a `test` act.
 
-The standard format does not express opinions on issue classification. A rule ID identifies something deemed to be an issue by a tool. Useful reporting from multi-tool testing still requires the classification of tool **rules** into **issues**. If tool `A` has `alt-incomplete` as a rule ID and tool `B` has `image_alt_stub` as a rule ID, Testaro does not decide whether those are really the same issue or different issues. That decision belongs to you. The standardization of tool reports by Testaro eliminates some of the drudgery in issue classification, but not any of the judgment required for issue classification.
+The standard format does not express opinions on issue classification. A rule ID identifies something deemed to be an issue by a tool. Useful reporting from ensemble testing still requires the classification of tool **rules** into **issues**. If tool `A` has `alt-incomplete` as a rule ID and tool `B` has `image_alt_stub` as a rule ID, Testaro does not decide whether those are really the same issue or different issues. That decision belongs to you. The standardization of tool reports by Testaro eliminates some of the drudgery in issue classification, but not any of the judgment required for issue classification.
 
 ## Invocation
 
