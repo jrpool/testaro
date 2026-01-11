@@ -24,7 +24,7 @@ const {dateOf} = require('./dateOf');
 // CONSTANTS
 
 // Names and descriptions of tools.
-const tools = {
+const tools = exports.tools ={
   alfa: 'Alfa',
   aslint: 'ASLint',
   axe: 'Axe',
