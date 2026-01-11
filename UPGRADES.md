@@ -2535,100 +2535,13 @@ describe('Database queries', () => {
 
 ### Browser-Node iteration prevention
 
-It is suspected that some Testaro tests are unnecessarily inefficient because they iterate across elements in a page, performing a browser operation on each and then returning a result for processing by Node. For example, in `lineHeight`:
+Some Testaro tests were unnecessarily inefficient because they iterated across elements in a page, performing a browser operation on each and then returning a result for processing by Node. The inefficiency motivated sampling. However, moving the processing of Playwright locators into the browser and returning the final result to Node was 1 or 2 orders of magnitude faster and eliminated the need to sample, thereby improving speed and delivering accuracy and consistency.
+
+To reuse any function in multiple tests, Testaro stores the function in a file and then injects it into the page as follows:
 
 ```javascript
-const all = await init(100, page, 'body *', {hasText: /[^\s]/});
-// For each locator:
-for (const loc of all.allLocs) {
-  // Get whether its element violates the rule.
-  const data = await loc.evaluate(el => {
-    const styleDec = window.getComputedStyle(el);
-    const {fontSize, lineHeight} = styleDec;
-    return {
-      fontSize: Number.parseFloat(fontSize),
-      lineHeight: Number.parseFloat(lineHeight)
-    };
-  });
-```
-
-The inefficiency has necessitating sampling.
-
-However, there is evidence that moving the processing of Playwright locators into the browser and returning the final result to Node could be 1 or 2 orders of magnitude faster and eliminate the need to sample, thereby improving speed and delivering accuracy and consistency.
-
-One proposal for a rewrite of `lineHeight`, still doing sampling, was:
-
-```javascript
-// Reports a test.
-exports.reporter = async (page, report) => {
-  // Get data on elements with potentially invalid line heights.
-  const data = await page.evaluate(() => {
-    const instances = [];
-    // Get all visible elements in the body with any text.
-    const elements = Array
-    .from(document.querySelectorAll('body *'))
-    .filter(el => {
-      const styleDec = window.getComputedStyle(el);
-      const {display, visibility} = styleDec;
-      return display !== 'none' && visibility !== 'hidden' && el.textContent.trim().length;
-    });
-    // Get a sample of them.
-    const sampleIndexes = window.getSample(elements, 100);
-    const sample = sampleIndexes.map(index => elements[index]);
-    // For each element in the sample:
-    sample.forEach(el => {
-      const styleDec = window.getComputedStyle(el);
-      const {lineHeight, fontSize} = styleDec;
-      // If the line height is absolute:
-      if (['px', 'pt'].some(unit => lineHeight.endsWith(unit))) {
-        const lhValue = parseFloat(lineHeight);
-        const fsValue = parseFloat(fontSize);
-        // If the line height is less than 1.2 times the font size:
-        if (fsValue > 0 && lhValue / fsValue < 1.2) {
-          const box = el.getBoundingClientRect();
-          // Add an instance to the result.
-          instances.push({
-            ruleID: 'lineHeight',
-            what: 'Line height is less than 1.2 times the font size',
-            ordinalSeverity: 2,
-            tagName: el.tagName,
-            id: el.id || '',
-            location: {
-              doc: 'dom',
-              type: 'box',
-              spec: {
-                x: box.x,
-                y: box.y,
-                width: box.width,
-                height: box.height
-              }
-            },
-            excerpt: el.textContent.trim().replace(/\s+/g, ' ').slice(0, 100)
-          });
-        }
-      }
-    });
-    return {
-      totals: [0, 0, instances.length, 0],
-      instances
-    };
-  });
-
-  // Add the result to the report.
-  try {
-    report.acts[report.actIndex].result.data = data;
-  }
-  catch(error) {
-    console.log(`ERROR: Could not add result to report (${error.message})`);
-  }
-};
-```
-
-To reuse a sampling (or any other) function in multiple tests, it was proposed to store the function in a file and then inject it into the page as follows:
-
-```javascript
-const getSample = require(path.join(__dirname, 'procs/sample.js')).getSample;
-const initScript = `window.getSample = ${getSample.toString()};`;
+const doSomething = require(path.join(__dirname, 'procs/sample.js')).doSomething;
+const initScript = `window.doSomething = ${doSomething.toString()};`;
 await browserContext.addInitScript(initScript);
 ```
 

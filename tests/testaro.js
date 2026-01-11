@@ -502,11 +502,11 @@ exports.reporter = async (page, report, actIndex) => {
       );
       page = require('../run').page;
     }
+    // Get the current browser.
+    const {browser} = require('../run');
     // Report crashes and disconnections during this test.
     let crashHandler;
     let disconnectHandler;
-    // Get the current browser.
-    const {browser} = require('../run');
     if (page && ! page.isClosed()) {
       crashHandler = () => {
         console.log(`ERROR: Page crashed during ${rule} test`);
@@ -526,10 +526,10 @@ exports.reporter = async (page, report, actIndex) => {
       // Add them to the argument array.
       ruleArgs.push(... args[ruleID]);
     }
+    // Initialize the rule result.
     result[ruleID] ??= {};
     const ruleResult = result[ruleID];
-    const {what} = rule;
-    ruleResult.what = what || '';
+    ruleResult.what = rule.what || '';
     const startTime = Date.now();
     let timeout;
     let testRetries = 2;

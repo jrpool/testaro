@@ -624,7 +624,7 @@ const convert = (toolName, data, result, standardResult) => {
   }
   // testaro
   else if (toolName === 'testaro') {
-    // Initialize a record of sample-ratio-weighted totals.
+    // Initialize a record of instance totals by rule and severity.
     data.ruleTotals = {};
     // For each violated rule:
     const rules = result ? Object.keys(result) : [];

@@ -86,9 +86,9 @@ exports.doTest = async (
             instanceSeverity = Number(ruleWhat[0]);
             // Remove it from the violation description.
             ruleWhat = ruleWhat.slice(2);
-            // Increment the violation totals.
-            totals[instanceSeverity]++;
           }
+          // Increment the violation totals.
+          totals[instanceSeverity]++;
           // Add an instance to the instances.
           standardInstances.push(
             window.getInstance(candidate, ruleID, ruleWhat, 1, instanceSeverity)
