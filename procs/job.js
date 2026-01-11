@@ -24,8 +24,8 @@ const {dateOf} = require('./dateOf');
 // CONSTANTS
 
 // Names and descriptions of tools.
-const tools = exports.tools = {
-  alfa: 'alfa',
+const tools = {
+  alfa: 'Alfa',
   aslint: 'ASLint',
   axe: 'Axe',
   ed11y: 'Editoria11y',
@@ -131,13 +131,13 @@ const isValidAct = exports.isValidAct = act => {
     // If the type is test:
     if (type === 'test') {
       // Identify the test.
-      const toolName = act.which;
+      const toolID = act.which;
       // If one was specified and is known:
-      if (toolName && tools[toolName]) {
+      if (toolID && tools[toolID]) {
         // If it has special properties:
-        if (actSpecs.tools[toolName]) {
+        if (actSpecs.tools[toolID]) {
           // Expand the validator by adding them.
-          Object.assign(validator, actSpecs.tools[toolName][1]);
+          Object.assign(validator, actSpecs.tools[toolID][1]);
         }
       }
       // Otherwise, i.e. if no or an unknown test was specified:
