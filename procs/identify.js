@@ -89,7 +89,7 @@ const addIDs = async (locator, recipient) => {
       if (segment === '') {
         return '';
       }
-      if (['html', 'body'].includes(segment) {
+      if (['html', 'body'].includes(segment)) {
         return segment;
       }
       if (segment.endsWith(']')) {
