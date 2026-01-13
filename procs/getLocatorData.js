@@ -101,3 +101,47 @@ exports.getLocatorData = async loc => {
     return null;
   }
 };
+// Returns location data from the extract of a standard instance.
+exports.getLocationData = async (page, excerpt) => {
+  const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#"/);
+  // If the excerpt contains a Testaro identifier:
+  if (testaroIDArray) {
+    const testaroID = testaroIDArray[1];
+    // Return location data for the element.
+    return await page.evaluate(testaroID => {
+      const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
+      // If any element has that identifier:
+      if (element) {
+        // Get box and path IDs for the element.
+        const box = {};
+        let boxID = '';
+        const boundingBox = element.getBoundingClientRect() || {};
+        if (boundingBox.x) {
+          ['x', 'y', 'width', 'height'].forEach(coordinate => {
+            box[coordinate] = Math.round(boundingBox[coordinate]);
+          });
+        }
+        if (typeof box.x === 'number') {
+          boxID = Object.values(box).join(':');
+        }
+        const pathID = window.getXPath(element) || '';
+        // Return them.
+        return {
+          boxID,
+          pathID
+        };
+      }
+      // Otherwise, i.e. if no element has it, return empty location data.
+      return {};
+    }, testaroID);
+  }
+  // Otherwise, i.e. if the extract contains no Testaro identifier:
+  else {
+    // Return a non-DOM location.
+    return {
+      notInDOM: true,
+      boxID: '',
+      pathID: ''
+    };
+  }
+};

@@ -15,7 +15,9 @@
 // ########## IMPORTS
 
 // Module to add Testaro IDs to elements.
-const {addTestaroIDs, getLocationData} = require('./testaro');
+const {addTestaroIDs} = require('./testaro');
+// Module to get location data from an element.
+const {getLocationData} = require('./getLocatorData');
 // Module to get the document source.
 const {getSource} = require('./getSource');
 

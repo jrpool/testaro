@@ -1,5 +1,6 @@
 /*
   © 2022–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -15,7 +16,9 @@
 // IMPORTS
 
 // Module to add and use unique element IDs.
-const {addTestaroIDs, getLocationData} = require('../procs/testaro');
+const {addTestaroIDs} = require('../procs/testaro');
+// Module to get location data from an element.
+const {getLocationData} = require('../procs/getLocatorData');
 // Module to handle files.
 const fs = require('fs/promises');
 
