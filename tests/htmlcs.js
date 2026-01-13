@@ -91,7 +91,7 @@ exports.reporter = async (page, report, actIndex) => {
       // If it is an error or a warning (not a notice):
       else if (['Error', 'Warning'].includes(parts[0])) {
         /*
-          Add the violation to an violationClass.violationCode.description array in the result.
+          Add the violation to a violationClass.violationCode.description array in the result.
           This saves space, because, although some descriptions are violation-specific, such as
           descriptions that state the contrast ratio of an element, most descriptions are
           generic, so typically many violations share a description.

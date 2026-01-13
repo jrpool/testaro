@@ -438,22 +438,19 @@ const launch = exports.launch = async (
               const parent = element.parentNode;
               // If (abnormally) the parent node is not an element:
               if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
-                // Prepend it to the segment array.
+                // Prepend the element (not the parent) to the segment array.
                 segments.unshift(tag);
                 // Stop traversing, leaving the segment array partial.
                 break;
               }
-              let subscript = '';
-              // Get the subscript of the element.
+              // Get the subscript of the element if it is not the body element.
               const cohort = Array
               .from(parent.childNodes)
               .filter(
                 childNode => childNode.nodeType === Node.ELEMENT_NODE
                 && childNode.tagName === element.tagName
               );
-              if (cohort.length > 1) {
-                subscript = `[${cohort.indexOf(element) + 1}]`;
-              }
+              const subscript = tag === 'body' ? '' : `[${cohort.indexOf(element) + 1}]`;
               // Prepend the element identifier to the segment array.
               segments.unshift(`${tag}${subscript}`);
               // Continue the traversal with the parent of the current element.
@@ -1649,14 +1646,18 @@ const doActs = async (report, opts = {}) => {
           };
           // Populate it.
           standardize(act);
-          // Add a box ID and a path ID to each of its standard instances if missing.
+          // For each of its standard instances:
           for (const instance of act.standardResult.instances) {
             const elementID = await identify(instance, page);
+            // If a box ID is missing:
             if (! instance.boxID) {
+              // Add one.
               instance.boxID = elementID ? elementID.boxID : '';
             }
-            if (! instance.pathID) {
-              instance.pathID = elementID ? elementID.pathID : '';
+            // If a path ID is missing or different:
+            if (instance.pathID !== elementID.pathID) {
+              // Add a box ID and a path ID to each of its standard instances if missing.
+              instance.pathID = elementID.pathID;
             }
           };
           // If the original-format result is not to be included in the report:
