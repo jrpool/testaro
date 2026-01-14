@@ -103,11 +103,12 @@ exports.getLocatorData = async loc => {
 };
 // Returns location data from the extract of a standard instance.
 exports.getLocationData = async (page, excerpt) => {
+  console.log(`XXX Excerpt: ${excerpt}`);
   const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#([^"]*)"/);
   // If the extract contains a Testaro identifier:
   if (testaroIDArray) {
+    console.log(`XXX XPath from it: ${testaroIDArray[2]}`);
     const testaroID = `${testaroIDArray[1]}#${testaroIDArray[2]}`;
-    // Return location data for the element.
     return await page.evaluate(testaroID => {
       const element = document.querySelector(`[data-testaro-id="${testaroID}"]`);
       // If any element has that identifier:
@@ -124,23 +125,10 @@ exports.getLocationData = async (page, excerpt) => {
         if (typeof box.x === 'number') {
           boxID = Object.values(box).join(':');
         }
-        const oldPathID = testaroID.replace(/^.*?#/, '');
-        const newPathID = window.getXPath(element);
-        let pathID = '';
-        // If the XPath of the element is the same as that in the identifier:
-        if (newPathID === oldPathID) {
-          // Use it as the path ID.
-          pathID = oldPathID;
-        }
-        // Otherwise, if both paths exist but differ:
-        else if (oldPathID && newPathID) {
-          // Use both as a path ID.
-          pathID = `${newPathID} (originally: ${oldPathID})`;
-        }
-        // Otherwise, i.e. if only one of them exists:
-        else {
-          // Use the existing one as the path ID.
-          pathID = newPathID || oldPathID;
+        // Get a path ID for the element.
+        let pathID = testaroID.replace(/^.*?#/, '');
+        if (! pathID) {
+          pathID = window.getXPath(element);
         }
         // Return the box and path IDs.
         return {

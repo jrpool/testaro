@@ -175,7 +175,9 @@ const doAxe = (result, standardResult, certainty) => {
             type: 'selector',
             spec: node.target && node.target.length ? node.target[0] : ''
           },
-          excerpt: cap(node.html)
+          excerpt: cap(node.html),
+          boxID: '',
+          pathID: ''
         };
         standardResult.instances.push(instance);
       });
@@ -311,7 +313,9 @@ const doQualWeb = (result, standardResult, ruleClassName) => {
               type: 'selector',
               spec: element.pointer
             },
-            excerpt: cap(htmlCode)
+            excerpt: cap(htmlCode),
+            boxID: '',
+            pathID: ''
           };
           standardResult.instances.push(instance);
         });
@@ -365,7 +369,9 @@ const doWAVE = (result, standardResult, categoryName) => {
               type: 'selector',
               spec: violationFacts[0] || 'html'
             },
-            excerpt: violationFacts[1]
+            excerpt: violationFacts[1],
+            boxID: '',
+            pathID: ''
           };
           // Add it to the standard result.
           standardResult.instances.push(instance);
@@ -406,7 +412,9 @@ const convert = (toolName, data, result, standardResult) => {
             type: 'xpath',
             spec: target.path
           },
-          excerpt: cap(code)
+          excerpt: cap(code),
+          boxID: '',
+          pathID: ''
         };
         standardResult.instances.push(instance);
       }
@@ -438,7 +446,9 @@ const convert = (toolName, data, result, standardResult) => {
               type: 'xpath',
               spec: target.path
             },
-            excerpt: cap(code)
+            excerpt: cap(code),
+            boxID: '',
+            pathID: ''
           };
         }
         standardResult.instances.push(instance);
@@ -588,7 +598,9 @@ const convert = (toolName, data, result, standardResult) => {
             type: 'xpath',
             spec: item.path.dom
           },
-          excerpt: cap(item.snippet)
+          excerpt: cap(item.snippet),
+          boxID: '',
+          pathID: ''
         };
         standardResult.instances.push(instance);
       });
@@ -653,7 +665,9 @@ const convert = (toolName, data, result, standardResult) => {
         tagName: '',
         id: '',
         location: '',
-        excerpt: ''
+        excerpt: '',
+        boxID: '',
+        pathID: ''
       });
     }
   }

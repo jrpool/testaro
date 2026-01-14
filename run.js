@@ -412,8 +412,8 @@ const launch = exports.launch = async (
           get: () => ['en-US', 'en']
         });
       });
-      const needsXPath = act.type === 'test'
-      && ['testaro', 'htmlcs', 'nuVal', 'nuVnu', 'wax'].includes(act.which);
+      const xPathNeeders = ['testaro', 'htmlcs', 'nuVal', 'nuVnu', 'qualWeb', 'wax'];
+      const needsXPath = act.type === 'test' && xPathNeeders.includes(act.which);
       // If the launch is for a test act that requires XPaths:
       if (needsXPath) {
         // Add a script to the page to add a window method to get the XPath of an element.
@@ -436,7 +436,7 @@ const launch = exports.launch = async (
               // Otherwise, get its parent node.
               const parent = element.parentNode;
               // If (abnormally) the parent node is not an element:
-              if (!parent || parent.nodeType !== Node.ELEMENT_NODE) {
+              if (! parent || parent.nodeType !== Node.ELEMENT_NODE) {
                 // Prepend the element (not the parent) to the segment array.
                 segments.unshift(tag);
                 // Stop traversing, leaving the segment array partial.

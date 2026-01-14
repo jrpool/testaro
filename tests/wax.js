@@ -60,7 +60,7 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Otherwise, i.e. if it is a successful report:
       else {
-        // Add location data to its excerpts.
+        // Add location data to its reported violations.
         for (const violation of actReport) {
           const {element} = violation;
           const elementLocation = await getLocationData(page, element);

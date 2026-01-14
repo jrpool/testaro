@@ -19,6 +19,7 @@ const {QualWeb} = require('@qualweb/core');
 const {ACTRules} = require('@qualweb/act-rules');
 const {WCAGTechniques} = require('@qualweb/wcag-techniques');
 const {BestPractices} = require('@qualweb/best-practices');
+const {addTestaroIDs} = require('../procs/testaro');
 
 // CONSTANTS
 
@@ -43,6 +44,8 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     timeout: timeLimit * 1000,
     monitor: false
   };
+  // Annotate all elements on the page with unique identifiers.
+  await addTestaroIDs(page);
   try {
     // Start the QualWeb core engine.
     await qualWeb.start(clusterOptions, {
@@ -190,6 +193,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                     // Otherwise, i.e. if there was at least 1 warning or failure:
                     else {
                       if (ruleAssertions.results) {
+                        // Delete nonviolations from the results.
                         ruleAssertions.results = ruleAssertions.results.filter(
                           raResult => raResult.verdict !== 'passed'
                         );
