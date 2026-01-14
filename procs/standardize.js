@@ -314,8 +314,8 @@ const doQualWeb = (result, standardResult, ruleClassName) => {
               spec: element.pointer
             },
             excerpt: cap(htmlCode),
-            boxID: '',
-            pathID: ''
+            boxID: element.locationData?.boxID || '',
+            pathID: element.locationData?.pathID || ''
           };
           standardResult.instances.push(instance);
         });

@@ -20,6 +20,7 @@ const {ACTRules} = require('@qualweb/act-rules');
 const {WCAGTechniques} = require('@qualweb/wcag-techniques');
 const {BestPractices} = require('@qualweb/best-practices');
 const {addTestaroIDs} = require('../procs/testaro');
+const {getLocationData} = require('../procs/getLocatorData');
 
 // CONSTANTS
 
@@ -180,7 +181,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
               if (assertions) {
                 const ruleIDs = Object.keys(assertions);
                 // For each rule:
-                ruleIDs.forEach(ruleID => {
+                for (const ruleID of ruleIDs) {
                   const ruleAssertions = assertions[ruleID];
                   const {metadata} = ruleAssertions;
                   // If result data exist for the rule:
@@ -202,17 +203,23 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                   }
                   // Shorten long HTML codes of elements.
                   const {results} = ruleAssertions;
-                  results.forEach(raResult => {
+                  // For each test result:
+                  for (const raResult of results) {
                     const {elements} = raResult;
+                    // If any violations are reported:
                     if (elements && elements.length) {
-                      elements.forEach(element => {
+                      // For each violating element:
+                      for (const element of elements) {
+                        // Add location data from its excerpt to the element data.
+                        element.locationData = await getLocationData(page, element.htmlCode);
+                        // Limit the size of its reported excerpt.
                         if (element.htmlCode && element.htmlCode.length > 700) {
                           element.htmlCode = `${element.htmlCode.slice(0, 700)} …`;
                         }
-                      });
+                      };
                     }
-                  });
-                });
+                  };
+                };
               }
               else {
                 data.prevented = true;
