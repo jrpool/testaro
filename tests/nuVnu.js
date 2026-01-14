@@ -33,7 +33,7 @@ const tmpDir = os.tmpdir();
 
 // Conducts and reports the Nu Html Checker tests.
 exports.reporter = async (page, report, actIndex) => {
-  // Get the vuVal act, if it exists.
+  // Get the nuVal act, if it exists.
   const nuValAct = report.acts.find(act => act.type === 'test' && act.which === 'nuVal');
   // If it does not exist or it exists but was prevented:
   if (! nuValAct || nuValAct.data?.prevented) {
@@ -70,6 +70,10 @@ exports.reporter = async (page, report, actIndex) => {
       await fs.unlink(pagePath);
       // Postprocess the result.
       result = await curate(page, data, nuData, rules);
+      return {
+        data,
+        result
+      };
     }
     // Otherwise, i.e. if the content was not obtained:
     else {
@@ -77,10 +81,6 @@ exports.reporter = async (page, report, actIndex) => {
       data.prevented = true;
       data.error = 'Content not obtained';
     }
-    return {
-      data,
-      result
-    };
   }
   // Otherwise, i.e. if the nuVal act exists and succeeded:
   else {

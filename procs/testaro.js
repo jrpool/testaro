@@ -227,10 +227,55 @@ exports.getVisibleCountChange = async (
 };
 // Annotates every element on a page with a unique identifier.
 exports.addTestaroIDs = async page => {
+  // Wait for the page to be fully loaded.
+  await page.waitForLoadState('networkidle');
   await page.evaluate(() => {
     let serialID = 0;
     for (const element of Array.from(document.querySelectorAll('*'))) {
-      element.setAttribute('data-testaro-id', `${serialID++}#`);
+      const xPath = window.getXPath(element);
+      element.setAttribute('data-testaro-id', `${serialID++}#${xPath}`);
     }
   });
 };
+
+/*
+// XXX
+exports.addTestaroIDs = async page => {
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(async () => {
+    return await new Promise(resolve => {
+      let serialID = 0;
+      const initialElements = Array.from(document.querySelectorAll('*'));
+      console.log(`XXX Initial element count: ${initialElements.length}`);
+      for (const element of initialElements) {
+        element.setAttribute('data-testaro-id', `${serialID++}#`);
+      }
+      // Track new elements
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === 1 && ! node.hasAttribute('data-testaro-id')) {
+              console.warn(
+                `Element added without ID: ${node.tagName}, class ${node.className}, id ${node.id}`
+              );
+            }
+          });
+        });
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      // Diagnostic: Check for elements added after initial marking
+      setTimeout(() => {
+        const unmarkedElements = Array.from(document.querySelectorAll('*:not([data-testaro-id])'));
+        console.log(`XXX Unmarked elements found after 3s: ${unmarkedElements.length}`);
+        unmarkedElements.forEach(el => {
+          console.log(`XXX Unmarked: tag ${el.tagName}; class ${el.className}; id ${el.id}`);
+          resolve(true);
+        });
+      }, 3000);
+    });
+  });
+};
+*/

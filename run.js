@@ -374,7 +374,6 @@ const launch = exports.launch = async (
         // If the page emits a message:
         page.on('console', msg => {
           const msgText = msg.text();
-          let indentedMsg = '';
           // If debugging is on:
           if (debug) {
             // Log the start of the message on the console.
@@ -917,7 +916,7 @@ const doActs = async (report, opts = {}) => {
           child.on('close', code => {
             if (! closed) {
               closed = true;
-              resolve(code);
+              resolve(`Page closed with code ${code}`);
             }
           });
         });

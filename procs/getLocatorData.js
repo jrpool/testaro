@@ -103,13 +103,13 @@ exports.getLocatorData = async loc => {
 };
 // Returns location data from the extract of a standard instance.
 exports.getLocationData = async (page, excerpt) => {
-  const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#"/);
+  const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#[^"]*"/);
   // If the excerpt contains a Testaro identifier:
   if (testaroIDArray) {
     const testaroID = testaroIDArray[1];
     // Return location data for the element.
     return await page.evaluate(testaroID => {
-      const element = document.querySelector(`[data-testaro-id="${testaroID}#"]`);
+      const element = document.querySelector(`[data-testaro-id="${testaroID}"]`);
       // If any element has that identifier:
       if (element) {
         // Get box and path IDs for the element.
@@ -124,7 +124,15 @@ exports.getLocationData = async (page, excerpt) => {
         if (typeof box.x === 'number') {
           boxID = Object.values(box).join(':');
         }
-        const pathID = window.getXPath(element) || '';
+        const oldPathID = testaroID.replace(/^.*?#/, '');
+        const newPathID = window.getXPath(element);
+        let pathID = '';
+        if (newPathID === oldPathID) {
+          pathID = oldPathID;
+        }
+        else if (oldPathID && newPathID) {
+          pathID = `${newPathID} (originally: ${oldPathID})`;
+        }
         // Return them.
         return {
           boxID,
