@@ -42,8 +42,8 @@ const getIdentifiers = code => {
     const tagNameArray = startTagData[1].match(/^[A-Za-z0-9]+/);
     const tagName = tagNameArray ? tagNameArray[0].toUpperCase() : '';
     // Get the value of the id attribute, if any.
-    const idData = startTagData[1].match(/ id="([^"]+)"/);
-    const id = idData ? idData[1] : '';
+    const identifierData = startTagData[1].match(/ id="([^"]+)"/);
+    const id = identifierData ? identifierData[1] : '';
     // Return the tag name and the value of the id attribute, if any.
     return [tagName, id];
   }

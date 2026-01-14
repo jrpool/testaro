@@ -1647,16 +1647,19 @@ const doActs = async (report, opts = {}) => {
           standardize(act);
           // For each of its standard instances:
           for (const instance of act.standardResult.instances) {
-            const elementID = await identify(instance, page);
-            // If a box ID is missing:
-            if (! instance.boxID) {
-              // Add one.
-              instance.boxID = elementID ? elementID.boxID : '';
-            }
-            // If a path ID is missing or different:
-            if (instance.pathID !== elementID.pathID) {
-              // Add a box ID and a path ID to each of its standard instances if missing.
-              instance.pathID = elementID.pathID;
+            // If the instance does not have both a box ID and a path ID:
+            if (! (instance.boxID && instance.pathID)) {
+              const elementID = await identify(instance, page);
+              // If it has no box ID but the element has a bounding box:
+              if (elementID.boxID && ! instance.boxID) {
+                // Add a box ID.
+                instance.boxID = elementID.boxID;
+              }
+              // If it has no path ID but the element has one:
+              if (elementID.pathID && ! instance.pathID) {
+                // Add a path ID.
+                instance.pathID = elementID.pathID;
+              }
             }
           };
           // If the original-format result is not to be included in the report:
@@ -1676,9 +1679,12 @@ const doActs = async (report, opts = {}) => {
     console.log('Standardization completed');
     const {acts} = report;
     const idData = {};
+    // For each act:
     for (const act of acts) {
+      // If it is a test act:
       if (act.type === 'test') {
         const {which} = act;
+        // Initialize an idData property for the tool if necessary.
         idData[which] ??= {
           instanceCount: 0,
           boxIDCount: 0,
@@ -1689,18 +1695,26 @@ const doActs = async (report, opts = {}) => {
         const actIDData = idData[which];
         const {standardResult} = act;
         const {instances} = standardResult;
+        // For each standard instance in the act:
         for (const instance of instances) {
           const {boxID, pathID} = instance;
+          // Increment the instance count.
           actIDData.instanceCount++;
+          // If the instance has a box ID:
           if (boxID) {
+            // Increment the box ID count.
             actIDData.boxIDCount++;
           }
+          // If the instance has a path ID:
           if (pathID) {
+            // Increment the path ID count.
             actIDData.pathIDCount++;
           }
         }
         const {instanceCount, boxIDCount, pathIDCount} = actIDData;
+        // If there are any instances:
         if (instanceCount) {
+          // Add the box ID and path ID percentages to the iData property.
           actIDData.boxIDPercent = Math.round(100 * boxIDCount / instanceCount);
           actIDData.pathIDPercent = Math.round(100 * pathIDCount / instanceCount);
         }
