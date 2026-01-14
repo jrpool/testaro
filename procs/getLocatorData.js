@@ -103,15 +103,18 @@ exports.getLocatorData = async loc => {
 };
 // Returns location data from the extract of a standard instance.
 exports.getLocationData = async (page, excerpt) => {
-  const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#[^"]*"/);
-  // If the excerpt contains a Testaro identifier:
+  console.log('\nXXX Starting getLocationData');
+  const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#([^"]*)"/);
+  // If the extract contains a Testaro identifier:
   if (testaroIDArray) {
-    const testaroID = testaroIDArray[1];
+    console.log(`XXX Found testaroID in excerpt: ${excerpt}`);
+    const testaroID = `${testaroIDArray[1]}#${testaroIDArray[2]}`;
     // Return location data for the element.
     return await page.evaluate(testaroID => {
       const element = document.querySelector(`[data-testaro-id="${testaroID}"]`);
       // If any element has that identifier:
       if (element) {
+        console.log(`XXX Found element with testaroID: ${testaroID}`);
         // Get box and path IDs for the element.
         const box = {};
         let boxID = '';
@@ -124,30 +127,59 @@ exports.getLocationData = async (page, excerpt) => {
         if (typeof box.x === 'number') {
           boxID = Object.values(box).join(':');
         }
+        console.log(`XXX testaroID: ${testaroID}`);
         const oldPathID = testaroID.replace(/^.*?#/, '');
+        console.log(`XXX oldPathID: ${oldPathID}`);
         const newPathID = window.getXPath(element);
+        console.log(`XXX newPathID: ${newPathID}`);
         let pathID = '';
+        // If the XPath of the element is the same as that in the identifier:
         if (newPathID === oldPathID) {
+          // Use it as the path ID.
           pathID = oldPathID;
         }
+        // Otherwise, if both paths exist but differ:
         else if (oldPathID && newPathID) {
+          // Use both as a path ID.
           pathID = `${newPathID} (originally: ${oldPathID})`;
         }
+        // Otherwise, i.e. if only one of them exists:
         else {
+          // Use the existing one as the path ID.
           pathID = newPathID || oldPathID;
         }
-        // Return them.
+        // Return the box and path IDs.
+        console.log(`XXX About to return:\n${JSON.stringify({
+          boxID,
+          pathID
+        }, null, 2)}`);
         return {
           boxID,
           pathID
         };
       }
-      // Otherwise, i.e. if no element has it, return empty location data.
-      return {};
+      // Otherwise, if no element has it but the identifier includes an XPath:
+      else if (testaroIDArray[2]) {
+        console.log('XXX testaroID has an XPath buto element has the testaroID');
+        // Return an empty box ID and that XPath as a path ID.
+        return {
+          notInDOM: true,
+          boxID: '',
+          pathID: testaroIDArray[2]
+        };
+      }
+      // Otherwise, return empty location properties.
+      console.log('XXX No element has the testaroID and it has no XPath');
+      return {
+        notInDOM: true,
+        boxID: '',
+        pathID: ''
+      };
     }, testaroID);
   }
   // Otherwise, i.e. if the extract contains no Testaro identifier:
   else {
+    console.log(`XXX No Testaro identifier in excerpt ${excerpt}`);
     // Return a non-DOM location.
     return {
       notInDOM: true,
