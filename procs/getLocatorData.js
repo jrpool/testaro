@@ -103,11 +103,9 @@ exports.getLocatorData = async loc => {
 };
 // Returns location data from the extract of a standard instance.
 exports.getLocationData = async (page, excerpt) => {
-  console.log(`XXX Excerpt: ${excerpt}`);
   const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#([^"]*)"/);
   // If the extract contains a Testaro identifier:
   if (testaroIDArray) {
-    console.log(`XXX XPath from it: ${testaroIDArray[2]}`);
     const testaroID = `${testaroIDArray[1]}#${testaroIDArray[2]}`;
     return await page.evaluate(testaroID => {
       const element = document.querySelector(`[data-testaro-id="${testaroID}"]`);
