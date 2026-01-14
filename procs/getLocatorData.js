@@ -129,9 +129,9 @@ exports.getLocationData = async (page, excerpt) => {
         }
         console.log(`XXX testaroID: ${testaroID}`);
         const oldPathID = testaroID.replace(/^.*?#/, '');
-        console.log(`XXX oldPathID: ${oldPathID}`);
+        console.log(`XXX oldPathID: "${oldPathID}"`);
         const newPathID = window.getXPath(element);
-        console.log(`XXX newPathID: ${newPathID}`);
+        console.log(`XXX newPathID: "${newPathID}"`);
         let pathID = '';
         // If the XPath of the element is the same as that in the identifier:
         if (newPathID === oldPathID) {
@@ -160,7 +160,7 @@ exports.getLocationData = async (page, excerpt) => {
       }
       // Otherwise, if no element has it but the identifier includes an XPath:
       else if (testaroIDArray[2]) {
-        console.log('XXX testaroID has an XPath buto element has the testaroID');
+        console.log('XXX testaroID has an XPath but no element has the testaroID');
         // Return an empty box ID and that XPath as a path ID.
         return {
           notInDOM: true,

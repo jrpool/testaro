@@ -98,5 +98,6 @@ exports.curate = async (page, data, nuData, rules) => {
     }
   }
   // Return the result.
+  console.log(`XXX curate is about to return:\n${JSON.stringify(result, null, 2)}`);
   return result;
 };
