@@ -133,6 +133,9 @@ exports.getLocationData = async (page, excerpt) => {
         else if (oldPathID && newPathID) {
           pathID = `${newPathID} (originally: ${oldPathID})`;
         }
+        else {
+          pathID = newPathID || oldPathID;
+        }
         // Return them.
         return {
           boxID,
