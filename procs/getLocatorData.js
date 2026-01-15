@@ -106,8 +106,8 @@ exports.getLocationData = async (page, excerpt) => {
   const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#([^"]*)"/);
   // If the extract contains a Testaro identifier:
   if (testaroIDArray) {
-    const testaroID = `${testaroIDArray[1]}#${testaroIDArray[2]}`;
-    return await page.evaluate(testaroID => {
+    return await page.evaluate(testaroIDArray => {
+      const testaroID = `${testaroIDArray[1]}#${testaroIDArray[2]}`;
       const element = document.querySelector(`[data-testaro-id="${testaroID}"]`);
       // If any element has that identifier:
       if (element) {
@@ -123,8 +123,8 @@ exports.getLocationData = async (page, excerpt) => {
         if (typeof box.x === 'number') {
           boxID = Object.values(box).join(':');
         }
-        // Get a path ID for the element.
-        let pathID = testaroID.replace(/^.*?#/, '');
+        // Get a path ID from the Testaro identifier or, if necessary, the element.
+        let pathID = testaroIDArray[2];
         if (! pathID) {
           pathID = window.getXPath(element);
         }
@@ -149,7 +149,7 @@ exports.getLocationData = async (page, excerpt) => {
         boxID: '',
         pathID: ''
       };
-    }, testaroID);
+    }, testaroIDArray);
   }
   // Otherwise, i.e. if the extract contains no Testaro identifier:
   else {

@@ -503,7 +503,7 @@ const convert = (toolName, data, result, standardResult) => {
               && ruleResult.element.html.replace(/\s+/g, ' ')
               || '';
               // Get the tag name from the XPath, if possible.
-              let tagName = xpath && xpath.replace(/[^-\w].*$/, '').toUpperCase() || '';
+              let tagName = pathID && pathID.replace(/[^-\w].*$/, '').toUpperCase() || '';
               if (! tagName && finalRuleID.endsWith('_svg')) {
                 tagName = 'SVG';
               }
@@ -527,7 +527,7 @@ const convert = (toolName, data, result, standardResult) => {
                 location: {
                   doc: 'dom',
                   type: 'xpath',
-                  spec: xpath
+                  spec: pathID
                 },
                 excerpt,
                 boxID: '',
