@@ -412,7 +412,7 @@ const launch = exports.launch = async (
           get: () => ['en-US', 'en']
         });
       });
-      const xPathNeeders = ['testaro', 'htmlcs', 'nuVal', 'nuVnu', 'qualWeb', 'wax'];
+      const xPathNeeders = ['aslint', 'htmlcs', 'nuVal', 'nuVnu', 'qualWeb', 'testaro', 'wax'];
       const needsXPath = act.type === 'test' && xPathNeeders.includes(act.which);
       // If the launch is for a test act that requires XPaths:
       if (needsXPath) {
