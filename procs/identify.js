@@ -54,6 +54,20 @@ const boxToString = exports.boxToString = box => {
     return '';
   }
 };
+// Normalizes an XPath.
+const getNormalizedXPath = exports.getNormalizedXPath = xPath => {
+  const segments = xPath.split('/');
+  const normalizedSegments = [];
+  segments.forEach(segment => {
+    if (segment === '' || ['html', 'body'].includes(segment) || segment.endsWith(']')) {
+      normalizedSegments.push(segment);
+    }
+    else {
+      normalizedSegments.push(`${segment}[1]`);
+    }
+  });
+  return normalizedSegments.join('/');
+};
 // Adds a box ID and a path ID to an object.
 const addIDs = async (locator, recipient) => {
   const locatorCount = await locator.count();
@@ -97,7 +111,7 @@ const addIDs = async (locator, recipient) => {
       }
       return `${segment}[1]`;
     });
-    recipient.pathID = normalizedSegments.join('/');
+    recipient.pathID = getNormalizedXPath(recipient.pathID);
   }
 };
 // Sanitizes a tag name.

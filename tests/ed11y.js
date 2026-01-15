@@ -17,6 +17,8 @@
 
 // Module to handle files.
 const fs = require('fs/promises');
+// Module to normalize XPaths.
+const {getNormalizedXPath} = require('../procs/identify');
 // Module to get the XPath of an element.
 const {xPath} = require('playwright-dompath');
 
@@ -109,7 +111,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
               elText = element.outerHTML;
             }
             if (elText.length > 400) {
-              elText = `${elText.slice(0, 200)}…${elText.slice(-200)}`;
+              elText = `${elText.slice(0, 300)}…${elText.slice(-200)}`;
             }
             violationFacts.excerpt = elText.replace(/\s+/g, ' ');
             violationFacts.boxID = ['x', 'y', 'width', 'height']
@@ -165,11 +167,11 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       const elementJSHandles = await elementsJSHandle.getProperties();
       // For each violation:
       for (const index in violations) {
-        // Get its path ID from the identically indexed element.
+        // Get its Playwright path ID from the identically indexed element.
         const elementHandle = elementJSHandles.get(index).asElement();
-        const pathID = await xPath(elementHandle);
-        // Add the path ID to the violation facts of the result.
-        violations[index].pathID = pathID;
+        const pwPathID = await xPath(elementHandle);
+        // Add the normalized path ID to the violation facts of the result.
+        violations[index].pathID = getNormalizedXPath(pwPathID);
       };
     }
     // Return the data and result, discarding the separate element data.
