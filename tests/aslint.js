@@ -15,13 +15,19 @@
 
 // IMPORTS
 
+// Function to add unique identifiers to the elements in the page.
+const {addTestaroIDs} = require('../procs/testaro');
 // Module to handle files.
 const fs = require('fs/promises');
+// Function to get location data from an element.
+const {getLocationData} = require('../procs/getLocatorData');
 
 // FUNCTIONS
 
 // Conducts and reports the ASLint tests.
 exports.reporter = async (page, report, actIndex, timeLimit) => {
+  // Add unique identifiers to the elements in the page.
+  await addTestaroIDs(page);
   // Initialize the act report.
   let data = {};
   let result = {};
@@ -82,13 +88,11 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   if (! data.prevented) {
     // Get their text.
     const actReport = await reportLoc.textContent();
-    // Populate the act report.
     result = JSON.parse(actReport);
     // If any rules were reported violated:
     if (result.rules) {
       // For each such rule:
-      Object.keys(result.rules).forEach(ruleID => {
-        // If the rule was passed or skipped or rules to be tested were specified and exclude it:
+      for (const ruleID of Object.keys(result.rules)) {
         const excluded = act.rules && ! act.rules.includes(ruleID);
         const instanceType = result.rules[ruleID].status.type;
         // If rules to be tested were specified and exclude it or the rule was passed or skipped:
@@ -96,7 +100,22 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
           // Delete the rule report.
           delete result.rules[ruleID];
         }
-      });
+        // Otherwise, i.e. if the rule was violated:
+        else {
+          const ruleResults = result.rules[ruleID].results;
+          // For each violation:
+          for (const ruleResult of ruleResults) {
+            const excerpt = ruleResult.element
+            && ruleResult.element.html.replace(/\s+/g, ' ')
+            || '';
+            // If an element excerpt was reported:
+            if (excerpt) {
+              // Use it to add location data to the violation data in the result.
+              ruleResult.locationData = await getLocationData(page, excerpt);
+            }
+          };
+        }
+      };
     }
   }
   // Return the act report.

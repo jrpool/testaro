@@ -15,9 +15,9 @@
 
 // IMPORTS
 
-// Module to add and use unique element IDs.
+// Function to add and use unique element IDs.
 const {addTestaroIDs} = require('../procs/testaro');
-// Module to get location data from an element.
+// Function to get location data from an element.
 const {getLocationData} = require('../procs/getLocatorData');
 // Modules to run WAX.
 const runWax = require('@wally-ax/wax-dev');

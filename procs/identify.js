@@ -56,6 +56,7 @@ const boxToString = exports.boxToString = box => {
 };
 // Normalizes an XPath.
 const getNormalizedXPath = exports.getNormalizedXPath = xPath => {
+  xPath = xPath.replace(/^\.\/\//, '/');
   const segments = xPath.split('/');
   const normalizedSegments = [];
   segments.forEach(segment => {
@@ -98,19 +99,6 @@ const addIDs = async (locator, recipient) => {
       }
     }
     // Normalize the path ID.
-    const xPathSegments = recipient.pathID.split('/');
-    const normalizedSegments = xPathSegments.map(segment => {
-      if (segment === '') {
-        return '';
-      }
-      if (['html', 'body'].includes(segment)) {
-        return segment;
-      }
-      if (segment.endsWith(']')) {
-        return segment;
-      }
-      return `${segment}[1]`;
-    });
     recipient.pathID = getNormalizedXPath(recipient.pathID);
   }
 };

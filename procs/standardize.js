@@ -13,6 +13,10 @@
   Converts test results to the standard format.
 */
 
+// IMPORTS
+
+const {getNormalizedXPath} = require('./identify');
+
 // FUNCTIONS
 
 // Limits the length of and unilinearizes a string.
@@ -485,19 +489,30 @@ const convert = (toolName, data, result, standardResult) => {
                   finalRuleID = changer[changer.length - 1];
                 }
               }
-              // Get the instance properties.
-              const xpath = ruleResult.element && ruleResult.element.xpath || '';
-              let tagName = xpath
-              && xpath.replace(/^.*\//, '').replace(/[^-\w].*$/, '').toUpperCase()
+              // Initialize the path ID of the violating element as any normalized reported XPath.
+              let pathID = getNormalizedXPath(ruleResult.element && ruleResult.element.xpath) || '';
+              const {locationData} = ruleResult;
+              // If an XPath was obtained from the excerpt:
+              if (locationData && locationData.pathID) {
+                // Replace the path ID with it, because some ASLint-reported XPaths are abbreviated.
+                ({pathID} = locationData);
+              }
+              // Get and normalize the reported excerpt.
+              const excerpt = ruleResult.element
+              && ruleResult.element.html
+              && ruleResult.element.html.replace(/\s+/g, ' ')
               || '';
+              // Get the tag name from the XPath, if possible.
+              let tagName = xpath && xpath.replace(/[^-\w].*$/, '').toUpperCase() || '';
               if (! tagName && finalRuleID.endsWith('_svg')) {
                 tagName = 'SVG';
               }
-              const excerpt = ruleResult.element && ruleResult.element.html.replace(/\s+/g, ' ')
-              || '';
+              // If that was impossible but there is a tag name in the excerpt:
               if (! tagName && /^<[a-z]+[ >]/.test(excerpt)) {
+                // Get it.
                 tagName = excerpt.slice(1).replace(/[ >].+/, '').toUpperCase();
               }
+              // Get the ID, if any.
               const idDraft = excerpt && excerpt.replace(/^[^[>]+id="/, 'id=').replace(/".*$/, '');
               const idFinal = idDraft && idDraft.length > 3 && idDraft.startsWith('id=')
                 ? idDraft.slice(3)
@@ -514,7 +529,9 @@ const convert = (toolName, data, result, standardResult) => {
                   type: 'xpath',
                   spec: xpath
                 },
-                excerpt
+                excerpt,
+                boxID: '',
+                pathID
               };
               standardResult.instances.push(instance);
             }
