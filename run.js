@@ -1663,11 +1663,10 @@ const doActs = async (report, opts = {}) => {
             }
             // If the instance excerpt contains a unique Testaro identifier attribute:
             if (instance.excerpt.includes(' data-testaro-id="')) {
-              console.log('XXX About to delete data-testaro-id attribute');
               // Delete the attribute.
               instance.excerpt = instance
               .excerpt
-              .replace(/ data-testaro-id="[^" ]*"/g, '')
+              .replace(/ data-testaro-id="[^" ]*("|$)/g, '')
               .replace(/ data-testaro-id="[^" ]* /g, ' ');
             }
           };
