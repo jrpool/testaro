@@ -1650,6 +1650,11 @@ const doActs = async (report, opts = {}) => {
             // If the instance does not have both a box ID and a path ID:
             if (! (instance.boxID && instance.pathID)) {
               const elementID = await identify(instance, page);
+              // If the instance excerpt contains a unique Testaro identifier attribute:
+              if (instance.excerpt.includes('data-testaro-id="')) {
+                // Delete the attribute.
+                instance.excerpt = instance.excerpt.replace(/ data-testaro-id="[^\"]*[" ]/g, '');
+              }
               // If it has no box ID but the element has a bounding box:
               if (elementID.boxID && ! instance.boxID) {
                 // Add a box ID.
