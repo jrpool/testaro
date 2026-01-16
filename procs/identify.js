@@ -58,15 +58,27 @@ const boxToString = exports.boxToString = box => {
 const getNormalizedXPath = exports.getNormalizedXPath = xPath => {
   xPath = xPath.replace(/^\.\/\//, '/');
   const segments = xPath.split('/');
+  // Initialize an array of normalized segments.
   const normalizedSegments = [];
+  // For each segment of the XPath:
   segments.forEach(segment => {
-    if (segment === '' || ['html', 'body'].includes(segment) || segment.endsWith(']')) {
+    // If the segment is html[1] or body[1]:
+    if (/html\[1\]|body\[1\]/.test(segment)) {
+      // Add it without its subscript to the array.
+      normalizedSegments.push(segment.replace(/\[1\]/, ''));
+    }
+    // Otherwise, if the segment is empty or html or body or ends with a subscript:
+    else if (segment === '' || ['html', 'body'].includes(segment) || segment.endsWith(']')) {
+      // Add it to the array.
       normalizedSegments.push(segment);
     }
+    // Otherwise, i.e. if the segment is a tag name with no subscript:
     else {
+      // Add it with a subscript 1 to the array.
       normalizedSegments.push(`${segment}[1]`);
     }
   });
+  // Return the concatenated segments as the normalized XPath.
   return normalizedSegments.join('/');
 };
 // Adds a box ID and a path ID to an object.
@@ -128,18 +140,22 @@ exports.identify = async (instance, page) => {
   const {type, spec} = location;
   // If the instance specifies a CSS selector or XPath location:
   if (['selector', 'xpath'].includes(type)) {
-    // Get locators for elements with that specifier.
     let specifier = spec;
+    // If the specified location is an XPath:
     if (type === 'xpath') {
+      // Remove any final text-node segment.
       specifier = spec.replace(/\/text\(\)\[\d+\]$/, '');
     }
+    // If any specifier remains:
     if (specifier) {
       if (type === 'xpath') {
+        // Prefix it for playwright-dompath.
         specifier = `xpath=${specifier}`;
       }
       try {
+        // Get a Playwright locator for it.
         const locators = page.locator(specifier);
-        // Get their count, or throw an error if the specifier is invalid.
+        // Get the count of its referents.
         const locatorCount = await locators.count();
         // If the specifier is valid and the count is 1:
         if (locatorCount === 1) {
@@ -147,12 +163,12 @@ exports.identify = async (instance, page) => {
           await addIDs(locators, elementID);
         }
         /*
-          Otherwise, if the specifier is valid, the count is not 1, and the instance specifies
+          Otherwise, if the specifier is invalid or the count is not 1, and the instance specifies
           an XPath location:
         */
         else if (type === 'xpath') {
-          // Use the XPath location as the path ID.
-          elementID.pathID = spec;
+          // Use the normalized XPath location as the path ID.
+          elementID.pathID = getNormalizedXPath(specifier.replace(/^xpath=/, ''));
         }
       }
       // If the specifier is invalid:
