@@ -885,9 +885,7 @@ const doActs = async (report, opts = {}) => {
         // If this failed:
         if (! page) {
           // Add this to the act.
-          act.data ??= {};
-          act.data.prevented = true;
-          act.data.error = page.error || '';
+          addError(false, false, report, actIndex, page.error || '');
         }
       }
       // Otherwise, if the act is a test act:
@@ -986,25 +984,33 @@ const doActs = async (report, opts = {}) => {
               `ERROR: Tool sent message ${actResult.message}. Report is no longer JSON (${error.message}) but is instead a(n) ${typeof reportJSON} of length ${reportJSON.length}:\n${reportJSON}`
             );
             // Add the error data to the act.
-            act.data ??= {};
-            act.data.prevented = true;
-            act.data.error = `Non-JSON report file after message ${actResult.message}`;
+            addError(
+              false,
+              false,
+              report,
+              actIndex,
+              `Non-JSON report file after message ${actResult.message}`
+            );
           }
         }
         // Otherwise, i.e. if the child process closed abnormally:
         else {
           // Add the error data to the act.
           const {code, error, kind, signal} = actResult;
-          act.data ??= {};
-          act.data.prevented = true;
           if (kind === 'close' && timedOut) {
-            act.data.error = `Timed out at ${Math.round(limitMs / 1000)} seconds`;
+            addError(
+              false, false, report, actIndex, `Timed out at ${Math.round(limitMs / 1000)} seconds`
+            );
           }
           else if (kind === 'close') {
-            act.data.error = `Closed with code ${code} and signal ${signal})`;
+            addError(
+              true, false, report, actIndex, `Closed with code ${code} and signal ${signal})`
+            );
           }
           else {
-            act.data.error = `Terminated with error ${error}`;
+            addError(
+              true, false, report, actIndex, `Terminated with error ${error}`
+            );
           }
         }
         // Get the (usually revised) act.
