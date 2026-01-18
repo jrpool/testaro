@@ -22,12 +22,21 @@ const {browserClose, launch} = require(`${__dirname}/../run`);
 // Module to set operating-system constants.
 const os = require('os');
 
-// CONSTANTS
-
-const tmpDir = os.tmpdir();
-
 // FUNCTIONS
 
+// Sends a message to the parent process.
+const sendMessage = message => {
+  try {
+    if (typeof process.send === 'function') {
+      process.send(message);
+    }
+  }
+  catch(error) {
+    console.log(
+      `ERROR: process.send threw ${error.message} trying to send message ${message} to parent`
+    );
+  }
+};
 // Performs the tests of an act.
 const doTestAct = async (reportPath, actIndex) => {
   // Get the report from the temporary directory.
@@ -58,7 +67,11 @@ const doTestAct = async (reportPath, actIndex) => {
       const reportJSON = JSON.stringify(report);
       await fs.writeFile(reportPath, reportJSON);
       // Report this.
-      process.send('ERROR: Job aborted');
+      sendMessage({
+        status: 'error',
+        error: 'Page launch aborted'
+      });
+      process.exit(1);
     }
     // Otherwise, i.e. if the launch did not abort the job:
     else {
@@ -85,7 +98,10 @@ const doTestAct = async (reportPath, actIndex) => {
       // Save the revised report.
       await fs.writeFile(reportPath, reportJSON);
       // Send a completion message.
-      process.send('Act completed');
+      sendMessage({
+        status: 'ok',
+      });
+      process.exit(0);
     }
     // If the tool invocation failed:
     catch(error) {
@@ -97,7 +113,11 @@ const doTestAct = async (reportPath, actIndex) => {
       // Report the failure.
       const message = error.message.slice(0, 400);
       console.log(`ERROR: Test act ${act.which} failed (${message})`);
-      process.send('ERROR performing the act');
+      sendMessage({
+        status: 'error',
+        error: 'ERROR performing the act'
+      });
+      process.exit(1);
     };
   }
   // Otherwise, i.e. if the page does not exist:
@@ -116,9 +136,32 @@ const doTestAct = async (reportPath, actIndex) => {
     // Report this.
     const message = 'ERROR: No page';
     console.log(message);
-    process.send(message);
+    sendMessage({
+      status: 'error',
+      error: message
+    });
+    process.exit(1);
   }
 };
+
+process.on('uncaughtException', error => {
+  console.log(`ERROR: uncaughtException (${error.message})`);
+  sendMessage({
+    status: 'error',
+    error: 'uncaughtException'
+  });
+  process.exit(1);
+});
+
+process.on('unhandledRejection', error => {
+  const message = error && error.message ? error.message : String(error);
+  console.log(`ERROR: unhandledRejection (${message})`);
+  sendMessage({
+    status: 'error',
+    error: 'unhandledRejection'
+  });
+  process.exit(1);
+});
 
 const args = process.argv;
 doTestAct(args[2], Number.parseInt(args[3]));

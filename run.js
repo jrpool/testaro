@@ -901,43 +901,77 @@ const doActs = async (report, opts = {}) => {
         let reportJSON = JSON.stringify(report);
         // Save a copy of the report.
         await fs.writeFile(reportPath, reportJSON);
-        // Create a process to perform the act and add the result to the saved report.
+        // Create a child process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
           let closed = false;
-          const child = fork(
-            `${__dirname}/procs/doTestAct`, [reportPath, actIndex], {timeout: timeoutMultiplier * 1000 * (timeLimits[act.which] || 15)}
-          );
+          let timedOut = false;
+          let killed = false;
+          const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
+          const child = fork(`${__dirname}/procs/doTestAct`, [reportPath, actIndex]);
+          let killTimer = null;
+          // Start a timeout timer for the child process.
+          const timeoutTimer = setTimeout(() => {
+            if (! killed) {
+              killed = true;
+              console.log(`ERROR: Timed out at ${limitMs}ms`);
+              child.kill('SIGTERM');
+              killTimer = setTimeout(() => {
+                if (! closed) {
+                  console.log('ERROR: Failed to exit on SIGTERM from parent')
+                }
+                child.kill('SIGKILL');
+              }, 2000);
+            }
+          }, limitMs);
+          // Clears any current timers.
+          const clearTimers = () => {
+            [timeoutTimer, killTimer].forEach(timer => {
+              if (timer) {
+                clearTimeout(timer);
+              }
+            });
+          };
           // If the child process sends a message (normally Act completed):
           child.on('message', message => {
             if (! closed) {
               closed = true;
+              clearTimers();
               // Return the message.
-              resolve(message);
+              resolve({
+                kind: 'message',
+                message
+              });
             }
           });
-          // If the child process closes abnormally:
+          // If the child process sends an error:
+          child.on('error', error => {
+            if (! closed) {
+              closed = true;
+              clearTimers();
+              // Return the error message.
+              resolve({
+                kind: 'error',
+                error: error.message
+              });
+            }
+          });
+          // If the child process closes:
           child.on('close', (code, signal) => {
             if (! closed) {
               closed = true;
-              // Report this.
-              console.log(
-                `Child process terminated abnormally with code ${code} and signal ${signal}`
-              );
-              // Return the exit code.
-              resolve([code, signal]);
+              clearTimers();
+              // Return the exit code, signal, and timeout status.
+              resolve({
+                kind: 'close',
+                code,
+                signal,
+                timedOut
+              });
             }
           });
         });
-        // If the process closed abnormally:
-        if (Array.isArray(actResult)) {
-          const [code, signal] = actResult;
-          // Add the error data to the act.
-          act.data ??= {};
-          act.data.prevented = true;
-          act.data.error = `Child process terminated with code ${code} and signal ${signal}`;
-        }
-        // Otherwise, i.e. if the process completed normally:
-        else {
+        // If the child process sent a message:
+        if (actResult.kind === 'message') {
           // Get the revised report file.
           reportJSON = await fs.readFile(reportPath, 'utf8');
           try {
@@ -950,45 +984,61 @@ const doActs = async (report, opts = {}) => {
           catch (error) {
             // Report this.
             console.log(
-              `ERROR: Report is no longer JSON (${error.message}) but is instead a(n) ${typeof reportJSON} of length ${reportJSON.length}:\n${reportJSON}`
+              `ERROR: Tool sent message ${actResult.message}. Report is no longer JSON (${error.message}) but is instead a(n) ${typeof reportJSON} of length ${reportJSON.length}:\n${reportJSON}`
             );
             // Add the error data to the act.
             act.data ??= {};
             act.data.prevented = true;
-            act.data.error = 'Report file revision made it non-JSON';
+            act.data.error = `Non-JSON report file after message ${actResult.message}`;
           }
-          // Get the (usually revised) act.
-          act = acts[actIndex];
-          // Add the elapsed time of the tool to the report.
-          const time = Math.round((Date.now() - startTime) / 1000);
-          const {toolTimes} = report.jobData;
-          toolTimes[act.which] ??= 0;
-          toolTimes[act.which] += time;
-          // If the act was not prevented:
-          if (act.data && ! act.data.prevented) {
-            const expectations = act.expect;
-            // If the act has expectations:
-            if (expectations) {
-              // Initialize whether they were fulfilled.
-              act.expectations = [];
-              let failureCount = 0;
-              // For each expectation:
-              expectations.forEach(spec => {
-                // Add its result to the act.
-                const truth = isTrue(act, spec);
-                act.expectations.push({
-                  property: spec[0],
-                  relation: spec[1],
-                  criterion: spec[2],
-                  actual: truth[0],
-                  passed: truth[1]
-                });
-                if (! truth[1]) {
-                  failureCount++;
-                }
+        }
+        // Otherwise, i.e. if the child process closed abnormally:
+        else {
+          // Add the error data to the act.
+          act.data ??= {};
+          const {code, error, kind, signal, timedOut} = actResult;
+          act.data.prevented = true;
+          if (kind === 'close' && timedOut) {
+            act.data.error = `Timed out at ${Math.round(limitMs / 1000)} seconds`;
+          }
+          else if (kind === 'close') {
+            act.data.error = `Closed with no message (code ${code}, signal ${signal})`;
+          }
+          else {
+            act.data.error = `Terminated with error ${error}`;
+          }
+        }
+        // Get the (usually revised) act.
+        act = acts[actIndex];
+        // Add the elapsed time of the tool to the report.
+        const time = Math.round((Date.now() - startTime) / 1000);
+        const {toolTimes} = report.jobData;
+        toolTimes[act.which] ??= 0;
+        toolTimes[act.which] += time;
+        // If the act was not prevented:
+        if (act.data && ! act.data.prevented) {
+          const expectations = act.expect;
+          // If the act has expectations:
+          if (expectations) {
+            // Initialize whether they were fulfilled.
+            act.expectations = [];
+            let failureCount = 0;
+            // For each expectation:
+            expectations.forEach(spec => {
+              // Add its result to the act.
+              const truth = isTrue(act, spec);
+              act.expectations.push({
+                property: spec[0],
+                relation: spec[1],
+                criterion: spec[2],
+                actual: truth[0],
+                passed: truth[1]
               });
-              act.expectationFailures = failureCount;
-            }
+              if (! truth[1]) {
+                failureCount++;
+              }
+            });
+            act.expectationFailures = failureCount;
           }
         }
       }
