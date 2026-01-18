@@ -966,7 +966,9 @@ The rationales motivating the Testaro-defined tests can be found in comments wit
 
 On some occasions a test throws an error that cannot be handled with a `try`-`catch` structure. It has been observed, for example, that the `ibm` test does this when the page content, rather than the page URL, is given to `getCompliance()` and the target is `https://globalsolutions.org`, `https://monsido.com`, or `https://www.ambetterhealth.com/`.
 
-Some tools take apparently infinite time to perform their tests on some pages. To handle such stalling, Testaro subjects all tools to time limits. The limitation is implemented with forked child processes. Specifically, the `procs/doTestAct.js` module is run as a forked process with a `timeout` option for each of the 11 tools.
+Some tools take apparently infinite time to perform their tests on some pages. One website whose pages prevent 5 of the tools from ever completing their tests is the site of BrowserStack.
+
+To handle such fatal errors andstalling, Testaro runs the tests of each tool in a separate forked child process that executes the `doTestAct.js` module. The parent process subjects each tool to a time limit and kills the child if the time limit expires.
 
 ### Activation
 
