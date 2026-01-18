@@ -80,8 +80,9 @@ const errorWords = [
 ];
 // Time limits on tools, accounting for page reloads by 6 Testaro tests.
 const timeLimits = {
-  ed11y: 20,
-  ibm: 20,
+  alfa: 20,
+  ed11y: 30,
+  ibm: 30,
   testaro: 150 + Math.round(6 * waits / 1000)
 };
 // Timeout multiplier.
