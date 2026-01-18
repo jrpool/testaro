@@ -902,10 +902,10 @@ const doActs = async (report, opts = {}) => {
         // Save a copy of the report.
         await fs.writeFile(reportPath, reportJSON);
         let timedOut = false;
+        const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
         // Create a child process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
           let closed = false;
-          const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
           const child = fork(`${__dirname}/procs/doTestAct`, [reportPath, actIndex]);
           let killTimer = null;
           // Start a timeout timer for the child process.
