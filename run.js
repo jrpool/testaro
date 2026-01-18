@@ -791,7 +791,7 @@ const launchSpecs = (act, report) => [
 ];
 // Performs the acts in a report and adds the results to the report.
 const doActs = async (report, opts = {}) => {
-  const {acts} = report;
+  let {acts} = report;
   // Get the granular observation options, if any.
   const {onProgress = null, signal = null} = opts;
   // Get the standardization specification.
@@ -899,7 +899,7 @@ const doActs = async (report, opts = {}) => {
         // Add it to the act.
         act.startTime = startTime;
         let reportJSON = JSON.stringify(report);
-        // Save the report.
+        // Save a copy of the report.
         await fs.writeFile(reportPath, reportJSON);
         // Create a process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
@@ -916,20 +916,25 @@ const doActs = async (report, opts = {}) => {
             }
           });
           // If the child process closes abnormally:
-          child.on('close', code => {
+          child.on('close', (code, signal) => {
             if (! closed) {
               closed = true;
+              // Report this.
+              console.log(
+                `Child process terminated abnormally with code ${code} and signal ${signal}`
+              );
               // Return the exit code.
-              resolve(code);
+              resolve([code, signal]);
             }
           });
         });
         // If the process closed abnormally:
-        if (typeof actResult === 'number') {
+        if (Array.isArray(actResult)) {
+          const [code, signal] = actResult;
           // Add the error data to the act.
           act.data ??= {};
           act.data.prevented = true;
-          act.data.error = `Child process terminated with code ${actResult}`;
+          act.data.error = `Child process terminated with code ${code} and signal ${signal}`;
         }
         // Otherwise, i.e. if the process completed normally:
         else {
@@ -938,8 +943,10 @@ const doActs = async (report, opts = {}) => {
           try {
             // Convert it from JSON to an object and replace the report with the object.
             report = JSON.parse(reportJSON);
+            // Redefine the acts as those in the revised report.
+            acts = report.acts;
           }
-          // If the conversion fails, leaving the report unchanged:
+          // If the conversion fails, leaving the report and its acts unchanged:
           catch (error) {
             // Report this.
             console.log(
@@ -949,11 +956,9 @@ const doActs = async (report, opts = {}) => {
             act.data ??= {};
             act.data.prevented = true;
             act.data.error = 'Report file revision made it non-JSON';
-            // Stop performing the act.
-            continue;
           }
-          // Get the revised act.
-          act = report.acts[actIndex];
+          // Get the (usually revised) act.
+          act = acts[actIndex];
           // Add the elapsed time of the tool to the report.
           const time = Math.round((Date.now() - startTime) / 1000);
           const {toolTimes} = report.jobData;
