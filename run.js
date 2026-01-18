@@ -901,19 +901,18 @@ const doActs = async (report, opts = {}) => {
         let reportJSON = JSON.stringify(report);
         // Save a copy of the report.
         await fs.writeFile(reportPath, reportJSON);
+        let timedOut = false;
         // Create a child process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
           let closed = false;
-          let timedOut = false;
-          let killed = false;
           const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
           const child = fork(`${__dirname}/procs/doTestAct`, [reportPath, actIndex]);
           let killTimer = null;
           // Start a timeout timer for the child process.
           const timeoutTimer = setTimeout(() => {
-            if (! killed) {
-              killed = true;
-              console.log(`ERROR: Timed out at ${limitMs}ms`);
+            if (! timedOut) {
+              timedOut = true;
+              console.log(`ERROR: Timed out at ${Math.round(limitMs / 1000)} seconds`);
               child.kill('SIGTERM');
               killTimer = setTimeout(() => {
                 if (! closed) {
@@ -995,14 +994,14 @@ const doActs = async (report, opts = {}) => {
         // Otherwise, i.e. if the child process closed abnormally:
         else {
           // Add the error data to the act.
+          const {code, error, kind, signal} = actResult;
           act.data ??= {};
-          const {code, error, kind, signal, timedOut} = actResult;
           act.data.prevented = true;
           if (kind === 'close' && timedOut) {
             act.data.error = `Timed out at ${Math.round(limitMs / 1000)} seconds`;
           }
           else if (kind === 'close') {
-            act.data.error = `Closed with no message (code ${code}, signal ${signal})`;
+            act.data.error = `Closed with code ${code} and signal ${signal})`;
           }
           else {
             act.data.error = `Terminated with error ${error}`;
