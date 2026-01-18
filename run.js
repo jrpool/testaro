@@ -80,9 +80,8 @@ const errorWords = [
 ];
 // Time limits on tools, accounting for page reloads by 6 Testaro tests.
 const timeLimits = {
-  alfa: 20,
-  ed11y: 30,
-  ibm: 30,
+  ed11y: 20,
+  ibm: 20,
   testaro: 150 + Math.round(6 * waits / 1000)
 };
 // Timeout multiplier.
@@ -898,8 +897,8 @@ const doActs = async (report, opts = {}) => {
         const startTime = Date.now();
         // Add it to the act.
         act.startTime = startTime;
-        // Save the report.
         let reportJSON = JSON.stringify(report);
+        // Save the report.
         await fs.writeFile(reportPath, reportJSON);
         // Create a process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
@@ -907,33 +906,53 @@ const doActs = async (report, opts = {}) => {
           const child = fork(
             `${__dirname}/procs/doTestAct`, [reportPath, actIndex], {timeout: timeoutMultiplier * 1000 * (timeLimits[act.which] || 15)}
           );
+          // If the child process sends a message (normally Act completed):
           child.on('message', message => {
             if (! closed) {
               closed = true;
+              // Return the message.
               resolve(message);
             }
           });
+          // If the child process closes abnormally:
           child.on('close', code => {
             if (! closed) {
               closed = true;
-              resolve(`Page closed with code ${code}`);
+              // Return the exit code.
+              resolve(code);
             }
           });
         });
-        // Get the revised report.
-        reportJSON = await fs.readFile(reportPath, 'utf8');
-        report = JSON.parse(reportJSON);
-        // Get the revised act.
-        act = report.acts[actIndex];
-        // If the result is an error code:
+        // If the process closed abnormally:
         if (typeof actResult === 'number') {
           // Add the error data to the act.
           act.data ??= {};
           act.data.prevented = true;
-          act.data.error = actResult;
+          act.data.error = `Child process terminated with code ${actResult}`;
         }
-        // Otherwise, i.e. if it is not an error code:
+        // Otherwise, i.e. if the process completed normally:
         else {
+          // Get the revised report file.
+          reportJSON = await fs.readFile(reportPath, 'utf8');
+          try {
+            // Convert it from JSON to an object and replace the report with the object.
+            report = JSON.parse(reportJSON);
+          }
+          // If the conversion fails, leaving the report unchanged:
+          catch (error) {
+            // Report this.
+            console.log(
+              `ERROR: Report is no longer JSON (${error.message}) but is instead a(n) ${typeof reportJSON} of length ${reportJSON.length}:\n${reportJSON}`
+            );
+            // Add the error data to the act.
+            act.data ??= {};
+            act.data.prevented = true;
+            act.data.error = 'Report file revision made it non-JSON';
+            // Stop performing the act.
+            continue;
+          }
+          // Get the revised act.
+          act = report.acts[actIndex];
           // Add the elapsed time of the tool to the report.
           const time = Math.round((Date.now() - startTime) / 1000);
           const {toolTimes} = report.jobData;
@@ -941,8 +960,8 @@ const doActs = async (report, opts = {}) => {
           toolTimes[act.which] += time;
           // If the act was not prevented:
           if (act.data && ! act.data.prevented) {
-            // If the act has expectations:
             const expectations = act.expect;
+            // If the act has expectations:
             if (expectations) {
               // Initialize whether they were fulfilled.
               act.expectations = [];
