@@ -1724,6 +1724,11 @@ const doActs = async (report, opts = {}) => {
           };
           // Populate it.
           standardize(act);
+          // If the original-format result is not to be included in the report:
+          if (standard === 'only') {
+            // Remove it.
+            delete act.result;
+          }
           // Notify the observer and log the start of identification.
           tellServer(report, '', 'Starting element identification');
           // For each of its standard instances:
@@ -1737,13 +1742,18 @@ const doActs = async (report, opts = {}) => {
                 // Add a box ID to the instance.
                 instance.boxID = elementID.boxID;
               }
-              // If it has no valid path ID and the element has a valid path ID:
-              if (
-                (! pathID || pathID.includes(' '))
-                && (elementID.pathID && ! elementID.pathID.includes(' '))
-              ) {
-                // Add or replace the path ID of the instance.
-                instance.pathID = elementID.pathID;
+              // If it has no valid path ID:
+              if (! pathID || pathID.includes(' ')) {
+                // If the element has a valid path ID:
+                if (elementID.pathID && ! elementID.pathID.includes(' ')) {
+                  // Add or replace the path ID of the instance.
+                  instance.pathID = elementID.pathID;
+                }
+                // Otherwise, if the instance has an invalid but uncorrectable path ID:
+                else if (pathID) {
+                  // Delete it.
+                  delete instance.pathID;
+                }
               }
             }
             // If the instance excerpt contains a unique Testaro identifier attribute:
@@ -1758,7 +1768,6 @@ const doActs = async (report, opts = {}) => {
             // If the instance has a pathID and no text property:
             if (pathID && ! instance.text) {
               // Get the element.
-              console.log(`XXX pathID is ${pathID}`);
               const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
               // If it exists and is unique:
               if (await elementLoc.count() === 1) {
@@ -1767,15 +1776,10 @@ const doActs = async (report, opts = {}) => {
                   text = `${text.slice(0, 150)} … ${text.slice(-50)}`;
                 }
                 // Add the text content or its ends to the instance.
-                instance.text = text;
+                instance.text = text.trim();
               }
             }
           };
-          // If the original-format result is not to be included in the report:
-          if (standard === 'only') {
-            // Remove it.
-            delete act.result;
-          }
         };
       }
       // Otherwise, i.e. if the launch or navigation failed:
@@ -1783,9 +1787,9 @@ const doActs = async (report, opts = {}) => {
         console.log(`ERROR: Launch or navigation to standardize ${specString} acts failed`);
       }
     };
-    // Close the last browser launched for standardization.
+    // Close the last browser launched for standardization and element identification.
     await browserClose();
-    console.log('Standardization completed');
+    console.log('Standardization and element identification completed');
     const {acts} = report;
     const idData = {};
     // For each act:
@@ -1798,15 +1802,17 @@ const doActs = async (report, opts = {}) => {
           instanceCount: 0,
           boxIDCount: 0,
           pathIDCount: 0,
+          textCount: 0,
           boxIDPercent: null,
-          pathIDPercent: null
+          pathIDPercent: null,
+          textPercent: null
         };
         const actIDData = idData[which];
         const {standardResult} = act;
         const {instances} = standardResult;
         // For each standard instance in the act:
         for (const instance of instances) {
-          const {boxID, pathID} = instance;
+          const {boxID, pathID, text} = instance;
           // Increment the instance count.
           actIDData.instanceCount++;
           // If the instance has a box ID:
@@ -1819,13 +1825,19 @@ const doActs = async (report, opts = {}) => {
             // Increment the path ID count.
             actIDData.pathIDCount++;
           }
+          // If the instance has a text:
+          if (text) {
+            // Increment the text count.
+            actIDData.textCount++;
+          }
         }
-        const {instanceCount, boxIDCount, pathIDCount} = actIDData;
+        const {instanceCount, boxIDCount, pathIDCount, textCount} = actIDData;
         // If there are any instances:
         if (instanceCount) {
-          // Add the box ID and path ID percentages to the iData property.
+          // Add the box ID path ID, and text percentages to the iData property.
           actIDData.boxIDPercent = Math.round(100 * boxIDCount / instanceCount);
           actIDData.pathIDPercent = Math.round(100 * pathIDCount / instanceCount);
+          actIDData.textPercent = Math.round(100 * textCount / instanceCount);
         }
       }
     }

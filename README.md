@@ -725,9 +725,10 @@ Here is an example of an instance in a standard result:
     type: 'xpath',
     spec: '/html[1]/body[1]/section[3]/div[2]/div[1]/ul[1]/li[1]/button[1]'
   },
-  excerpt: '<button type="link"></button>',
+  excerpt: '<button type="link">Create an account</button>',
   boxID: '12:340:46:50',
-  pathID: '/html/body/section[3]/div[2]/div/ul/li[1]/button[1]'
+  pathID: '/html/body/section[3]/div[2]/div/ul/li[1]/button[1]',
+  text: 'Create an account'
 }
 ```
 
@@ -741,14 +742,15 @@ The element has no `id` attribute to distinguish it from other `button` elements
 - `box` (coordinates, width, and height of the element box): Editoria11y, Testaro
 - none: HTML CodeSniffer
 
-The tool also reproduces an excerpt of the element code.
+The tool or Testaro also reproduces an excerpt of the element code.
 
 ##### Element identification
 
-While the above properties can help you find the offending element, Testaro makes this easier by adding, where practical, two standard element identifiers to each standard instance:
+While the above properties can help you find the offending element, Testaro makes this easier by adding, where practical, three standard element identifiers to each standard instance:
 
 - `boxID`: a compact representation of the x, y, width, and height of the element bounding box, if the element can be identified and is visible.
 - `pathID`: the XPath of the element, if the element can be identified.
+- `text`: the text content of the element, if the element can be identified.
 
 These standard identifiers can help you determine whether violations reported by different tools belong to the same element or different elements. The `boxID` property can also support the making of images of the violating elements.
 
@@ -757,7 +759,7 @@ Some tools limit the efficacy of the current algorithm for standard identifiers:
 - HTML CodeSniffer does not report element locations, and the reported code excerpts exclude all text content.
 - Nu Html Checker reports line and column boundaries of element start tags and truncates element text content in reported code excerpts.
 
-Testaro aims to overcome these limitations by inserting uniquely identifying attributes into all elements of the pages being tested by these tools. Those attribute values appear in the excerpts produced by the tools and permit Testaro to identify the elements in the tested page. Except for elements excluded from the DOM, such as descendants of `noscript` elements, this mechanism allows Testaro to provide a `pathID` property in almost all standard instances. The `boxID` property is less universal, since some elements, such as `script` elements and hidden elements, have no bounding boxes.
+Testaro aims to overcome these limitations by inserting uniquely identifying attributes into all elements of the pages being tested by these tools. Those attribute values permit Testaro to identify the elements in the tested page. Except for elements excluded from the DOM, such as descendants of `noscript` elements, this mechanism allows Testaro to provide a `pathID` property in almost all standard instances. The `boxID` property is less universal, since some elements, such as `script` elements and hidden elements, have no bounding boxes.
 
 Testing can change the pages being tested, and such changes can cause a particular element to change its physical or logical location. In such cases, an element may appear multiple times in a tool report with different `boxID` or `pathID` values, even though it is, for practical purposes, the same element.
 
