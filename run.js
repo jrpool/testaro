@@ -1682,10 +1682,9 @@ const doActs = async (report, opts = {}) => {
         // Notify the observer of the act and log it.
         tellServer(report, messageParams, message);
       }
-
+    }
     // Notify the observer and log the start of standardization.
     tellServer(report, '', 'Starting result standardization');
-    }
     const launchSpecActs = {};
     // For each act:
     report.acts.forEach((act, index) => {
@@ -1725,6 +1724,8 @@ const doActs = async (report, opts = {}) => {
           };
           // Populate it.
           standardize(act);
+          // Notify the observer and log the start of identification.
+          tellServer(report, '', 'Starting element identification');
           // For each of its standard instances:
           for (const instance of act.standardResult.instances) {
             // If the instance does not have both a box ID and a path ID:
@@ -1748,6 +1749,20 @@ const doActs = async (report, opts = {}) => {
               .excerpt
               .replace(/ data-testaro-id="[^" ]*("|$)/g, '')
               .replace(/ data-testaro-id="[^" ]* /g, ' ');
+            }
+            // If the instance has a pathID and no text property:
+            if (instance.pathID && ! instance.text) {
+              // Get the element.
+              const elementLoc = page.locator(`xpath=${instance.pathID}`, {hasText: /.+/});
+              // If it exists and is unique:
+              if (await elementLoc.count() === 1) {
+                let text = await elementLoc.textContent();
+                if (text.length > 200) {
+                  text = `${text.slice(0, 150)} … ${text.slice(-50)}`;
+                }
+                // Add the text content or its ends to the instance.
+                instance.text = text;
+              }
             }
           };
           // If the original-format result is not to be included in the report:
