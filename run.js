@@ -1729,7 +1729,6 @@ const doActs = async (report, opts = {}) => {
           // For each of its standard instances:
           for (const instance of act.standardResult.instances) {
             let {boxID, pathID} = instance;
-            console.log(`XXX boxID is ${boxID}, pathID is ${pathID}`);
             // If the instance does not have both a box ID and a path ID:
             if (! (boxID && pathID)) {
               const elementID = await identify(instance, page);
@@ -1738,8 +1737,8 @@ const doActs = async (report, opts = {}) => {
                 // Add a box ID.
                 instance.boxID = elementID.boxID;
               }
-              // If it has no path ID but the element has one:
-              if (elementID.pathID && ! pathID) {
+              // If it has no path ID but the element has a valid one:
+              if (! pathID && elementID.pathID && ! elementID.pathID.includes(' ')) {
                 // Add a path ID.
                 instance.pathID = elementID.pathID;
               }
@@ -1753,7 +1752,7 @@ const doActs = async (report, opts = {}) => {
               .replace(/ data-testaro-id="[^" ]* /g, ' ');
             }
             pathID = instance.pathID;
-            // If the instance has a valid pathID and no text property:
+            // If the instance has a pathID and no text property:
             if (pathID && ! instance.text) {
               // Get the element.
               console.log(`XXX pathID is ${pathID}`);
