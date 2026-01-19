@@ -1729,17 +1729,20 @@ const doActs = async (report, opts = {}) => {
           // For each of its standard instances:
           for (const instance of act.standardResult.instances) {
             let {boxID, pathID} = instance;
-            // If the instance does not have both a box ID and a path ID:
-            if (! (boxID && pathID)) {
+            // If the instance does not have both a box ID and a valid path ID:
+            if (! boxID && (! pathID || pathID.includes(' '))) {
               const elementID = await identify(instance, page);
               // If it has no box ID but the element has a bounding box:
               if (elementID.boxID && ! boxID) {
-                // Add a box ID.
+                // Add a box ID to the instance.
                 instance.boxID = elementID.boxID;
               }
-              // If it has no path ID but the element has a valid one:
-              if (! pathID && elementID.pathID && ! elementID.pathID.includes(' ')) {
-                // Add a path ID.
+              // If it has no valid path ID and the element has a valid path ID:
+              if (
+                (! pathID || pathID.includes(' '))
+                && (elementID.pathID && ! elementID.pathID.includes(' '))
+              ) {
+                // Add or replace the path ID of the instance.
                 instance.pathID = elementID.pathID;
               }
             }
