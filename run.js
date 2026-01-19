@@ -1775,15 +1775,15 @@ const doActs = async (report, opts = {}) => {
               }
               // Otherwise, i.e. if it has no excerpt or has one containing HTML markup:
               else {
+                // Initialize a text string.
+                let text = '';
                 // Get the element.
                 const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
                 // If it exists and is unique:
                 if (await elementLoc.count() === 1) {
-                  // Initialize a text property.
-                  let text = '';
                   // If it contains any noscript elements:
                   if (await elementLoc.locator('noscript').count()) {
-                    // Change the text property to the text content without noscript elements.
+                    // Change the text string to the text content without noscript elements.
                     text = await elementLoc.evaluate(node => {
                       const elementClone = node.cloneNode(true);
                       elementClone
@@ -1794,16 +1794,16 @@ const doActs = async (report, opts = {}) => {
                   }
                   // Otherwise, i.e. if it contains no noscript element:
                   else {
-                    // Change the text to the text content of the element.
+                    // Change the text string to the text content of the element.
                     text = await elementLoc.textContent();
                   }
                 }
-                // If the text length exceeds 300 characters:
+                // If the text string length exceeds 300 characters:
                 if (text.length > 300) {
                   // Truncate it internally.
                   text = `${text.slice(0, 200)} … ${text.slice(-100)}`;
                 }
-                // Add the text content with trimmed and collapsed whitespace to the instance.
+                // Add the text string with trimmed and collapsed whitespace to the instance.
                 instance.text = text.trim().replace(/\s+/g, ' ');
               }
             }
