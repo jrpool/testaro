@@ -1765,36 +1765,45 @@ const doActs = async (report, opts = {}) => {
               .replace(/ data-testaro-id="[^" ]* /g, ' ');
             }
             pathID = instance.pathID;
-            // If the instance has a pathID and no text property:
-            if (pathID && ! instance.text) {
-              // Get the element.
-              const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
-              // If it exists and is unique:
-              if (await elementLoc.count() === 1) {
-                // Initialize a text property.
-                let text = '';
-                // If it contains any noscript elements:
-                if (await elementLoc.locator('noscript').count()) {
-                  // Change the text property to the text content without noscript elements.
-                  text = elementLoc.evaluate(node => {
-                    const elementClone = node.cloneNode(true);
-                    elementClone
-                    .querySelectorAll('noscript')
-                    .forEach(noscript => noscript.remove());
-                    return elementClone.textContent;
-                  });
-                }
-                // Otherwise, i.e. if it contains no noscript element:
-                else {
-                  // Change the text to the text content of the element.
-                  text = await elementLoc.textContent();
+            // If the instance has no text property:
+            if (! instance.text) {
+              const {excerpt} = instance;
+              // If the instance has an excerpt containing no HTML markup:
+              if (excerpt && ! ['<', '>', '='].some(markupChar => excerpt.includes(markupChar))) {
+                // Add the excerpt to the text property.
+                instance.text = excerpt;
+              }
+              // Otherwise, i.e. if it has no excerpt or has one containing HTML markup:
+              else {
+                // Get the element.
+                const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
+                // If it exists and is unique:
+                if (await elementLoc.count() === 1) {
+                  // Initialize a text property.
+                  let text = '';
+                  // If it contains any noscript elements:
+                  if (await elementLoc.locator('noscript').count()) {
+                    // Change the text property to the text content without noscript elements.
+                    text = await elementLoc.evaluate(node => {
+                      const elementClone = node.cloneNode(true);
+                      elementClone
+                      .querySelectorAll('noscript')
+                      .forEach(noscript => noscript.remove());
+                      return elementClone.textContent;
+                    });
+                  }
+                  // Otherwise, i.e. if it contains no noscript element:
+                  else {
+                    // Change the text to the text content of the element.
+                    text = await elementLoc.textContent();
+                  }
                 }
                 // If the text length exceeds 300 characters:
                 if (text.length > 300) {
                   // Truncate it internally.
                   text = `${text.slice(0, 200)} … ${text.slice(-100)}`;
                 }
-                // Add the text content with trimmed and collapsed whitespaceto the instance.
+                // Add the text content with trimmed and collapsed whitespace to the instance.
                 instance.text = text.trim().replace(/\s+/g, ' ');
               }
             }
