@@ -1768,16 +1768,16 @@ const doActs = async (report, opts = {}) => {
             // If the instance has no text property:
             if (! instance.text) {
               const {excerpt} = instance;
-              // If the instance has an excerpt containing no HTML markup:
+              // If the instance has a markup-free excerpt:
               if (excerpt && ! ['<', '>', '='].some(markupChar => excerpt.includes(markupChar))) {
-                // Add the excerpt to the text property.
+                // Add the (already trimmed and whitespace-normalized) excerpt to the text property.
                 instance.text = excerpt;
               }
-              // Otherwise, i.e. if it has no excerpt or has one containing HTML markup:
-              else {
+              // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
+              else if (pathID) {
                 // Initialize a text string.
                 let text = '';
-                // Get the element.
+                // Get the element if it has text content.
                 const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
                 // If it exists and is unique:
                 if (await elementLoc.count() === 1) {
