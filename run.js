@@ -1771,12 +1771,31 @@ const doActs = async (report, opts = {}) => {
               const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
               // If it exists and is unique:
               if (await elementLoc.count() === 1) {
-                let text = await elementLoc.textContent();
-                if (text.length > 200) {
-                  text = `${text.slice(0, 150)} … ${text.slice(-50)}`;
+                // Initialize a text property.
+                let text = '';
+                // If it contains any noscript elements:
+                if (await elementLoc.locator('noscript').count()) {
+                  // Change the text property to the text content without noscript elements.
+                  text = elementLoc.evaluate(node => {
+                    const elementClone = node.cloneNode(true);
+                    elementClone
+                    .querySelectorAll('noscript')
+                    .forEach(noscript => noscript.remove());
+                    return elementClone.textContent;
+                  });
                 }
-                // Add the text content or its ends to the instance.
-                instance.text = text.trim();
+                // Otherwise, i.e. if it contains no noscript element:
+                else {
+                  // Change the text to the text content of the element.
+                  text = await elementLoc.textContent();
+                }
+                // If the text length exceeds 300 characters:
+                if (text.length > 300) {
+                  // Truncate it internally.
+                  text = `${text.slice(0, 200)} … ${text.slice(-100)}`;
+                }
+                // Add the text content with trimmed and collapsed whitespaceto the instance.
+                instance.text = text.trim().replace(/\s+/g, ' ');
               }
             }
           };
