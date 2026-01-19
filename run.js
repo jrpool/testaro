@@ -1728,16 +1728,18 @@ const doActs = async (report, opts = {}) => {
           tellServer(report, '', 'Starting element identification');
           // For each of its standard instances:
           for (const instance of act.standardResult.instances) {
+            let {boxID, pathID} = instance;
+            console.log(`XXX boxID is ${boxID}, pathID is ${pathID}`);
             // If the instance does not have both a box ID and a path ID:
-            if (! (instance.boxID && instance.pathID)) {
+            if (! (boxID && pathID)) {
               const elementID = await identify(instance, page);
               // If it has no box ID but the element has a bounding box:
-              if (elementID.boxID && ! instance.boxID) {
+              if (elementID.boxID && ! boxID) {
                 // Add a box ID.
                 instance.boxID = elementID.boxID;
               }
               // If it has no path ID but the element has one:
-              if (elementID.pathID && ! instance.pathID) {
+              if (elementID.pathID && ! pathID) {
                 // Add a path ID.
                 instance.pathID = elementID.pathID;
               }
@@ -1750,10 +1752,12 @@ const doActs = async (report, opts = {}) => {
               .replace(/ data-testaro-id="[^" ]*("|$)/g, '')
               .replace(/ data-testaro-id="[^" ]* /g, ' ');
             }
-            // If the instance has a pathID and no text property:
-            if (instance.pathID && ! instance.text) {
+            pathID = instance.pathID;
+            // If the instance has a valid pathID and no text property:
+            if (pathID && ! instance.text) {
               // Get the element.
-              const elementLoc = page.locator(`xpath=${instance.pathID}`, {hasText: /.+/});
+              console.log(`XXX pathID is ${pathID}`);
+              const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
               // If it exists and is unique:
               if (await elementLoc.count() === 1) {
                 let text = await elementLoc.textContent();
