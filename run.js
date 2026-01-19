@@ -1768,8 +1768,10 @@ const doActs = async (report, opts = {}) => {
             // If the instance has no text property:
             if (! instance.text) {
               const {excerpt} = instance;
-              // If the instance has a markup-free excerpt:
-              if (excerpt && ! ['<', '>', '='].some(markupChar => excerpt.includes(markupChar))) {
+              // If the instance has a markup-free non-empty excerpt:
+              if (
+                excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
+              ) {
                 // Add the (already trimmed and whitespace-normalized) excerpt to the text property.
                 instance.text = excerpt;
               }
