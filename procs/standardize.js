@@ -21,7 +21,7 @@ const {getNormalizedXPath} = require('./identify');
 
 // Limits the length of and unilinearizes a string.
 const cap = rawString => {
-  const string = (rawString || '').replace(/[\s\u2028\u2029]+/g, ' ');
+  const string = (rawString.trim() || '').replace(/[\s\u2028\u2029]+/g, ' ');
   if (string && string.length > 1000) {
     return `${string.slice(0, 500)} … ${string.slice(-500)}`;
   }
