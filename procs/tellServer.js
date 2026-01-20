@@ -23,10 +23,12 @@ const agent = process.env.AGENT;
 // Sends a notice to an observer.
 exports.tellServer = (report, messageParams, logMessage) => {
   const {serverID} = report.sources;
-  const observerURL = typeof serverID === 'number' ? process.env[`NETWATCH_URL_${serverID}_OBSERVE`] : '';
+  const observerURL = typeof serverID === 'number'
+    ? process.env[`NETWATCH_URL_${serverID}_OBSERVE`]
+    : '';
   if (observerURL) {
     const whoParams = `agent=${agent}&jobID=${report.id || ''}`;
-    const wholeURL = `${observer}?${whoParams}&${messageParams}`;
+    const wholeURL = `${observerURL}?${whoParams}&${messageParams}`;
     const client = wholeURL.startsWith('https://') ? httpsClient : httpClient;
     client.request(wholeURL)
     // If the notification threw an error:

@@ -1731,7 +1731,7 @@ const doActs = async (report, opts = {}) => {
           }
           // Notify the observer and log the start of identification.
           tellServer(report, '', 'Starting element identification');
-          // For each of its standard instances:
+          // For each of the standard instances of the act:
           for (const instance of act.standardResult.instances) {
             let {boxID, pathID} = instance;
             // If the instance does not have both a box ID and a valid path ID:
@@ -1773,7 +1773,7 @@ const doActs = async (report, opts = {}) => {
                 excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
               ) {
                 // Add the excerpt (up to any ellipsis) to the text property.
-                instance.text = excerpt.split(' … ')[0];
+                instance.text = excerpt.split(/ … | *\.\.\./)[0];
               }
               // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
               else if (pathID) {
