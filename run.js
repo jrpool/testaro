@@ -1772,8 +1772,8 @@ const doActs = async (report, opts = {}) => {
               if (
                 excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
               ) {
-                // Add the (already trimmed and whitespace-normalized) excerpt to the text property.
-                instance.text = excerpt;
+                // Add the excerpt (up to any ellipsis) to the text property.
+                instance.text = excerpt.split(' … ')[0];
               }
               // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
               else if (pathID) {
@@ -1800,13 +1800,8 @@ const doActs = async (report, opts = {}) => {
                     text = await elementLoc.textContent();
                   }
                 }
-                // If the text string length exceeds 300 characters:
-                if (text.length > 300) {
-                  // Truncate it internally.
-                  text = `${text.slice(0, 200)} … ${text.slice(-100)}`;
-                }
-                // Add the text string with trimmed and collapsed whitespace to the instance.
-                instance.text = text.trim().replace(/\s+/g, ' ');
+                // Add the text string, truncated if necessary, to the instance.
+                instance.text = text.trim().replace(/\s+/g, ' ').slice(0, 300);
               }
             }
           };
