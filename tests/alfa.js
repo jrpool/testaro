@@ -50,18 +50,29 @@ exports.reporter = async (page, report, actIndex) => {
     // Get the evaluation.
     const evaluation = Array.from(await audit.evaluate());
     // For each of its components:
-    evaluation.forEach((component, index) => {
+    for (const index in evaluation) {
+      const component = evaluation[index];
       const targetClass = component.target;
       // If it has a non-collection target:
       if (targetClass && ! targetClass._members) {
-        // Get the path and code lines of the target.
-        const path = targetClass.path();
+        // Get the path, less any final text() selector, and code lines of the target.
+        const path = targetClass.path().replace(/\/text\(\).*$/, '');
         const codeLines = targetClass.toString().split('\n');
         // Convert the component to a finding object.
         const finding = component.toJSON();
         const {expectations, outcome, rule} = finding;
         // If the outcome of the finding is a failure or warning:
         if (outcome !== 'passed') {
+          let text = '';
+          // Get a locator for the target.
+          const targetLoc = page.locator(`xpath=${path}`);
+          try {
+            // Get the inner text of the target.
+            text = await targetLoc.innerText({timeout: 100});
+          }
+          catch(error) {
+            console.log(`ERROR: Inner text of target ${path} not found (${error})`);
+          }
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
@@ -86,12 +97,12 @@ exports.reporter = async (page, report, actIndex) => {
             },
             target: {
               type,
-              tagName: name || '',
+              tagName: name || path.replace(/^.*\//, '').replace(/\[.*$/, '') || '',
               path,
               codeLines: codeLines.map(
                 line => line.length > 300 ? `${line.slice(0, 300)}...` : line
               ),
-              text: ''
+              text
             }
           };
           // If the rule summary is missing:
@@ -124,7 +135,7 @@ exports.reporter = async (page, report, actIndex) => {
           result.items.push(findingData);
         }
       }
-    });
+    };
   }
   catch(error) {
     console.log(`ERROR: Navigation to URL timed out (${error})`);

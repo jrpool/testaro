@@ -393,66 +393,67 @@ const convert = (toolName, data, result, standardResult) => {
   // alfa
   else if (toolName === 'alfa' && result.totals) {
     result.items.forEach(item => {
-      const {codeLines} = item.target;
+      const {outcome, rule, target} = item;
+      const {ruleID, ruleSummary} = rule;
+      const {codeLines, path} = target;
       const code = Array.isArray(codeLines) ? codeLines.join(' ') : '';
       const identifiers = getIdentifiers(code);
-      const tagNameArray = item.target
-      && item.target.path
-      && item.target.path.match(/^.*\/([a-z]+)\[\d+\]/);
+      const tagNameArray = path && path.match(/^.*\/([a-z]+)\[\d+\]/);
       if (tagNameArray && tagNameArray.length === 2) {
         identifiers[0] = tagNameArray[1].toUpperCase();
       }
-      const {rule, target} = item;
       let instance;
-      if (item.verdict === 'failed') {
+      if (outcome === 'failed') {
         instance = {
-          ruleID: rule.ruleID,
-          what: rule.ruleSummary,
+          ruleID,
+          what: ruleSummary,
           ordinalSeverity: 3,
           tagName: identifiers[0],
           id: identifiers[1],
           location: {
             doc: 'dom',
             type: 'xpath',
-            spec: target.path
+            spec: path
           },
           excerpt: cap(code),
           boxID: '',
-          pathID: ''
+          pathID: getNormalizedXPath(path)
         };
         standardResult.instances.push(instance);
       }
       else if (item.verdict === 'cantTell') {
-        if (['r66', 'r69'].includes(rule.ruleID)) {
+        if (['r66', 'r69'].includes(ruleID)) {
           instance = {
             ruleID: 'cantTellTextContrast',
-            what: `cannot test for rule ${rule.ruleID}: ${rule.ruleSummary}`,
+            what: `cannot test for rule ${ruleID}: ${ruleSummary}`,
             ordinalSeverity: 0,
             tagName: identifiers[0],
             id: identifiers[1],
             location: {
               doc: 'dom',
               type: 'xpath',
-              spec: target.path
+              spec: path
             },
-            excerpt: cap(code)
+            excerpt: cap(code),
+            boxID: '',
+            pathID: getNormalizedXPath(path)
           };
         }
         else {
           instance = {
             ruleID: 'cantTell',
-            what: `cannot test for rule ${rule.ruleID}: ${rule.ruleSummary}`,
+            what: `cannot test for rule ${ruleID}: ${ruleSummary}`,
             ordinalSeverity: 0,
             tagName: identifiers[0],
             id: identifiers[1],
             location: {
               doc: 'dom',
               type: 'xpath',
-              spec: target.path
+              spec: path
             },
             excerpt: cap(code),
             boxID: '',
-            pathID: ''
+            pathID: getNormalizedXPath(path)
           };
         }
         standardResult.instances.push(instance);
