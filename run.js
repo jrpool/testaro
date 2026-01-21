@@ -1765,7 +1765,7 @@ const doActs = async (report, opts = {}) => {
               .replace(/ data-testaro-id="[^" ]* /g, ' ');
             }
             pathID = instance.pathID;
-            // If the instance has no text property:
+            // If the instance has no or an empty text property:
             if (! instance.text) {
               const {excerpt} = instance;
               // If the instance has a markup-free non-empty excerpt:

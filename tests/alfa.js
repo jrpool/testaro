@@ -47,25 +47,24 @@ exports.reporter = async (page, report, actIndex) => {
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     const audit = Audit.of(alfaPage, alfaRules);
-    // Get the test outcomes.
-    const outcomes = Array.from(await audit.evaluate());
-    // For each outcome:
-    outcomes.forEach((outcome, index) => {
-      const {target} = outcome;
+    // Get the test findings.
+    const findings = Array.from(await audit.evaluate());
+    // For each finding:
+    findings.forEach((finding, index) => {
+      const targetClass = finding.target;
       // If the target exists and is not a collection:
-      if (target && ! target._members) {
-        // Convert the outcome to an object.
-        const outcomeJ = outcome.toJSON();
+      if (targetClass && ! targetClass._members) {
+        const outcome = finding.toJSON();
         // Get the verdict.
-        const verdict = outcomeJ.outcome;
+        const verdict = outcome.outcome;
         // If the verdict is a failure or warning:
         if (verdict !== 'passed') {
           // Add to the result.
-          const {expectations, rule} = outcomeJ;
+          const {expectations, rule} = outcome;
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
-          const targetJ = outcomeJ.target;
+          const {target} = outcome;
           const codeLines = target.toString().split('\n');
           if (codeLines[0] === '#document') {
             codeLines.splice(2, codeLines.length - 3, '...');
@@ -84,12 +83,13 @@ exports.reporter = async (page, report, actIndex) => {
               requirements
             },
             target: {
-              type: targetJ.type,
-              tagName: targetJ.name || '',
+              type: target.type,
+              tagName: target.name || '',
               path: target.path(),
               codeLines: codeLines.map(
                 line => line.length > 300 ? `${line.slice(0, 300)}...` : line
-              )
+              ),
+              text: ''
             }
           };
           // If the rule summary is missing:
@@ -119,7 +119,7 @@ exports.reporter = async (page, report, actIndex) => {
           else if (outcomeData.verdict === 'cantTell') {
             result.totals.warnings++;
           }
-          result.items.push(outcomeData);
+          result.items.push();
         }
       }
     });
