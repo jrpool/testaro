@@ -59,14 +59,14 @@ exports.reporter = async (page, report, actIndex) => {
         const codeLines = targetClass.toString().split('\n');
         // Convert the component to a finding object.
         const finding = component.toJSON();
+        console.log(`XXX finding:\n${JSON.stringify(finding, null, 2)}`);
         const {expectations, outcome, rule} = finding;
         // If the outcome of the finding is a failure or warning:
         if (outcome !== 'passed') {
-          // Add to the result.
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
-          const {target} = outcome;
+          const {target} = finding;
           const {name, type} = target;
           const path = target.path();
           if (codeLines[0] === '#document') {
@@ -75,6 +75,7 @@ exports.reporter = async (page, report, actIndex) => {
           else if (codeLines[0].startsWith('<html')) {
             codeLines.splice(1, codeLines.length - 2, '...');
           }
+          // Get data on the finding.
           const findingData = {
             index,
             outcome,
@@ -122,7 +123,7 @@ exports.reporter = async (page, report, actIndex) => {
           else if (outcomeData.verdict === 'cantTell') {
             result.totals.warnings++;
           }
-          result.items.push();
+          result.items.push(findingData);
         }
       }
     });
