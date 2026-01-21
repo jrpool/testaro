@@ -22,7 +22,7 @@ const {Playwright} = require('@siteimprove/alfa-playwright');
 // FUNCTIONS
 
 // Simplifies the spacing of a string.
-const tidy = string => string.replace(/\n/g, ' ').replace(/\s+/g, ' ');
+const tidy = string => string.replace(/\s+/g, ' ');
 
 // Conducts and reports the alfa tests.
 exports.reporter = async (page, report, actIndex) => {
@@ -47,34 +47,37 @@ exports.reporter = async (page, report, actIndex) => {
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     const audit = Audit.of(alfaPage, alfaRules);
-    // Get the test findings.
-    const findings = Array.from(await audit.evaluate());
-    // For each finding:
-    findings.forEach((finding, index) => {
-      const targetClass = finding.target;
-      // If the target exists and is not a collection:
+    // Get the evaluation.
+    const evaluation = Array.from(await audit.evaluate());
+    // For each of its components:
+    evaluation.forEach((component, index) => {
+      const targetClass = component.target;
+      // If it has a non-collection target:
       if (targetClass && ! targetClass._members) {
-        const outcome = finding.toJSON();
-        // Get the verdict.
-        const verdict = outcome.outcome;
-        // If the verdict is a failure or warning:
-        if (verdict !== 'passed') {
+        // Get the path and code lines of the target.
+        const path = targetClass.path();
+        const codeLines = targetClass.toString().split('\n');
+        // Convert the component to a finding object.
+        const finding = component.toJSON();
+        const {expectations, outcome, rule} = finding;
+        // If the outcome of the finding is a failure or warning:
+        if (outcome !== 'passed') {
           // Add to the result.
-          const {expectations, rule} = outcome;
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
           const {target} = outcome;
-          const codeLines = target.toString().split('\n');
+          const {name, type} = target;
+          const path = target.path();
           if (codeLines[0] === '#document') {
             codeLines.splice(2, codeLines.length - 3, '...');
           }
           else if (codeLines[0].startsWith('<html')) {
             codeLines.splice(1, codeLines.length - 2, '...');
           }
-          const outcomeData = {
+          const findingData = {
             index,
-            verdict,
+            outcome,
             rule: {
               ruleID,
               ruleSummary,
@@ -83,9 +86,9 @@ exports.reporter = async (page, report, actIndex) => {
               requirements
             },
             target: {
-              type: target.type,
-              tagName: target.name || '',
-              path: target.path(),
+              type,
+              tagName: name || '',
+              path,
               codeLines: codeLines.map(
                 line => line.length > 300 ? `${line.slice(0, 300)}...` : line
               ),
@@ -93,9 +96,9 @@ exports.reporter = async (page, report, actIndex) => {
             }
           };
           // If the rule summary is missing:
-          if (outcomeData.rule.ruleSummary === '') {
+          if (findingData.rule.ruleSummary === '') {
             // If a first requirement title exists:
-            const {requirements} = outcomeData.rule;
+            const {requirements} = findingData.rule;
             if (requirements && requirements.length && requirements[0].title) {
               // Make it the rule summary.
               outcomeData.rule.ruleSummary = requirements[0].title;
