@@ -99,7 +99,7 @@ exports.reporter = async (page, report, actIndex) => {
             },
             violator: {
               type,
-              tagName: name || path.replace(/^.*\//, '').replace(/\[.*$/, '') || '',
+              tagName: (name || path.replace(/^.*\//, '').replace(/\[.*$/, '') || '').toUpperCase(),
               path,
               codeLines: codeLines.map(
                 line => line.length > 300 ? `${line.slice(0, 300)}...` : line
