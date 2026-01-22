@@ -86,8 +86,8 @@ exports.reporter = async (page, report, actIndex) => {
           else if (codeLines[0].startsWith('<html')) {
             codeLines.splice(1, codeLines.length - 2, '...');
           }
-          let tagName = name.toUpperCase();
-          if (tagName === 'text' || ! tagName) {
+          let tagName = name?.toUpperCase();
+          if (pathID && (tagName === 'text' || ! tagName)) {
             tagName = pathID.split('/').pop().toUpperCase() || '';
           }
           // Get data on the finding.
