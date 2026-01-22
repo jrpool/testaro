@@ -88,7 +88,8 @@ exports.reporter = async (page, report, actIndex) => {
           }
           let tagName = name?.toUpperCase();
           if (pathID && (tagName?.startsWith('TEXT') || ! tagName)) {
-            tagName = pathID.split('/').pop().toUpperCase() || '';
+            const standardTagName = pathID.split('/').pop().replace(/\[.+/, '').toUpperCase() || '';
+            tagName = standardTagName;
           }
           // Get data on the finding.
           const findingData = {
@@ -104,7 +105,7 @@ exports.reporter = async (page, report, actIndex) => {
             violator: {
               type,
               name,
-              tagName: (name || path.replace(/^.*\//, '').replace(/\[.*$/, '') || '').toUpperCase(),
+              tagName,
               path,
               codeLines: codeLines.map(
                 line => line.length > 300 ? `${line.slice(0, 300)}...` : line
