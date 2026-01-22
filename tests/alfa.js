@@ -17,6 +17,7 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
+const {getNormalizedXPath} = require('../procs/identify');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // FUNCTIONS
@@ -55,8 +56,11 @@ exports.reporter = async (page, report, actIndex) => {
       const violatorClass = component.violator;
       // If it has a non-collection violator:
       if (violatorClass && ! violatorClass._members) {
-        // Get the path, less any final text() selector, and code lines of the violator.
-        const path = violatorClass.path().replace(/\/text\(\).*$/, '');
+        // Get the path.
+        const path = violatorClass.path();
+        // Get the normalized path, omitting any final text() selector.
+        const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
+        // Get the code lines of the violator.
         const codeLines = violatorClass.toString().split('\n');
         // Convert the component to a finding object.
         const finding = component.toJSON();
@@ -65,7 +69,7 @@ exports.reporter = async (page, report, actIndex) => {
         if (outcome !== 'passed') {
           let text = '';
           // Get a locator for the violator.
-          const violatorLoc = page.locator(`xpath=${path}`);
+          const violatorLoc = page.locator(`xpath=${pathID}`);
           try {
             // Get the inner text of the violator.
             text = await violatorLoc.innerText({timeout: 100});
@@ -76,7 +80,7 @@ exports.reporter = async (page, report, actIndex) => {
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
-          const {violator} = finding;
+          const violator = finding.target;
           const {name, type} = violator;
           if (codeLines[0] === '#document') {
             codeLines.splice(2, codeLines.length - 3, '...');
@@ -102,7 +106,8 @@ exports.reporter = async (page, report, actIndex) => {
               codeLines: codeLines.map(
                 line => line.length > 300 ? `${line.slice(0, 300)}...` : line
               ),
-              text
+              text,
+              pathID
             }
           };
           // If the rule summary is missing:
