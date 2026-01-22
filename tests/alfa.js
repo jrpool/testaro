@@ -53,12 +53,11 @@ exports.reporter = async (page, report, actIndex) => {
     // For each of its components:
     for (const index in evaluation) {
       const component = evaluation[index];
-      const violatorClass = component.outcome;
+      const violatorClass = component.target;
       // If it has a non-collection violator:
       if (violatorClass && ! violatorClass._members) {
         // Get the path.
         const path = violatorClass.path();
-        console.log(`XXX Path is ${path}`);
         // Get the normalized path, omitting any final text() selector.
         const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
         // Get the code lines of the violator.
@@ -73,11 +72,9 @@ exports.reporter = async (page, report, actIndex) => {
           const violatorLoc = page.locator(`xpath=${pathID}`);
           try {
             // Get the inner text of the violator.
-            text = await violatorLoc.innerText({timeout: 100});
+            text = await violatorLoc.innerText({timeout: 50});
           }
-          catch(error) {
-            console.log(`ERROR: Inner text of violator ${path} not found (${error})`);
-          }
+          catch(error) {}
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
@@ -117,7 +114,7 @@ exports.reporter = async (page, report, actIndex) => {
             const {requirements} = findingData.rule;
             if (requirements && requirements.length && requirements[0].title) {
               // Make it the rule summary.
-              outcomeData.rule.ruleSummary = requirements[0].title;
+              findingData.rule.ruleSummary = requirements[0].title;
             }
           }
           const etcTags = [];

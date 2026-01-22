@@ -393,9 +393,9 @@ const convert = (toolName, data, result, standardResult) => {
   // alfa
   else if (toolName === 'alfa' && result.totals) {
     result.items.forEach(item => {
-      const {outcome, rule, target} = item;
+      const {outcome, rule, violator} = item;
       const {ruleID, ruleSummary} = rule;
-      const {codeLines, path} = target;
+      const {codeLines, path, pathID, tagName, text} = violator;
       const code = Array.isArray(codeLines) ? codeLines.join(' ') : '';
       const identifiers = getIdentifiers(code);
       const tagNameArray = path && path.match(/^.*\/([a-z]+)\[\d+\]/);
@@ -408,7 +408,7 @@ const convert = (toolName, data, result, standardResult) => {
           ruleID,
           what: ruleSummary,
           ordinalSeverity: 3,
-          tagName: identifiers[0],
+          tagName: tagName || identifiers[0],
           id: identifiers[1],
           location: {
             doc: 'dom',
@@ -416,8 +416,9 @@ const convert = (toolName, data, result, standardResult) => {
             spec: path
           },
           excerpt: cap(code),
+          text,
           boxID: '',
-          pathID: getNormalizedXPath(path)
+          pathID
         };
         standardResult.instances.push(instance);
       }
@@ -427,7 +428,7 @@ const convert = (toolName, data, result, standardResult) => {
             ruleID: 'cantTellTextContrast',
             what: `cannot test for rule ${ruleID}: ${ruleSummary}`,
             ordinalSeverity: 0,
-            tagName: identifiers[0],
+            tagName: tagName || identifiers[0],
             id: identifiers[1],
             location: {
               doc: 'dom',
@@ -435,8 +436,9 @@ const convert = (toolName, data, result, standardResult) => {
               spec: path
             },
             excerpt: cap(code),
+            text,
             boxID: '',
-            pathID: getNormalizedXPath(path)
+            pathID
           };
         }
         else {
@@ -444,7 +446,7 @@ const convert = (toolName, data, result, standardResult) => {
             ruleID: 'cantTell',
             what: `cannot test for rule ${ruleID}: ${ruleSummary}`,
             ordinalSeverity: 0,
-            tagName: identifiers[0],
+            tagName: tagName || identifiers[0],
             id: identifiers[1],
             location: {
               doc: 'dom',
@@ -452,8 +454,9 @@ const convert = (toolName, data, result, standardResult) => {
               spec: path
             },
             excerpt: cap(code),
+            text,
             boxID: '',
-            pathID: getNormalizedXPath(path)
+            pathID
           };
         }
         standardResult.instances.push(instance);
