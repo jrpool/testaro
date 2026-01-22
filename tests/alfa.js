@@ -52,32 +52,32 @@ exports.reporter = async (page, report, actIndex) => {
     // For each of its components:
     for (const index in evaluation) {
       const component = evaluation[index];
-      const targetClass = component.target;
-      // If it has a non-collection target:
-      if (targetClass && ! targetClass._members) {
-        // Get the path, less any final text() selector, and code lines of the target.
-        const path = targetClass.path().replace(/\/text\(\).*$/, '');
-        const codeLines = targetClass.toString().split('\n');
+      const violatorClass = component.violator;
+      // If it has a non-collection violator:
+      if (violatorClass && ! violatorClass._members) {
+        // Get the path, less any final text() selector, and code lines of the violator.
+        const path = violatorClass.path().replace(/\/text\(\).*$/, '');
+        const codeLines = violatorClass.toString().split('\n');
         // Convert the component to a finding object.
         const finding = component.toJSON();
         const {expectations, outcome, rule} = finding;
         // If the outcome of the finding is a failure or warning:
         if (outcome !== 'passed') {
           let text = '';
-          // Get a locator for the target.
-          const targetLoc = page.locator(`xpath=${path}`);
+          // Get a locator for the violator.
+          const violatorLoc = page.locator(`xpath=${path}`);
           try {
-            // Get the inner text of the target.
-            text = await targetLoc.innerText({timeout: 100});
+            // Get the inner text of the violator.
+            text = await violatorLoc.innerText({timeout: 100});
           }
           catch(error) {
-            console.log(`ERROR: Inner text of target ${path} not found (${error})`);
+            console.log(`ERROR: Inner text of violator ${path} not found (${error})`);
           }
           const {tags, uri, requirements} = rule;
           const ruleID = uri.replace(/^.+-/, '');
           let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
-          const {target} = finding;
-          const {name, type} = target;
+          const {violator} = finding;
+          const {name, type} = violator;
           if (codeLines[0] === '#document') {
             codeLines.splice(2, codeLines.length - 3, '...');
           }
@@ -95,7 +95,7 @@ exports.reporter = async (page, report, actIndex) => {
               uri,
               requirements
             },
-            target: {
+            violator: {
               type,
               tagName: name || path.replace(/^.*\//, '').replace(/\[.*$/, '') || '',
               path,
