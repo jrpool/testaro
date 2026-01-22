@@ -53,11 +53,12 @@ exports.reporter = async (page, report, actIndex) => {
     // For each of its components:
     for (const index in evaluation) {
       const component = evaluation[index];
-      const violatorClass = component.violator;
+      const violatorClass = component.outcome;
       // If it has a non-collection violator:
       if (violatorClass && ! violatorClass._members) {
         // Get the path.
         const path = violatorClass.path();
+        console.log(`XXX Path is ${path}`);
         // Get the normalized path, omitting any final text() selector.
         const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
         // Get the code lines of the violator.
