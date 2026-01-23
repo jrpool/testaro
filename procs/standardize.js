@@ -35,7 +35,7 @@ const cap = rawString => {
 // Returns whether an id attribute value is valid without character escaping.
 const isBadID = id => /[^-\w]|^\d|^--|^-\d/.test(id);
 // Returns a tag name and the value of an id attribute from a substring of HTML code.
-const getIdentifiers = code => {
+const getIdentifiers = exports.getIdentifiers = code => {
   // Normalize the code.
   code = code.replace(/\s+/g, ' ').replace(/\\"/g, '"');
   // Get the first start tag of an element, if any.

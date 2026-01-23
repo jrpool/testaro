@@ -17,6 +17,7 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
+const {getIdentifiers} = require('../procs/standardize');
 const {getNormalizedXPath} = require('../procs/identify');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 
@@ -24,7 +25,6 @@ const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // Simplifies the spacing of a string.
 const tidy = string => string.replace(/\s+/g, ' ');
-
 // Conducts and reports the alfa tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
@@ -37,83 +37,97 @@ exports.reporter = async (page, report, actIndex) => {
   // Initialize the act report.
   const data = {};
   const result = {
-    totals: {
-      failures: 0,
-      warnings: 0
+    nativeResult: {
+      totals: {
+        failed: 0,
+        cantTell: 0
+      },
+      items: []
     },
-    items: []
+    standardResult: {}
   };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: '',
+      totals: [],
+      instances: []
+    };
+  }
   try {
-    // Test the page content with the specified rules.
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
+    // Test the page content with the specified rules.
     const audit = Audit.of(alfaPage, alfaRules);
-    // Get the evaluation.
-    const evaluation = Array.from(await audit.evaluate());
-    // For each of its components:
-    for (const index in evaluation) {
-      const component = evaluation[index];
-      const violatorClass = component.target;
+    // Get the evaluations.
+    const evaluations = Array.from(await audit.evaluate());
+    const {nativeResult, standardResult} = result;
+    // For each of them:
+    for (const index in evaluations) {
+      const evaluation = evaluations[index];
+      const targetClass = evaluation.target;
       // If it has a non-collection violator:
-      if (violatorClass && ! violatorClass._members) {
-        // Get the path.
-        const path = violatorClass.path();
-        // Get the normalized path, omitting any final text() selector.
-        const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
-        // Get the code lines of the violator.
-        const codeLines = violatorClass.toString().split('\n');
-        // Convert the component to a finding object.
-        const finding = component.toJSON();
-        const {expectations, outcome, rule} = finding;
-        // If the outcome of the finding is a failure or warning:
+      if (targetClass && ! targetClass._members) {
+        // Convert the evaluation to an item.
+        const item = evaluation.toJSON();
+        const {expectations, outcome, rule, target} = item;
+        // If the outcome of the item is a failure or warning:
         if (outcome !== 'passed') {
-          let text = '';
-          // Get a locator for the violator.
-          const violatorLoc = page.locator(`xpath=${pathID}`);
-          try {
-            // Get the inner text of the violator.
-            text = await violatorLoc.innerText({timeout: 50});
+          // Add properties of the evaluation to the item.
+          item.code = targetClass.toString();
+          item.path = targetClass.path();
+          // Add the item to the items of the native result.
+          nativeResult.items.push(item);
+          // If standard results are to be reported:
+          if (standard) {
+            standardResult.prevented = false;
+            standardResult.totals = [
+              nativeResult.totals.cantTell, 0, nativeResult.totals.failed, 0
+            ];
+            const {uri} = rule;
+            // Get properties required for a standard result.
+            const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
+            const {name} = target;
+            let tagName = name?.toUpperCase();
+            if (pathID && tagName?.startsWith('TEXT') || ! tagName) {
+              tagName = pathID.split('/').pop().replace(/\[.+/, '').toUpperCase() || '';
+            }
+            const targetLoc = page.locator(`xpath=${pathID}`);
+            const box = await targetLoc.boundingBox();
+            const boxID = box ? Object.values(box).join(':') : '';
+            let text = '';
+            try {
+              // Get the inner text of the violator.
+              text = await targetLoc.innerText({timeout: 50});
+            }
+            catch(error) {}
+            // Add a standard instance to the standard result.
+            standardResult.instances.push({
+              ruleID: uri.replace(/^.+-/, ''),
+              what: tidy(expectations?.[0]?.[1]?.error?.message || ''),
+              ordinalSeverity: outcome === 'cantTell' ? 0 : 2,
+              count: 1,
+              tagName,
+              id: getIdentifiers(code)[1],
+              location: {
+                doc: 'dom',
+                type: 'xpath',
+                spec: pathID
+              },
+              excerpt: cap(tidy(item.code)),
+              text,
+              boxID,
+              pathID
+            });
           }
-          catch(error) {}
-          const {tags, uri, requirements} = rule;
-          const ruleID = uri.replace(/^.+-/, '');
-          let ruleSummary = tidy(expectations?.[0]?.[1]?.error?.message || '');
-          const violator = finding.target;
-          const {name, type} = violator;
           if (codeLines[0] === '#document') {
             codeLines.splice(2, codeLines.length - 3, '...');
           }
           else if (codeLines[0].startsWith('<html')) {
             codeLines.splice(1, codeLines.length - 2, '...');
           }
-          let tagName = name?.toUpperCase();
-          if (pathID && (tagName?.startsWith('TEXT') || ! tagName)) {
-            const standardTagName = pathID.split('/').pop().replace(/\[.+/, '').toUpperCase() || '';
-            tagName = standardTagName;
-          }
-          // Get data on the finding.
-          const findingData = {
-            index,
-            outcome,
-            rule: {
-              ruleID,
-              ruleSummary,
-              scope: '',
-              uri,
-              requirements
-            },
-            violator: {
-              type,
-              name,
-              tagName,
-              path,
-              codeLines: codeLines.map(
-                line => line.length > 300 ? `${line.slice(0, 300)}...` : line
-              ),
-              text,
-              pathID
-            }
-          };
           // If the rule summary is missing:
           if (findingData.rule.ruleSummary === '') {
             // If a first requirement title exists:
@@ -123,25 +137,6 @@ exports.reporter = async (page, report, actIndex) => {
               findingData.rule.ruleSummary = requirements[0].title;
             }
           }
-          const etcTags = [];
-          tags.forEach(tag => {
-            if (tag.type === 'scope') {
-              findingData.rule.scope = tag.scope;
-            }
-            else {
-              etcTags.push(tag);
-            }
-          });
-          if (etcTags.length) {
-            findingData.etcTags = etcTags;
-          }
-          if (findingData.outcome === 'failed') {
-            result.totals.failures++;
-          }
-          else if (findingData.outcome === 'cantTell') {
-            result.totals.warnings++;
-          }
-          result.items.push(findingData);
         }
       }
     };

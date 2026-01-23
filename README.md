@@ -726,9 +726,9 @@ Here is an example of an instance in a standard result:
     spec: '/html[1]/body[1]/section[3]/div[2]/div[1]/ul[1]/li[1]/button[1]'
   },
   excerpt: '<button type="link">Create an account</button>',
+  text: 'Create an account'
   boxID: '12:340:46:50',
   pathID: '/html/body/section[3]/div[2]/div/ul/li[1]/button[1]',
-  text: 'Create an account'
 }
 ```
 
