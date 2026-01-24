@@ -126,7 +126,7 @@ exports.reporter = async (page, report, actIndex) => {
             }
             // Add a standard instance to the standard result.
             standardResult.instances.push({
-              ruleID: ,
+              ruleID,
               what,
               ordinalSeverity,
               count: 1,

@@ -384,84 +384,18 @@ const doWAVE = (result, standardResult, categoryName) => {
     }
   }
 };
-// Converts a result.
+// Populates the initialized standard result of an act with the act data and result.
 const convert = (toolName, data, result, standardResult) => {
-  // Prevention.
+  // If the act data state that the act was prevented:
   if (data.prevented) {
+    // Add that to the standard result and disregard tool-specific conversions.
     standardResult.prevented = true;
   }
   // alfa
   else if (toolName === 'alfa' && result.standardResult) {
-    result.items.forEach(item => {
-      const {outcome, rule, violator} = item;
-      const {ruleID, ruleSummary} = rule;
-      const {codeLines, path, pathID, tagName, text} = violator;
-      const code = Array.isArray(codeLines) ? codeLines.join(' ') : '';
-      const identifiers = getIdentifiers(code);
-      const tagNameArray = path && path.match(/^.*\/([a-z]+)\[\d+\]/);
-      if (tagNameArray && tagNameArray.length === 2) {
-        identifiers[0] = tagNameArray[1].toUpperCase();
-      }
-      let instance;
-      if (outcome === 'failed') {
-        instance = {
-          ruleID,
-          what: ruleSummary,
-          ordinalSeverity: 3,
-          tagName: tagName || identifiers[0],
-          id: identifiers[1],
-          location: {
-            doc: 'dom',
-            type: 'xpath',
-            spec: path
-          },
-          excerpt: cap(code),
-          text,
-          boxID: '',
-          pathID
-        };
-        standardResult.instances.push(instance);
-      }
-      else if (item.verdict === 'cantTell') {
-        if (['r66', 'r69'].includes(ruleID)) {
-          instance = {
-            ruleID: 'cantTellTextContrast',
-            what: `cannot test for rule ${ruleID}: ${ruleSummary}`,
-            ordinalSeverity: 0,
-            tagName: tagName || identifiers[0],
-            id: identifiers[1],
-            location: {
-              doc: 'dom',
-              type: 'xpath',
-              spec: path
-            },
-            excerpt: cap(code),
-            text,
-            boxID: '',
-            pathID
-          };
-        }
-        else {
-          instance = {
-            ruleID: 'cantTell',
-            what: `cannot test for rule ${ruleID}: ${ruleSummary}`,
-            ordinalSeverity: 0,
-            tagName: tagName || identifiers[0],
-            id: identifiers[1],
-            location: {
-              doc: 'dom',
-              type: 'xpath',
-              spec: path
-            },
-            excerpt: cap(code),
-            text,
-            boxID: '',
-            pathID
-          };
-        }
-        standardResult.instances.push(instance);
-      }
-    });
+    // Move the standardResult property of the result to the standard result.
+    standardResult = result.standardResult;
+    delete result.standardResult;
   }
   // aslint
   else if (toolName === 'aslint' && result.summary && result.summary.byIssueType) {
@@ -758,8 +692,8 @@ const convert = (toolName, data, result, standardResult) => {
       standardResult.instances.push(instance);
     });
   }
-  // Populate the totals of the standard result if the tool is not Testaro or WAVE.
-  if (! ['testaro', 'wave'].includes(toolName)) {
+  // Populate the totals of the standard result if the tool is not Alfa, Testaro or WAVE.
+  if (! ['alfa', 'testaro', 'wave'].includes(toolName)) {
     standardResult.instances.forEach(instance => {
       standardResult.totals[instance.ordinalSeverity] += instance.count || 1;
     });
@@ -767,7 +701,7 @@ const convert = (toolName, data, result, standardResult) => {
   // Round the totals of the standard result.
   standardResult.totals = standardResult.totals.map(total => Math.round(total));
 };
-// Converts the results of a test act.
+// Populates the initialized standard result of an act.
 exports.standardize = act => {
   const {which, data, result, standardResult} = act;
   if (which && result && standardResult) {
