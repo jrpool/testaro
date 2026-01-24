@@ -17,14 +17,13 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
+const {cap, tidy} = require('../procs/job');
 const {getIdentifiers} = require('../procs/standardize');
 const {getNormalizedXPath} = require('../procs/identify');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // FUNCTIONS
 
-// Simplifies the spacing of a string.
-const tidy = string => string.replace(/\s+/g, ' ');
 // Conducts and reports the alfa tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];

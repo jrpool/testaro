@@ -15,23 +15,11 @@
 
 // IMPORTS
 
+const {cap} = require('./job');
 const {getNormalizedXPath} = require('./identify');
 
 // FUNCTIONS
 
-// Limits the length of and unilinearizes a string.
-const cap = rawString => {
-  const string = (rawString.trim() || '').replace(/[\s\u2028\u2029]+/g, ' ');
-  if (string && string.length > 1000) {
-    return `${string.slice(0, 500)} … ${string.slice(-500)}`;
-  }
-  else if (string) {
-    return string;
-  }
-  else {
-    return '';
-  }
-};
 // Returns whether an id attribute value is valid without character escaping.
 const isBadID = id => /[^-\w]|^\d|^--|^-\d/.test(id);
 // Returns a tag name and the value of an id attribute from a substring of HTML code.
