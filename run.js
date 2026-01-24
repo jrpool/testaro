@@ -88,9 +88,6 @@ const timeLimits = {
 // Timeout multiplier.
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
-// Temporary directory
-const tmpDir = os.tmpdir();
-
 // ########## VARIABLES
 
 // Facts about the current session.
@@ -796,6 +793,19 @@ const doActs = async (report, opts = {}) => {
   const {onProgress = null, signal = null} = opts;
   // Get the standardization specification.
   const standard = report.standard || 'only';
+  // Set the temporary directory.
+  let tmpDir = `${__dirname}/${process.env.TMPDIRNAME || 'scratch'}`;
+  if (! await fs.access(tmpDir, fs.constants.W_OK)) {
+    tmpDir = os.tmpdir();
+    if (! await fs.access(tmpDir, fs.constants.W_OK)) {
+      tmpDir = '/tmp';
+      if (! await fs.access(tmpDir, fs.constants.W_OK)) {
+        console.log('ERROR: No writable temporary directory found');
+        process.exit(1);
+      }
+    }
+  }
+  // Get a path for temporary reports.
   const reportPath = `${tmpDir}/${report.id}.json`;
   // For each act in the report.
   for (const actIndex in acts) {

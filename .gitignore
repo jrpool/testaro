@@ -9,8 +9,8 @@
 node_modules/
 
 # Temporary files
+scratch/
 temp/
-ibmOutput/
 validation/tests/old
 
 # Secrets
