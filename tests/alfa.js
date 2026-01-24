@@ -75,8 +75,19 @@ exports.reporter = async (page, report, actIndex) => {
         const {expectations, outcome, rule, target} = item;
         // If the outcome of the item is a failure or warning:
         if (outcome !== 'passed') {
+          const codeLines = targetClass.toString().split('\n');
+          if (codeLines[0] === '#document') {
+            codeLines.splice(2, codeLines.length - 3, ' … ');
+          }
+          else if (codeLines[0].startsWith('<html')) {
+            codeLines.splice(1, codeLines.length - 2, ' … ');
+          }
+          let code = codeLines.join('/n');
+          if (code.length > 400) {
+            code = `${code.slice(0, 300)} … ${code.slice(-100)}`;
+          }
           // Add properties of the evaluation to the item.
-          item.code = targetClass.toString();
+          item.code = code;
           item.path = targetClass.path();
           // Add the item to the items of the native result.
           nativeResult.items.push(item);
@@ -87,7 +98,7 @@ exports.reporter = async (page, report, actIndex) => {
               nativeResult.totals.cantTell, 0, nativeResult.totals.failed, 0
             ];
             const {uri} = rule;
-            // Get properties required for a standard result.
+            // Get properties required for a standard instance.
             const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
             const {name} = target;
             let tagName = name?.toUpperCase();
@@ -99,15 +110,25 @@ exports.reporter = async (page, report, actIndex) => {
             const boxID = box ? Object.values(box).join(':') : '';
             let text = '';
             try {
-              // Get the inner text of the violator.
               text = await targetLoc.innerText({timeout: 50});
             }
             catch(error) {}
+            // Get rule-specific properties of a standard instance.
+            let ruleID = uri.replace(/^.+-/, '');
+            let what = tidy(expectations?.[0]?.[1]?.error?.message || '');
+            let ordinalSeverity = 2;
+            // If the outcome is untestability:
+            if (outcome === 'cantTell') {
+              // Revise the rule-specific properties.
+              ruleID = ['r66', 'r69'].includes(ruleID) ? 'cantTell' : 'cantTellTextContrast';
+              what = `cannot test for rule ${ruleID}: ${what}`;
+              ordinalSeverity = 0;
+            }
             // Add a standard instance to the standard result.
             standardResult.instances.push({
-              ruleID: uri.replace(/^.+-/, ''),
-              what: tidy(expectations?.[0]?.[1]?.error?.message || ''),
-              ordinalSeverity: outcome === 'cantTell' ? 0 : 2,
+              ruleID: ,
+              what,
+              ordinalSeverity,
               count: 1,
               tagName,
               id: getIdentifiers(code)[1],
@@ -121,12 +142,6 @@ exports.reporter = async (page, report, actIndex) => {
               boxID,
               pathID
             });
-          }
-          if (codeLines[0] === '#document') {
-            codeLines.splice(2, codeLines.length - 3, '...');
-          }
-          else if (codeLines[0].startsWith('<html')) {
-            codeLines.splice(1, codeLines.length - 2, '...');
           }
           // If the rule summary is missing:
           if (findingData.rule.ruleSummary === '') {

@@ -391,7 +391,7 @@ const convert = (toolName, data, result, standardResult) => {
     standardResult.prevented = true;
   }
   // alfa
-  else if (toolName === 'alfa' && result.totals) {
+  else if (toolName === 'alfa' && result.standardResult) {
     result.items.forEach(item => {
       const {outcome, rule, violator} = item;
       const {ruleID, ruleSummary} = rule;
