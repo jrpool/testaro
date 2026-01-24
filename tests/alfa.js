@@ -99,15 +99,21 @@ exports.reporter = async (page, report, actIndex) => {
             ];
             const {uri} = rule;
             // Get properties required for a standard instance.
-            const pathID = getNormalizedXPath(path.replace(/\/text\(\).*$/, ''));
+            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, ''));
             const {name} = target;
             let tagName = name?.toUpperCase();
             if (pathID && tagName?.startsWith('TEXT') || ! tagName) {
               tagName = pathID.split('/').pop().replace(/\[.+/, '').toUpperCase() || '';
             }
+            let boxID = '';
             const targetLoc = page.locator(`xpath=${pathID}`);
-            const box = await targetLoc.boundingBox();
-            const boxID = box ? Object.values(box).join(':') : '';
+            try {
+              const box = await targetLoc.boundingBox({timeout: 50});
+              if (box) {
+                boxID = Object.values(box).join(':');
+              }
+            }
+            catch(error) {}
             let text = '';
             try {
               text = await targetLoc.innerText({timeout: 50});

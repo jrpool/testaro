@@ -795,12 +795,23 @@ const doActs = async (report, opts = {}) => {
   const standard = report.standard || 'only';
   // Set the temporary directory.
   let tmpDir = `${__dirname}/${process.env.TMPDIRNAME || 'scratch'}`;
-  if (! await fs.access(tmpDir, fs.constants.W_OK)) {
+  try {
+    await fs.access(tmpDir, fs.constants.W_OK);
+  }
+  catch(error) {
+    console.log(`ERROR: ${tmpDir} is not writable`);
     tmpDir = os.tmpdir();
-    if (! await fs.access(tmpDir, fs.constants.W_OK)) {
+    try {
+      await fs.access(tmpDir, fs.constants.W_OK);
+    }
+    catch(error) {
+      console.log(`ERROR: ${tmpDir} is not writable`);
       tmpDir = '/tmp';
-      if (! await fs.access(tmpDir, fs.constants.W_OK)) {
-        console.log('ERROR: No writable temporary directory found');
+      try {
+        await fs.access(tmpDir, fs.constants.W_OK);
+      }
+      catch(error) {
+        console.log(`ERROR: ${tmpDir} is not writable; quitting`);
         process.exit(1);
       }
     }

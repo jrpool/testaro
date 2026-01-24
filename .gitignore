@@ -9,7 +9,8 @@
 node_modules/
 
 # Temporary files
-scratch/
+scratch/*
+!scratch/README.md
 temp/
 validation/tests/old
 
