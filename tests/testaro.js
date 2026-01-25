@@ -394,13 +394,6 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'motionSolo',
-    what: 'motion without user request, measured within this test',
-    launchRole: 'waster',
-    timeOut: 15,
-    defaultOn: false
-  },
-  {
     id: 'textNodes',
     what: 'data on specified text nodes',
     launchRole: 'waster',

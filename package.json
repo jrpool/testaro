@@ -48,6 +48,7 @@
     "playwright-dompath": "*",
     "playwright-extra": "*",
     "playwright-extra-plugin-stealth": "*",
+    "pngjs": "*",
     "puppeteer-extra-plugin-stealth": "*",
     "vnu-jar": "*"
   },
