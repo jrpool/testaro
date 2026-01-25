@@ -3216,3 +3216,46 @@ A conceptual outline of a possible shortcut (by GPT-5.2) is:
 - collect stderr (or write it to a file too)
 - wait for close event
 - then read /tmp/out.json and parse it
+
+## Alfa instability
+
+In one case it was found that the `body` element in the Playwright page had 2 initial children that were not present in the `alfaPage` object derived from the page, so the XPaths reported by `alfa` failed to identify elements in the page. In that case consistency was restored with a `page.waitForLoadState('networkidle')` call. Advice from GPT-5.2 about the possible need for subsequent measures was:
+
+```markdown
+## Keeping the `networkidle` wait is reasonable (with two cautions)
+
+What you did—`await page.waitForLoadState('networkidle', {timeout: 2000});` immediately before creating the `AlfaPage`—is a good *minimal* fix because it:
+
+- makes the DOM less likely to be mid-mutation when Alfa snapshots it
+- doesn’t require invasive changes to how you interpret Alfa’s `path`
+
+That said, two realistic failure modes are worth keeping in mind.
+
+## Caution 1: `networkidle` is not a universal “stable DOM” signal
+Some pages keep background requests alive (analytics, long polling, streaming). On those pages:
+
+- `networkidle` may **never happen** (or happen inconsistently)
+- your `{timeout: 2000}` turns it into “wait up to 2 seconds, then continue”, which is fine, but it also means you’re not guaranteed stability.
+
+If you see recurrence, consider an additional/alternative stability heuristic that’s DOM-based (e.g., wait for `document.readyState === 'complete'`, or wait for a specific element, or a short “settle” sleep).
+
+## Caution 2: cookie banners and overlays often appear *after* idle
+Your successful case suggests the banner/skiplink insertion was happening before your `networkidle` point. On some sites it can appear after (e.g., delayed timers). If you later see mismatches again:
+
+- it might be better to add a *small fixed settle delay* after the load-state wait (even 250–500ms), or
+- explicitly dismiss/hide known overlay patterns earlier in the flow.
+
+## Suggested “leave it until it fails” instrumentation
+If you want a low-effort safety net without changing behavior:
+
+- when `page.locator(\`xpath=${pathID}\`).count()` is `0`, log:
+  - the URL
+  - the `pathID`
+  - maybe the first ~200 chars of `item.code`
+  - and (optionally) the count of `body > *` at that moment
+
+That will help you see whether future failures cluster around late DOM injections.
+
+## Status
+Your fix is a sensible incremental change; keep it for now, and if you see new mismatches, the next step is adding a DOM-stability heuristic or an overlay-handling step rather than abandoning the approach.
+```

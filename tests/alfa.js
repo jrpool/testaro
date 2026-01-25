@@ -56,6 +56,8 @@ exports.reporter = async (page, report, actIndex) => {
     };
   }
   try {
+    // Wait for a stable page to make the page and its alfa version consistent.
+    await page.waitForLoadState('networkidle', {timeout: 2000});
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     // Test the page content with the specified rules.
@@ -71,9 +73,17 @@ exports.reporter = async (page, report, actIndex) => {
       if (targetClass && ! targetClass._members) {
         // Convert the evaluation to an item.
         const item = evaluation.toJSON();
-        const {expectations, outcome, rule, target} = item;
+        const {diagnostic, expectations, outcome, rule, target} = item;
         // If the outcome of the item is a failure or warning:
         if (['failed', 'cantTell'].includes(outcome)) {
+          // Delete typically massive properties unlikely to be useful.
+          delete target.children;
+          if (diagnostic?.errors) {
+            diagnostic.errors.forEach(error => {
+              delete error.element;
+              delete error.positionedDescendants;
+            });
+          }
           // Increment the applicable total.
           nativeResult.totals[outcome]++;
           const codeLines = targetClass.toString().split('\n');
