@@ -54,7 +54,7 @@ I'll quickly scan for module patterns and JSON imports across the repo to tailor
   - Strategy for optional properties and progressive enrichment during execution.
 
 - **3rd‑party types and augmentations**
-  - Verify/choose type packages for `playwright`, `@siteimprove/alfa-*`, `axe-playwright`, `@qualweb/*`, `accessibility-checker`, `playwright-dompath`, `pixelmatch`. Plan fallbacks if defs are missing.
+  - Verify/choose type packages for `playwright`, `@siteimprove/alfa-*`, `axe-playwright`, `@qualweb/*`, `accessibility-checker`, `playwright-dompath`. Plan fallbacks if defs are missing.
   - Decide on module augmentation vs casting for custom fields (e.g., `page.browserID` assignment requires augmenting `playwright.Page` or casting).
 
 - **Dynamic loading patterns**
