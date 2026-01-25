@@ -73,7 +73,9 @@ exports.reporter = async (page, report, actIndex) => {
         const item = evaluation.toJSON();
         const {expectations, outcome, rule, target} = item;
         // If the outcome of the item is a failure or warning:
-        if (outcome !== 'passed') {
+        if (['failed', 'cantTell'].includes(outcome)) {
+          // Increment the applicable total.
+          nativeResult.totals[outcome]++;
           const codeLines = targetClass.toString().split('\n');
           if (codeLines[0] === '#document') {
             codeLines.splice(2, codeLines.length - 3, ' … ');
@@ -92,10 +94,6 @@ exports.reporter = async (page, report, actIndex) => {
           nativeResult.items.push(item);
           // If standard results are to be reported:
           if (standard) {
-            standardResult.prevented = false;
-            standardResult.totals = [
-              nativeResult.totals.cantTell, 0, nativeResult.totals.failed, 0
-            ];
             const {requirements, uri} = rule;
             // Get properties required for a standard instance.
             const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, ''));
@@ -134,6 +132,8 @@ exports.reporter = async (page, report, actIndex) => {
               what = `cannot test for rule ${ruleID}: ${what}`;
               ordinalSeverity = 0;
             }
+            // Increment the standard total.
+            standardResult.totals[ordinalSeverity]++;
             // Add a standard instance to the standard result.
             standardResult.instances.push({
               ruleID,

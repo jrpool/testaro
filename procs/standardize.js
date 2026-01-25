@@ -381,9 +381,9 @@ const convert = (toolName, data, result, standardResult) => {
   }
   // alfa
   else if (toolName === 'alfa' && result.standardResult) {
-    // Move the standardResult property of the result to the standard result.
+    // Move the results to standard locations.
     standardResult = result.standardResult;
-    delete result.standardResult;
+    result = result.nativeResult;
   }
   // aslint
   else if (toolName === 'aslint' && result.summary && result.summary.byIssueType) {
