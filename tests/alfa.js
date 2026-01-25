@@ -121,6 +121,14 @@ exports.reporter = async (page, report, actIndex) => {
             // Get rule-specific properties of a standard instance.
             let ruleID = uri.replace(/^.+-/, '');
             let what = tidy(expectations?.[0]?.[1]?.error?.message || '');
+            if (! what) {
+              // If a first requirement title exists:
+              const {requirements} = findingData.rule;
+              if (requirements && requirements.length && requirements[0].title) {
+                // Make it the rule summary.
+                findingData.rule.ruleSummary = requirements[0].title;
+              }
+            }
             let ordinalSeverity = 2;
             // If the outcome is untestability:
             if (outcome === 'cantTell') {
