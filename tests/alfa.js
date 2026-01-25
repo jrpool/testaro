@@ -96,7 +96,7 @@ exports.reporter = async (page, report, actIndex) => {
             standardResult.totals = [
               nativeResult.totals.cantTell, 0, nativeResult.totals.failed, 0
             ];
-            const {uri} = rule;
+            const {requirements, uri} = rule;
             // Get properties required for a standard instance.
             const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, ''));
             const {name} = target;
@@ -122,11 +122,8 @@ exports.reporter = async (page, report, actIndex) => {
             let ruleID = uri.replace(/^.+-/, '');
             let what = tidy(expectations?.[0]?.[1]?.error?.message || '');
             if (! what) {
-              // If a first requirement title exists:
-              const {requirements} = findingData.rule;
               if (requirements && requirements.length && requirements[0].title) {
-                // Make it the rule summary.
-                findingData.rule.ruleSummary = requirements[0].title;
+                what = requirements[0].title;
               }
             }
             let ordinalSeverity = 2;
@@ -155,15 +152,6 @@ exports.reporter = async (page, report, actIndex) => {
               boxID,
               pathID
             });
-          }
-          // If the rule summary is missing:
-          if (findingData.rule.ruleSummary === '') {
-            // If a first requirement title exists:
-            const {requirements} = findingData.rule;
-            if (requirements && requirements.length && requirements[0].title) {
-              // Make it the rule summary.
-              findingData.rule.ruleSummary = requirements[0].title;
-            }
           }
         }
       }
