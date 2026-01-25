@@ -50,8 +50,8 @@ exports.reporter = async (page, report, actIndex) => {
   if (standard) {
     // Initialize the standard result.
     result.standardResult = {
-      prevented: '',
-      totals: [],
+      prevented: false,
+      totals: [0, 0, 0, 0],
       instances: []
     };
   }
