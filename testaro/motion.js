@@ -19,7 +19,7 @@ const fs = require('fs/promises');
 // Module to get operating-system properties.
 const os = require('os');
 // Module to compare screenshots.
-const pixelmatch = require('pixelmatch').default;
+const blazediff = require('blazediff/core').diff;
 // Module to parse PNGs.
 const {PNG} = require('pngjs');
 
@@ -60,7 +60,7 @@ exports.reporter = async page => {
       // Otherwise, i.e. if their dimensions are identical:
       else {
         // Get the count of differing pixels between the shots.
-        const pixelChanges = pixelmatch(shoot0PNG.data, shoot1PNG.data, null, width, height);
+        const pixelChanges = blazediff(shoot0PNG.data, shoot1PNG.data, null, width, height);
         // Get the ratio of differing to all pixels as a percentage.
         const changePercent = Math.round(100 * pixelChanges / (width * height));
         // Free the memory used by screenshots.

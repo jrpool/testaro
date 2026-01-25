@@ -48,7 +48,7 @@ Testaro uses:
 - [Playwright](https://playwright.dev/) to launch browsers, perform user actions in them, and perform tests
 - [playwright-extra](https://www.npmjs.com/package/playwright-extra) and [puppeteer-extra-plugin-stealth](https://www.npmjs.com/package/puppeteer-extra-plugin-stealth) to make a Playwright-controlled browser more indistinguishable from a human-operated browser and thus make their requests more likely to succeed
 - [playwright-dompath](https://www.npmjs.com/package/playwright-dompath) to retrieve XPaths of elements
-- [pixelmatch](https://www.npmjs.com/package/pixelmatch) to measure motion
+- [BlazeDiff](https://blazediff.dev/) to measure motion
 
 Testaro performs tests of these _tools_:
 
