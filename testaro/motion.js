@@ -19,7 +19,7 @@ const fs = require('fs/promises');
 // Module to get operating-system properties.
 const os = require('os');
 // Module to compare screenshots.
-const blazediff = require('blazediff/core').diff;
+const blazediff = require('@blazediff/core').diff;
 // Module to parse PNGs.
 const {PNG} = require('pngjs');
 
