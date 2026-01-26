@@ -25,12 +25,26 @@ const {getLocationData} = require('../procs/getLocatorData');
 // FUNCTIONS
 
 // Conducts and reports the ASLint tests.
-exports.reporter = async (page, report, actIndex, timeLimit) => {
+exports.reporter = async (page, report, actIndex) => {
   // Add unique identifiers to the elements in the page.
   await addTestaroIDs(page);
   // Initialize the act report.
   let data = {};
-  let result = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
+  const {standardResult} = result;
   // Get the ASLint runner and bundle scripts.
   const aslintRunner = await fs.readFile(`${__dirname}/../procs/aslint.js`, 'utf8');
   const aslintBundlePath = require.resolve('aslint-testaro/aslint.bundle.js');
@@ -73,7 +87,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       // Wait for the test results to be attached to the page.
       const waitOptions = {
         state: 'attached',
-        timeout: 1000 * timeLimit
+        timeout: 20000
       };
       await reportLoc.waitFor(waitOptions);
     }
@@ -88,21 +102,22 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   if (! data.prevented) {
     // Get their text.
     const actReport = await reportLoc.textContent();
-    result = JSON.parse(actReport);
+    const nativeResult = result.nativeResult = JSON.parse(actReport);
     // If any rules were reported violated:
-    if (result.rules) {
+    if (nativeResult.rules) {
+      const {rules} = nativeResult;
       // For each such rule:
-      for (const ruleID of Object.keys(result.rules)) {
+      for (const ruleID of Object.keys(rules)) {
         const excluded = act.rules && ! act.rules.includes(ruleID);
-        const instanceType = result.rules[ruleID].status.type;
+        const instanceType = rules[ruleID].status.type;
         // If rules to be tested were specified and exclude it or the rule was passed or skipped:
         if (excluded || ['passed', 'skipped'].includes(instanceType)) {
           // Delete the rule report.
-          delete result.rules[ruleID];
+          delete rules[ruleID];
         }
         // Otherwise, i.e. if the rule was violated:
         else {
-          const ruleResults = result.rules[ruleID].results;
+          const ruleResults = rules[ruleID].results;
           // For each violation:
           for (const ruleResult of ruleResults) {
             const excerpt = ruleResult.element
@@ -116,6 +131,87 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
           };
         }
       };
+      // If the ASLint results are in the expected format:
+      if (nativeResult?.summary?.byIssueType) {
+        // For each rule:
+        Object.keys(result.rules).forEach(ruleID => {
+          // If it has a valid issue type:
+          const {issueType} = result.rules[ruleID];
+          if (issueType && ['warning', 'error'].includes(issueType)) {
+            // If there are any violations:
+            const ruleResults = result.rules[ruleID].results;
+            if (ruleResults && ruleResults.length) {
+              // For each violation:
+              ruleResults.forEach(ruleResult => {
+                // If it has a description:
+                if (
+                  ruleResult.message
+                  && ruleResult.message.actual
+                  && ruleResult.message.actual.description
+                ) {
+                  const what = ruleResult.message.actual.description;
+                  // Get the differentiated ID of the rule if any.
+                  const ruleData = aslintData[ruleID];
+                  let finalRuleID = ruleID;
+                  if (ruleData) {
+                    const changer = ruleData.find(
+                      specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
+                    );
+                    if (changer) {
+                      finalRuleID = changer[changer.length - 1];
+                    }
+                  }
+                  // Initialize the path ID of the violating element as any normalized reported XPath.
+                  let pathID = getNormalizedXPath(ruleResult.element && ruleResult.element.xpath) || '';
+                  const {locationData} = ruleResult;
+                  // If an XPath was obtained from the excerpt:
+                  if (locationData && locationData.pathID) {
+                    // Replace the path ID with it, because some ASLint-reported XPaths are abbreviated.
+                    ({pathID} = locationData);
+                  }
+                  // Get and normalize the reported excerpt.
+                  const excerpt = ruleResult.element
+                  && ruleResult.element.html
+                  && ruleResult.element.html.replace(/\s+/g, ' ')
+                  || '';
+                  // Get the tag name from the XPath, if possible.
+                  let tagName = pathID && pathID.replace(/[^-\w].*$/, '').toUpperCase() || '';
+                  if (! tagName && finalRuleID.endsWith('_svg')) {
+                    tagName = 'SVG';
+                  }
+                  // If that was impossible but there is a tag name in the excerpt:
+                  if (! tagName && /^<[a-z]+[ >]/.test(excerpt)) {
+                    // Get it.
+                    tagName = excerpt.slice(1).replace(/[ >].+/, '').toUpperCase();
+                  }
+                  // Get the ID, if any.
+                  const idDraft = excerpt && excerpt.replace(/^[^[>]+id="/, 'id=').replace(/".*$/, '');
+                  const idFinal = idDraft && idDraft.length > 3 && idDraft.startsWith('id=')
+                    ? idDraft.slice(3)
+                    : '';
+                  const id = idFinal === '' || isBadID(idFinal) ? '' : idFinal;
+                  const instance = {
+                    ruleID: finalRuleID,
+                    what,
+                    ordinalSeverity: ['warning', 0, 0, 'error'].indexOf(issueType),
+                    tagName,
+                    id,
+                    location: {
+                      doc: 'dom',
+                      type: 'xpath',
+                      spec: pathID
+                    },
+                    excerpt,
+                    boxID: '',
+                    pathID
+                  };
+                  standardResult.instances.push(instance);
+                }
+              });
+            }
+          }
+        });
+      }
     }
   }
   // Return the act report.
