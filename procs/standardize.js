@@ -16,7 +16,6 @@
 // IMPORTS
 
 const {cap} = require('./job');
-const {getNormalizedXPath} = require('./identify');
 
 // FUNCTIONS
 
@@ -40,103 +39,6 @@ const getIdentifiers = exports.getIdentifiers = code => {
     return [tagName, id];
   }
   return ['', ''];
-};
-/*
-  Differentiates some rule IDs of aslint.
-  If the purported rule ID is a key and the what property contains all of the strings except the
-  last of any array item of the value of that key, then the final rule ID is the last item of that
-  array item.
-*/
-const aslintData = {
-  'misused_required_attribute': [
-    ['not needed', 'misused_required_attributeR']
-  ],
-  'accessible_svg': [
-    ['associated', 'accessible_svgI'],
-    ['tabindex', 'accessible_svgT']
-  ],
-  'audio_alternative': [
-    ['track', 'audio_alternativeT'],
-    ['alternative', 'audio_alternativeA'],
-    ['bgsound', 'audio_alternativeB']
-  ],
-  'table_missing_description': [
-    ['describedby', 'associated', 'table_missing_descriptionDM'],
-    ['labeledby', 'associated', 'table_missing_descriptionLM'],
-    ['caption', 'not been defined', 'table_missing_descriptionC'],
-    ['summary', 'empty', 'table_missing_descriptionS'],
-    ['describedby', 'empty', 'table_missing_descriptionDE'],
-    ['labeledby', 'empty', 'table_missing_descriptionLE'],
-    ['caption', 'no content', 'table_missing_descriptionE']
-  ],
-  'label_implicitly_associated': [
-    ['only whice spaces', 'label_implicitly_associatedW'],
-    ['more than one', 'label_implicitly_associatedM']
-  ],
-  'label_inappropriate_association': [
-    ['Missing', 'label_inappropriate_associationM'],
-    ['non-form', 'label_inappropriate_associationN']
-  ],
-  'table_row_and_column_headers': [
-    ['headers', 'table_row_and_column_headersRC'],
-    ['Content', 'table_row_and_column_headersB'],
-    ['head of the columns', 'table_row_and_column_headersH']
-  ],
-  'color_contrast_state_pseudo_classes_abstract': [
-    ['position: fixed', 'color_contrast_state_pseudo_classes_abstractF'],
-    ['transparent', 'color_contrast_state_pseudo_classes_abstractB'],
-    ['least 3:1', 'color_contrast_state_pseudo_classes_abstract3'],
-    ['least 4.5:1', 'color_contrast_state_pseudo_classes_abstract4']
-  ],
-  'color_contrast_state_pseudo_classes_active': [
-    ['position: fixed', 'color_contrast_state_pseudo_classes_abstractF'],
-    ['transparent', 'color_contrast_state_pseudo_classes_abstractB'],
-    ['least 3:1', 'color_contrast_state_pseudo_classes_abstract3'],
-    ['least 4.5:1', 'color_contrast_state_pseudo_classes_abstract4']
-  ],
-  'color_contrast_state_pseudo_classes_focus': [
-    ['position: fixed', 'color_contrast_state_pseudo_classes_abstractF'],
-    ['transparent', 'color_contrast_state_pseudo_classes_abstractB'],
-    ['least 3:1', 'color_contrast_state_pseudo_classes_abstract3'],
-    ['least 4.5:1', 'color_contrast_state_pseudo_classes_abstract4']
-  ],
-  'color_contrast_state_pseudo_classes_hover': [
-    ['position: fixed', 'color_contrast_state_pseudo_classes_abstractF'],
-    ['transparent', 'color_contrast_state_pseudo_classes_abstractB'],
-    ['least 3:1', 'color_contrast_state_pseudo_classes_abstract3'],
-    ['least 4.5:1', 'color_contrast_state_pseudo_classes_abstract4']
-  ],
-  'color_contrast_aaa': [
-    ['transparent', 'color_contrast_aaaB'],
-    ['least 4.5:1', 'color_contrast_aaa4'],
-    ['least 7:1', 'color_contrast_aaa7']
-  ],
-  'animation': [
-    ['duration', 'animationD'],
-    ['iteration', 'animationI'],
-    ['mechanism', 'animationM']
-  ],
-  'page_title': [
-    ['empty', 'page_titleN'],
-    ['not identify', 'page_titleU']
-  ],
-  'aria_labelledby_association': [
-    ['exist', 'aria_labelledby_associationN'],
-    ['empty', 'aria_labelledby_associationE']
-  ],
-  'html_lang_attr': [
-    ['parameters', 'html_lang_attrP'],
-    ['nothing', 'html_lang_attrN'],
-    ['empty', 'html_lang_attrE']
-  ],
-  'missing_label': [
-    ['associated', 'missing_labelI'],
-    ['defined', 'missing_labelN'],
-    ['multiple labels', 'missing_labelM']
-  ],
-  'orientation': [
-    ['loaded', 'orientationT']
-  ]
 };
 // Converts issue instances at an axe certainty level.
 const doAxe = (result, standardResult, certainty) => {
