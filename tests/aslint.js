@@ -21,6 +21,8 @@ const {addTestaroIDs} = require('../procs/testaro');
 const fs = require('fs/promises');
 // Function to get location data from an element.
 const {getLocationData} = require('../procs/getLocatorData');
+// Function to normalize an XPath.
+const {getNormalizedXPath} = require('../procs/identify');
 
 // FUNCTIONS
 
@@ -79,6 +81,9 @@ exports.reporter = async (page, report, actIndex) => {
     console.log(message);
     data.prevented = true;
     data.error = message;
+    if (standard) {
+      standardResult.prevented = true;
+    }
   });
   const reportLoc = page.locator('#aslintResult');
   // If the injection succeeded:
@@ -115,31 +120,37 @@ exports.reporter = async (page, report, actIndex) => {
           // Delete the rule report.
           delete rules[ruleID];
         }
-        // Otherwise, i.e. if the rule was violated:
-        else {
-          const ruleResults = rules[ruleID].results;
-          // For each violation:
-          for (const ruleResult of ruleResults) {
-            const excerpt = ruleResult.element
-            && ruleResult.element.html.replace(/\s+/g, ' ')
-            || '';
-            // If an element excerpt was reported:
-            if (excerpt) {
-              // Use it to add location data to the violation data in the result.
-              ruleResult.locationData = await getLocationData(page, excerpt);
-            }
-          };
-        }
+      }
+      console.log(`XXX result:\n${JSON.stringify(result, null, 2)}`);
+    }
+  }
+};
+/*
+      // If standard results are to be reported:
+      if (standard) {
+        const ruleResults = rules[ruleID].results;
+        // For each violation:
+        for (const ruleResult of ruleResults) {
+          const excerpt = ruleResult.element
+          && ruleResult.element.html.replace(/\s+/g, ' ')
+          || '';
+          // If an element excerpt was reported:
+          if (excerpt) {
+            // Use it to add location data to the violation data in the result.
+            const locationData = await getLocationData(page, excerpt);
+          }
+        };
+      }
       };
       // If the ASLint results are in the expected format:
       if (nativeResult?.summary?.byIssueType) {
         // For each rule:
         Object.keys(result.rules).forEach(ruleID => {
-          // If it has a valid issue type:
           const {issueType} = result.rules[ruleID];
+          // If it has a valid issue type:
           if (issueType && ['warning', 'error'].includes(issueType)) {
-            // If there are any violations:
             const ruleResults = result.rules[ruleID].results;
+            // If there are any violations:
             if (ruleResults && ruleResults.length) {
               // For each violation:
               ruleResults.forEach(ruleResult => {
@@ -161,8 +172,8 @@ exports.reporter = async (page, report, actIndex) => {
                       finalRuleID = changer[changer.length - 1];
                     }
                   }
-                  // Initialize the path ID of the violating element as any normalized reported XPath.
-                  let pathID = getNormalizedXPath(ruleResult.element && ruleResult.element.xpath) || '';
+                  // Initialize the path ID of the element as any normalized reported XPath.
+                  let pathID = getNormalizedXPath(ruleResult?.element?.xpath);
                   const {locationData} = ruleResult;
                   // If an XPath was obtained from the excerpt:
                   if (locationData && locationData.pathID) {
@@ -170,10 +181,7 @@ exports.reporter = async (page, report, actIndex) => {
                     ({pathID} = locationData);
                   }
                   // Get and normalize the reported excerpt.
-                  const excerpt = ruleResult.element
-                  && ruleResult.element.html
-                  && ruleResult.element.html.replace(/\s+/g, ' ')
-                  || '';
+                  const excerpt = (ruleResult?.element?.html || '').replace(/\s+/g, ' ');
                   // Get the tag name from the XPath, if possible.
                   let tagName = pathID && pathID.replace(/[^-\w].*$/, '').toUpperCase() || '';
                   if (! tagName && finalRuleID.endsWith('_svg')) {
@@ -185,7 +193,8 @@ exports.reporter = async (page, report, actIndex) => {
                     tagName = excerpt.slice(1).replace(/[ >].+/, '').toUpperCase();
                   }
                   // Get the ID, if any.
-                  const idDraft = excerpt && excerpt.replace(/^[^[>]+id="/, 'id=').replace(/".*$/, '');
+                  const idDraft = excerpt
+                  && excerpt.replace(/^[^[>]+id="/, 'id=').replace(/".*$/, '');
                   const idFinal = idDraft && idDraft.length > 3 && idDraft.startsWith('id=')
                     ? idDraft.slice(3)
                     : '';
@@ -230,3 +239,4 @@ exports.reporter = async (page, report, actIndex) => {
     result
   };
 };
+*/
