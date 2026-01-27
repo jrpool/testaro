@@ -197,11 +197,11 @@ exports.reporter = async (page, report, actIndex) => {
     }
     // If the results are not JSON:
     catch(error) {
-      const message = 'Results were not JSON';
+      const message = `Result processing failed (${error.message})`;
       console.log(`ERROR: ${message}`);
       // Report this.
       data.prevented = true;
-      data.error = `${message} (${error.message})`;
+      data.error = message;
     }
   }
   return {
