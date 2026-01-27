@@ -113,65 +113,72 @@ exports.reporter = async (page, report, actIndex) => {
       const {rules} = nativeResult;
       // For each such rule:
       for (const ruleID of Object.keys(rules)) {
+        const ruleData = rules[ruleID];
+        const {issueType, status} = ruleData;
         const excluded = act.rules && ! act.rules.includes(ruleID);
-        const instanceType = rules[ruleID].status.type;
-        // If rules to be tested were specified and exclude it or the rule was passed or skipped:
-        if (excluded || ['passed', 'skipped'].includes(instanceType)) {
+        const {type} = status;
+        // If rule is not an error or warning or is not to be tested:
+        if (
+          excluded
+          || ['passed', 'skipped'].includes(type)
+          || ! ['error', 'warning'].includes(issueType)
+        ) {
           // Delete the rule report.
           delete rules[ruleID];
         }
       }
-      console.log(`XXX result:\n${JSON.stringify(result, null, 2)}`);
-    }
-  }
-};
-/*
       // If standard results are to be reported:
       if (standard) {
-        const ruleResults = rules[ruleID].results;
+        const ruleIDs = Object.keys(rules);
+        // For each violated rule:
+        for (let ruleID of ruleIDs) {
+          const {results} = rules[ruleID];
         // For each violation:
-        for (const ruleResult of ruleResults) {
-          const excerpt = ruleResult.element
-          && ruleResult.element.html.replace(/\s+/g, ' ')
-          || '';
-          // If an element excerpt was reported:
-          if (excerpt) {
-            // Use it to add location data to the violation data in the result.
-            const locationData = await getLocationData(page, excerpt);
+        for (const result of results) {
+          // Get the values of the properties required for a standard result.
+          const what = result.message?.actual?.description || '';
+          if (ruleID) {
+            const changer = ruleID.find(
+              specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
+            );
+            if (changer) {
+              ruleID = changer[changer.length - 1];
+            }
           }
-        };
+          const ordinalSeverity = issueType === 'warning' ? 1 : 2;
+          const {html} = result.element;
+          const excerpt = (html || '').replace(/\s+/g, ' ') || '';
+          let boxID = pathID = '';
+          if (excerpt) {
+            const locationData = await getLocationData(page, excerpt);
+            ({boxID, pathID} = locationData);
+          }
+          // Get the differentiated ID of the rule if any.
+          const ruleData = aslintData[ruleID];
+          let finalRuleID = ruleID;
+          if (ruleData) {
+          }
+          standardResult.instances.push({
+            ruleID,
+            what,
+            ordinalSeverity,
+            count: 1,
+            tagName,
+            id: getIdentifiers(code)[1],
+            location: {
+              doc: 'dom',
+              type: 'xpath',
+              spec: pathID
+            },
+            excerpt: cap(tidy(item.code)),
+            text,
+            boxID,
+            pathID
+          });
+        }
+      }
       }
       };
-      // If the ASLint results are in the expected format:
-      if (nativeResult?.summary?.byIssueType) {
-        // For each rule:
-        Object.keys(result.rules).forEach(ruleID => {
-          const {issueType} = result.rules[ruleID];
-          // If it has a valid issue type:
-          if (issueType && ['warning', 'error'].includes(issueType)) {
-            const ruleResults = result.rules[ruleID].results;
-            // If there are any violations:
-            if (ruleResults && ruleResults.length) {
-              // For each violation:
-              ruleResults.forEach(ruleResult => {
-                // If it has a description:
-                if (
-                  ruleResult.message
-                  && ruleResult.message.actual
-                  && ruleResult.message.actual.description
-                ) {
-                  const what = ruleResult.message.actual.description;
-                  // Get the differentiated ID of the rule if any.
-                  const ruleData = aslintData[ruleID];
-                  let finalRuleID = ruleID;
-                  if (ruleData) {
-                    const changer = ruleData.find(
-                      specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
-                    );
-                    if (changer) {
-                      finalRuleID = changer[changer.length - 1];
-                    }
-                  }
                   // Initialize the path ID of the element as any normalized reported XPath.
                   let pathID = getNormalizedXPath(ruleResult?.element?.xpath);
                   const {locationData} = ruleResult;
@@ -239,4 +246,3 @@ exports.reporter = async (page, report, actIndex) => {
     result
   };
 };
-*/
