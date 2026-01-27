@@ -235,7 +235,8 @@ exports.reporter = async (page, report, actIndex) => {
           const ruleIDs = Object.keys(rules);
           // For each violated rule:
           for (let ruleID of ruleIDs) {
-            const {results} = rules[ruleID];
+            const ruleData = rules[ruleID];
+            const {issueType, results} = ruleData;
             // For each violation:
             for (const result of results) {
               const {message, element} = result;
