@@ -101,20 +101,40 @@ exports.getLocatorData = async loc => {
     return null;
   }
 };
-// Returns location data from the extract of a standard instance.
-exports.getLocationData = async (page, excerpt) => {
+// Returns properties of an element with an excerpt when Testaro identifiers have been added.
+exports.getElementData = async (page, excerpt) => {
+  // Initialize the properties.
+  let data = {
+    tagName: '',
+    id: '',
+    text: '',
+    notInDOM: true,
+    boxID: '',
+    pathID: '',
+    originalExcerpt: excerpt,
+  };
+  let elementProperties = {};
   const testaroIDArray = excerpt.match(/data-testaro-id="(\d+)#([^"]*)"/);
-  // If the extract contains a Testaro identifier:
+  // If the excerpt contains a Testaro identifier:
   if (testaroIDArray) {
-    return await page.evaluate(testaroIDArray => {
+    // Remove the identifier.
+    originalExcerpt = excerpt.replace(/ data-testaro-id="\d+#[^" ]+"?/, '');
+    elementProperties = await page.evaluate(testaroIDArray => {
+      let tagName = '';
+      let id = '';
+      let text = '';
+      let notInDOM = false;
+      let boxID = '';
+      let pathID = '';
       const testaroID = `${testaroIDArray[1]}#${testaroIDArray[2]}`;
       const element = document.querySelector(`[data-testaro-id="${testaroID}"]`);
-      // If any element has that identifier:
+      // If any element has the identifier:
       if (element) {
-        // Get a box ID for the element.
+        // Get properties of the element.
+        ({tagName, id} = element);
+        text = element.innerText;
+        const boundingBox = element.getBoundingClientRect() ?? {};
         const box = {};
-        let boxID = '';
-        const boundingBox = element.getBoundingClientRect() || {};
         if (boundingBox.x) {
           ['x', 'y', 'width', 'height'].forEach(coordinate => {
             box[coordinate] = Math.round(boundingBox[coordinate]);
@@ -123,41 +143,38 @@ exports.getLocationData = async (page, excerpt) => {
         if (typeof box.x === 'number') {
           boxID = Object.values(box).join(':');
         }
-        // Get a path ID from the Testaro identifier or, if necessary, the element.
-        let pathID = testaroIDArray[2];
+        // Get a path ID from the identifier or, if necessary, the element.
+        pathID = testaroIDArray[2];
         if (! pathID) {
           pathID = window.getXPath(element);
         }
-        // Return the box and path IDs.
-        return {
-          boxID,
-          pathID
-        };
       }
-      // Otherwise, if no element has it but the identifier includes an XPath:
-      else if (testaroIDArray[2]) {
-        // Return an empty box ID and that XPath as a path ID.
-        return {
-          notInDOM: true,
-          boxID: '',
-          pathID: testaroIDArray[2]
-        };
+      // Otherwise, i.e. if no element has the identifier:
+      else {
+        // Report this.
+        notInDOM = true;
       }
-      // Otherwise, return empty location properties.
+      // Report the properties.
       return {
-        notInDOM: true,
-        boxID: '',
-        pathID: ''
+        tagName,
+        id,
+        text,
+        notInDOM,
+        boxID,
+        pathID
       };
     }, testaroIDArray);
+    // Populate the data with any properties obtained from the element.
+    Object.assign(data, elementProperties);
   }
-  // Otherwise, i.e. if the extract contains no Testaro identifier:
+  // Otherwise, i.e. if the excerpt contains no Testaro identifier:
   else {
-    // Return a non-DOM location.
-    return {
-      notInDOM: true,
-      boxID: '',
-      pathID: ''
-    };
+    // Get properties of the element that are gettable from the excerpt.
+    const tagNameArray = excerpt.match(/<([-a-z]+)/);
+    data.tagName = tagNameArray?.[1] ?? '';
+    const idArray = excerpt.match(/ id="([^"]*)"/);
+    data.id = idArray?.[1] ?? '';
   }
+  // Return the properties.
+  return data;
 };

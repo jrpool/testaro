@@ -18,7 +18,7 @@
 // Module to add and use unique element IDs.
 const {addTestaroIDs} = require('../procs/testaro');
 // Module to get location data from an element.
-const {getLocationData} = require('../procs/getLocatorData');
+const {getElementData} = require('../procs/getLocatorData');
 // Module to handle files.
 const fs = require('fs/promises');
 
@@ -102,7 +102,7 @@ exports.reporter = async (page, report, actIndex) => {
         const ruleID = parts[1].replace(/^WCAG2|\.Principle\d\.Guideline[\d_]+/g, '');
         result[parts[0]][ruleID] ??= {};
         result[parts[0]][ruleID][parts[4]] ??= [];
-        const elementLocation = await getLocationData(page, parts[5]);
+        const elementLocation = await getElementData(page, parts[5]);
         const {boxID, notInDOM, pathID} = elementLocation;
         result[parts[0]][ruleID][parts[4]].push({
           tagName: parts[2],

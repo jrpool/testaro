@@ -17,7 +17,7 @@
 // Module to add Testaro IDs to elements.
 const {addTestaroIDs} = require('./testaro');
 // Module to get location data from an element.
-const {getLocationData} = require('./getLocatorData');
+const {getElementData} = require('./getLocatorData');
 // Module to get the document source.
 const {getSource} = require('./getSource');
 
@@ -94,7 +94,7 @@ exports.curate = async (page, data, nuData, rules) => {
     for (const message of result.messages) {
       const {extract} = message;
       // Add location data for the element to the message.
-      message.elementLocation = await getLocationData(page, extract);
+      message.elementLocation = await getElementData(page, extract);
     }
   }
   // Return the result.

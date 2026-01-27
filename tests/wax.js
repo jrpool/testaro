@@ -18,7 +18,7 @@
 // Function to add and use unique element IDs.
 const {addTestaroIDs} = require('../procs/testaro');
 // Function to get location data from an element.
-const {getLocationData} = require('../procs/getLocatorData');
+const {getElementData} = require('../procs/getLocatorData');
 // Modules to run WAX.
 const runWax = require('@wally-ax/wax-dev');
 const waxDev = {runWax};
@@ -63,7 +63,7 @@ exports.reporter = async (page, report, actIndex) => {
         // Add location data to its reported violations.
         for (const violation of actReport) {
           const {element} = violation;
-          const elementLocation = await getLocationData(page, element);
+          const elementLocation = await getElementData(page, element);
           Object.assign(violation, elementLocation);
         }
         // Populate the act report.

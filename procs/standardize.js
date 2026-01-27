@@ -379,94 +379,13 @@ const convert = (toolName, data, result, standardResult) => {
     // Add that to the standard result and disregard tool-specific conversions.
     standardResult.prevented = true;
   }
-  // alfa
-  else if (toolName === 'alfa' && result.standardResult) {
+  // alfa, aslint
+  else if (['alfa', 'aslint'].includes(toolName) && result.standardResult) {
     // Move the results to standard locations.
     Object.assign(result, result.nativeResult);
     Object.assign(standardResult, result.standardResult);
     delete result.nativeResult;
     delete result.standardResult;
-  }
-  // aslint
-  else if (toolName === 'aslint' && result.summary && result.summary.byIssueType) {
-    // For each rule:
-    Object.keys(result.rules).forEach(ruleID => {
-      // If it has a valid issue type:
-      const {issueType} = result.rules[ruleID];
-      if (issueType && ['warning', 'error'].includes(issueType)) {
-        // If there are any violations:
-        const ruleResults = result.rules[ruleID].results;
-        if (ruleResults && ruleResults.length) {
-          // For each violation:
-          ruleResults.forEach(ruleResult => {
-            // If it has a description:
-            if (
-              ruleResult.message
-              && ruleResult.message.actual
-              && ruleResult.message.actual.description
-            ) {
-              const what = ruleResult.message.actual.description;
-              // Get the differentiated ID of the rule if any.
-              const ruleData = aslintData[ruleID];
-              let finalRuleID = ruleID;
-              if (ruleData) {
-                const changer = ruleData.find(
-                  specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
-                );
-                if (changer) {
-                  finalRuleID = changer[changer.length - 1];
-                }
-              }
-              // Initialize the path ID of the violating element as any normalized reported XPath.
-              let pathID = getNormalizedXPath(ruleResult.element && ruleResult.element.xpath) || '';
-              const {locationData} = ruleResult;
-              // If an XPath was obtained from the excerpt:
-              if (locationData && locationData.pathID) {
-                // Replace the path ID with it, because some ASLint-reported XPaths are abbreviated.
-                ({pathID} = locationData);
-              }
-              // Get and normalize the reported excerpt.
-              const excerpt = ruleResult.element
-              && ruleResult.element.html
-              && ruleResult.element.html.replace(/\s+/g, ' ')
-              || '';
-              // Get the tag name from the XPath, if possible.
-              let tagName = pathID && pathID.replace(/[^-\w].*$/, '').toUpperCase() || '';
-              if (! tagName && finalRuleID.endsWith('_svg')) {
-                tagName = 'SVG';
-              }
-              // If that was impossible but there is a tag name in the excerpt:
-              if (! tagName && /^<[a-z]+[ >]/.test(excerpt)) {
-                // Get it.
-                tagName = excerpt.slice(1).replace(/[ >].+/, '').toUpperCase();
-              }
-              // Get the ID, if any.
-              const idDraft = excerpt && excerpt.replace(/^[^[>]+id="/, 'id=').replace(/".*$/, '');
-              const idFinal = idDraft && idDraft.length > 3 && idDraft.startsWith('id=')
-                ? idDraft.slice(3)
-                : '';
-              const id = idFinal === '' || isBadID(idFinal) ? '' : idFinal;
-              const instance = {
-                ruleID: finalRuleID,
-                what,
-                ordinalSeverity: ['warning', 0, 0, 'error'].indexOf(issueType),
-                tagName,
-                id,
-                location: {
-                  doc: 'dom',
-                  type: 'xpath',
-                  spec: pathID
-                },
-                excerpt,
-                boxID: '',
-                pathID
-              };
-              standardResult.instances.push(instance);
-            }
-          });
-        }
-      }
-    });
   }
   // axe
   else if (
