@@ -1794,12 +1794,12 @@ const doActs = async (report, opts = {}) => {
                 excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
               ) {
                 // Add the excerpt (up to any ellipsis) to the text property.
-                instance.text = excerpt.split(/ … | *\.\.\./)[0];
+                instance.text = [excerpt.split(/ … | *\.\.\./)[0]];
               }
               // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
               else if (pathID) {
-                // Initialize a text string.
-                let text = '';
+                // Initialize a text property.
+                let text = [];
                 // Get the element if it has text content.
                 const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
                 // If it exists and is unique:
@@ -1812,13 +1812,13 @@ const doActs = async (report, opts = {}) => {
                       elementClone
                       .querySelectorAll('noscript')
                       .forEach(noscript => noscript.remove());
-                      return elementClone.textContent;
+                      return elementClone.innerText;
                     });
                   }
                   // Otherwise, i.e. if it contains no noscript element:
                   else {
                     // Change the text string to the text content of the element.
-                    text = await elementLoc.textContent();
+                    text = await elementLoc.innerText();
                   }
                 }
                 // Add the text string, truncated if necessary, to the instance.
