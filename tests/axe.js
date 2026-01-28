@@ -17,11 +17,11 @@
   The detailLevel argument specifies how many result categories are to be included in the
   details. 0 = none; 1 = violations; 2 = violations and incomplete; 3 = violations, incomplete,
   and passes; 4 = violations, incomplete, passes, and inapplicable. Regardless of the value of this
-  argument, Axe-core is instructed to report all nodes with violation or incomplete results, but only
-  1 node per rule found to be passed or inapplicable. Therefore, from the results of this test it
-  is possible to count the rules passed and the inapplicable rules, but not the nodes for which each
-  rule is passed or inapplicable. To count those nodes, one would need to revise the 'resultTypes'
-  property of the 'axeOptions' object.
+  argument, Axe-core is instructed to report all nodes with violation or incomplete results, but
+  only 1 node per rule found to be passed or inapplicable. Therefore, from the results of this test
+  it is possible to count the rules passed and the inapplicable rules, but not the nodes for which
+  each rule is passed or inapplicable. To count those nodes, one would need to revise the
+  'resultTypes' property of the 'axeOptions' object.
 
   The report of this test shows rule totals by result category and, within the violation and
   incomplete categories, node totals by severity. It does not show rule or node totals by test
@@ -32,17 +32,43 @@
 // IMPORTS
 
 const axePlaywright = require('axe-playwright');
+// Module to simplify strings.
+const {cap} = require('../procs/job');
+const {getIdentifiers} = require('../procs/getElementData');
 const {injectAxe} = axePlaywright;
+
+// CONSTANTS
+
+const severityWeights = {
+  minor: 0,
+  moderate: 0,
+  serious: 1,
+  critical: 1
+};
 
 // FUNCTIONS
 
 // Conducts and reports the Axe tests.
-exports.reporter = async (page, report, actIndex, timeLimit) => {
+exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
   const {detailLevel, rules} = act;
   // Initialize the act report.
   let data = {};
-  let result = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
+  const {nativeResult, standardResult} = result;
   // Inject axe-core into the page.
   await injectAxe(page)
   .catch(error => {
@@ -66,8 +92,8 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     const {inapplicable, passes, incomplete, violations} = axeReport;
     // If the test succeeded:
     if (violations) {
-      // Initialize the result.
-      result.totals = {
+      // Initialize the native result.
+      nativeResult.totals = {
         rulesNA: 0,
         rulesPassed: 0,
         rulesWarned: 0,
@@ -85,9 +111,9 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
           critical: 0
         }
       };
-      result.details = axeReport;
-      // Populate the totals.
-      const {totals} = result;
+      nativeResult.details = axeReport;
+      // Populate the native-result totals.
+      const {totals} = nativeResult;
       totals.rulesNA = inapplicable.length;
       totals.rulesPassed = passes.length;
       incomplete.forEach(rule => {
@@ -108,12 +134,50 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       irrelevants.forEach(irrelevant => {
         delete axeReport[irrelevant];
       });
+      // If standard results are to be reported and there are any violations:
+      if (standard && (totals.rulesViolated || totals.rulesWarned)) {
+        ['incomplete', 'violations'].forEach(certainty => {
+          if (nativeResult?.details?.[certainty]) {
+            nativeResult.details[certainty].forEach(rule => {
+              rule.nodes.forEach(node => {
+                const whatSet = new Set([
+                  rule.help,
+                  ... node.any.map(anyItem => anyItem.message),
+                  ... node.all.map(allItem => allItem.message)
+                ]);
+                const ordinalSeverity = severityWeights[node.impact]
+                + (certainty === 'violations' ? 2 : 0);
+                const identifiers = getIdentifiers(node.html);
+                const instance = {
+                  ruleID: rule.id,
+                  what: Array.from(whatSet.values()).join('; '),
+                  ordinalSeverity,
+                  tagName: identifiers[0],
+                  id: identifiers[1],
+                  location: {
+                    doc: 'dom',
+                    type: 'selector',
+                    spec: node.target && node.target.length ? node.target[0] : ''
+                  },
+                  excerpt: cap(node.html),
+                  boxID: '',
+                  pathID: ''
+                };
+                standardResult.instances.push(instance);
+              });
+            });
+          }
+        });
+      }
     }
     // Otherwise, i.e. if the test failed:
     else {
       // Report this.
       data.prevented = true;
       data.error = 'ERROR: Act failed';
+      if (standard) {
+        standardResult.prevented = true;
+      }
     }
   }
   // Return the result.

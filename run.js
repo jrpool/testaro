@@ -1822,7 +1822,7 @@ const doActs = async (report, opts = {}) => {
                   }
                 }
                 // Add the text string, truncated if necessary, to the instance.
-                instance.text = text.trim().replace(/\s+/g, ' ').slice(0, 300);
+                instance.text = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
               }
             }
           };
