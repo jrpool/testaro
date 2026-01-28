@@ -1799,7 +1799,7 @@ const doActs = async (report, opts = {}) => {
               // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
               else if (pathID) {
                 // Initialize a text property.
-                let text = [];
+                const text = '';
                 // Get the element if it has text content.
                 const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
                 // If it exists and is unique:
@@ -1822,7 +1822,8 @@ const doActs = async (report, opts = {}) => {
                   }
                 }
                 // Add the text string, truncated if necessary, to the instance.
-                instance.text = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
+                const textArray = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
+                instance.text.push(... textArray.filter(segment => segment.length));
               }
             }
           };
