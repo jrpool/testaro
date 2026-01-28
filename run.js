@@ -1871,8 +1871,8 @@ const doActs = async (report, opts = {}) => {
             // Increment the path ID count.
             actIDData.pathIDCount++;
           }
-          // If the instance has a text:
-          if (text) {
+          // If the instance has any text segments:
+          if (text?.[0]?.length) {
             // Increment the text count.
             actIDData.textCount++;
           }

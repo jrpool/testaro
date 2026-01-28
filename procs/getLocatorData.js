@@ -132,8 +132,12 @@ exports.getElementData = async (page, excerpt) => {
       if (element) {
         // Get properties of the element.
         ({tagName, id} = element);
-        const segments = element.innerText?.trim().split(/[\t\n]+/);
-        if (segments) {
+        const segments = element
+          .innerText
+          ?.trim()
+          .split(/[\t\n]+/)
+          .filter(segment => segment.length);
+        if (segments?.length) {
           if (segments.length > 1) {
             text.push(segments[0], segments[segments.length - 1]);
           }
