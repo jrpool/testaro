@@ -40,44 +40,6 @@ const getIdentifiers = exports.getIdentifiers = code => {
   }
   return ['', ''];
 };
-// Converts issue instances at an axe certainty level.
-const doAxe = (result, standardResult, certainty) => {
-  if (result.details && result.details[certainty]) {
-    result.details[certainty].forEach(rule => {
-      rule.nodes.forEach(node => {
-        const whatSet = new Set([
-          rule.help,
-          ... node.any.map(anyItem => anyItem.message),
-          ... node.all.map(allItem => allItem.message)
-        ]);
-        const severityWeights = {
-          minor: 0,
-          moderate: 0,
-          serious: 1,
-          critical: 1
-        };
-        const ordinalSeverity = severityWeights[node.impact] + (certainty === 'violations' ? 2 : 0);
-        const identifiers = getIdentifiers(node.html);
-        const instance = {
-          ruleID: rule.id,
-          what: Array.from(whatSet.values()).join('; '),
-          ordinalSeverity,
-          tagName: identifiers[0],
-          id: identifiers[1],
-          location: {
-            doc: 'dom',
-            type: 'selector',
-            spec: node.target && node.target.length ? node.target[0] : ''
-          },
-          excerpt: cap(node.html),
-          boxID: '',
-          pathID: ''
-        };
-        standardResult.instances.push(instance);
-      });
-    });
-  }
-};
 // Converts issue instances at an htmlcs severity level.
 const doHTMLCS = (result, standardResult, severity) => {
   if (result[severity]) {
@@ -282,22 +244,12 @@ const convert = (toolName, data, result, standardResult) => {
     standardResult.prevented = true;
   }
   // alfa, aslint
-  else if (['alfa', 'aslint'].includes(toolName) && result.standardResult) {
+  else if (['alfa', 'aslint', 'axe'].includes(toolName) && result.standardResult) {
     // Move the results to standard locations.
     Object.assign(result, result.nativeResult);
     Object.assign(standardResult, result.standardResult);
     delete result.nativeResult;
     delete result.standardResult;
-  }
-  // axe
-  else if (
-    toolName === 'axe'
-    && result
-    && result.totals
-    && (result.totals.rulesWarned || result.totals.rulesViolated)
-  ) {
-    doAxe(result, standardResult, 'incomplete');
-    doAxe(result, standardResult, 'violations');
   }
   // ed11y
   else if (
