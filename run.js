@@ -1799,7 +1799,7 @@ const doActs = async (report, opts = {}) => {
               // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
               else if (pathID) {
                 // Initialize a text property.
-                const text = '';
+                let text = '';
                 // Get the element if it has text content.
                 const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
                 // If it exists and is unique:
