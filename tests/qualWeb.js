@@ -20,7 +20,7 @@ const {ACTRules} = require('@qualweb/act-rules');
 const {WCAGTechniques} = require('@qualweb/wcag-techniques');
 const {BestPractices} = require('@qualweb/best-practices');
 const {addTestaroIDs} = require('../procs/testaro');
-const {getElementData} = require('../procs/getLocatorData');
+const {getElementData} = require('../procs/getElementData');
 
 // CONSTANTS
 

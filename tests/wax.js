@@ -18,7 +18,7 @@
 // Function to add and use unique element IDs.
 const {addTestaroIDs} = require('../procs/testaro');
 // Function to get location data from an element.
-const {getElementData} = require('../procs/getLocatorData');
+const {getElementData} = require('../procs/getElementData');
 // Modules to run WAX.
 const runWax = require('@wally-ax/wax-dev');
 const waxDev = {runWax};

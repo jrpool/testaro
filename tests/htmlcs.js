@@ -18,7 +18,7 @@
 // Module to add and use unique element IDs.
 const {addTestaroIDs} = require('../procs/testaro');
 // Module to get location data from an element.
-const {getElementData} = require('../procs/getLocatorData');
+const {getElementData} = require('../procs/getElementData');
 // Module to handle files.
 const fs = require('fs/promises');
 

@@ -22,7 +22,7 @@ const {cap, tidy} = require('../procs/job');
 // Module to handle files.
 const fs = require('fs/promises');
 // Function to get location data with a Testaro identifier.
-const {getElementData} = require('../procs/getLocatorData');
+const {getElementData} = require('../procs/getElementData');
 // Function to normalize an XPath.
 const {getNormalizedXPath} = require('../procs/identify');
 
