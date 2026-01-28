@@ -124,8 +124,8 @@ exports.reporter = async (page, report, actIndex) => {
             const text = [];
             try {
               const textRaw = await targetLoc.innerText({timeout: 50});
-              const segments = textRaw?.trim().split(/[\t\n]+/);
-              if (segments) {
+              const segments = textRaw?.trim().split(/[\t\n]+/).filter(segment => segment.length);
+              if (segments?.length) {
                 if (segments.length > 1) {
                   text.push(segments[0], segments[segments.length - 1]);
                 }
