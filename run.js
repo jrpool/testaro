@@ -1823,7 +1823,7 @@ const doActs = async (report, opts = {}) => {
                 }
                 // Add the text string, truncated if necessary, to the instance.
                 const textArray = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
-                instance.text.push(... textArray.filter(segment => segment.length));
+                instance.text = textArray.filter(segment => segment.length);
               }
             }
           };
