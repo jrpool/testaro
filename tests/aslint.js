@@ -240,6 +240,7 @@ exports.reporter = async (page, report, actIndex) => {
             // For each violation:
             for (const result of results) {
               const {message, element} = result;
+              const what = message?.actual?.description ?? '';
               // Get the values of the properties required for a standard result.
               if (ruleID) {
                 const changer = aslintData[ruleID]?.find(
@@ -249,13 +250,12 @@ exports.reporter = async (page, report, actIndex) => {
                   ruleID = changer[changer.length - 1];
                 }
               }
-              const what = message?.actual?.description ?? '';
               const ordinalSeverity = issueType === 'warning' ? 1 : 2;
               const {html, xpath} = element;
               const excerpt = html?.replace(/\s+/g, ' ') ?? '';
               let tagName = '';
               let id = '';
-              let text = '';
+              let text = [];
               let notInDOM = false;
               let boxID = '';
               let pathID = '';

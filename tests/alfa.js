@@ -121,9 +121,18 @@ exports.reporter = async (page, report, actIndex) => {
               }
             }
             catch(error) {}
-            let text = '';
+            const text = [];
             try {
-              text = await targetLoc.innerText({timeout: 50});
+              const textRaw = await targetLoc.innerText({timeout: 50});
+              const segments = textRaw?.trim().split(/[\t\n]+/);
+              if (segments) {
+                if (segments.length > 1) {
+                  text.push(segments[0], segments[segments.length - 1]);
+                }
+                else {
+                  text.push(segments[0]);
+                }
+              }
             }
             catch(error) {}
             // Get rule-specific properties of a standard instance.

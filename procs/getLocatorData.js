@@ -122,7 +122,7 @@ exports.getElementData = async (page, excerpt) => {
     elementProperties = await page.evaluate(testaroIDArray => {
       let tagName = '';
       let id = '';
-      let text = '';
+      const text = [];
       let notInDOM = false;
       let boxID = '';
       let pathID = '';
@@ -132,7 +132,15 @@ exports.getElementData = async (page, excerpt) => {
       if (element) {
         // Get properties of the element.
         ({tagName, id} = element);
-        text = element.innerText;
+        const segments = element.innerText?.trim().split(/[\t\n]+/);
+        if (segments) {
+          if (segments.length > 1) {
+            text.push(segments[0], segments[segments.length - 1]);
+          }
+          else {
+            text.push(segments[0]);
+          }
+        }
         const boundingBox = element.getBoundingClientRect() ?? {};
         const box = {};
         if (boundingBox.x) {
