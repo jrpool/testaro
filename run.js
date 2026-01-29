@@ -820,8 +820,12 @@ const doActs = async (report, opts = {}) => {
   const reportPath = `${tmpDir}/${report.id}.json`;
   // For each act in the report.
   for (const actIndex in acts) {
-    if (signal && signal.aborted) throw new Error('doActs aborted');
-    // If the job has not been aborted:
+    // If the job has been aborted by a signal:
+    if (signal && signal.aborted) {
+      // Report this.
+      throw new Error('doActs aborted');
+    }
+    // Otherwise, and if the job has not been aborted internally:
     if (report.jobData && ! report.jobData.aborted) {
       let act = acts[actIndex];
       const {type, which} = act;
@@ -1913,28 +1917,35 @@ exports.doJob = async (job, opts = {}) => {
   else {
     // Add initialized job data to the report.
     const startTime = new Date();
-    report.jobData.startTime = nowString();
-    report.jobData.endTime = '';
-    report.jobData.elapsedSeconds = 0;
-    report.jobData.visitLatency = 0;
-    report.jobData.logCount = 0;
-    report.jobData.logSize = 0;
-    report.jobData.errorLogCount = 0;
-    report.jobData.errorLogSize = 0;
-    report.jobData.prohibitedCount = 0;
-    report.jobData.visitRejectionCount = 0;
-    report.jobData.aborted = false;
-    report.jobData.abortedAct = null;
-    report.jobData.presses = 0;
-    report.jobData.amountRead = 0;
-    report.jobData.toolTimes = {};
-    report.jobData.preventions = {};
+    report.jobData = {
+      startTime: nowString(),
+      endTime: '',
+      elapsedSeconds: 0,
+      visitLatency: 0,
+      logCount: 0,
+      logSize: 0,
+      errorLogCount: 0,
+      errorLogSize: 0,
+      prohibitedCount: 0,
+      visitRejectionCount: 0,
+      aborted: false,
+      abortedAct: null,
+      presses: 0,
+      amountRead: 0,
+      toolTimes: {},
+      preventions: {}
+    };
     process.on('message', message => {
       if (message === 'interrupt') {
         console.log('ERROR: Terminal interrupted the job');
         process.exit();
       }
     });
+    // If the job specifies a target:
+    if (job.target) {
+      // Add a catalog of the target to the report.
+      report.catalog = await catalog(report.target);
+    }
     // Perform the acts with any specified same-host observation options and get a report.
     report = await doActs(report, opts);
     // Add the end time and duration to the report.
@@ -1943,7 +1954,7 @@ exports.doJob = async (job, opts = {}) => {
     const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
     report.jobData.elapsedSeconds =  elapsedSeconds;
     console.log(`Elapsed seconds: ${elapsedSeconds}`);
-    // Consolidate and sort the tool times.
+    // Consolidate and sort the tool times, if any.
     const {toolTimes} = report.jobData;
     const toolTimeData = Object
     .keys(toolTimes)
