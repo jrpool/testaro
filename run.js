@@ -90,8 +90,6 @@ const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1
 
 // ########## VARIABLES
 
-// Facts about the current session.
-let actCount = 0;
 // Facts about the current act.
 let browser;
 let cleanupInProgress = false;
@@ -533,16 +531,17 @@ const launch = exports.launch = async (
       const navResult = await goTo(report, page, url, 15000, 'domcontentloaded');
       // If the navigation succeeded:
       if (navResult.success) {
-        // Update the name of the current browser type and store it in the page.
-        page.browserID = browserID;
-        // Add the actual URL to the act.
-        act.actualURL = page.url();
-        // Get the response of the target server.
-        const {response} = navResult;
-        // Add the script nonce, if any, to the act.
-        const scriptNonce = await getNonce(response);
-        if (scriptNonce) {
-          report.jobData.lastScriptNonce = scriptNonce;
+        // If the launch was for an act:
+        if (act) {
+          // Add the actual URL to the act.
+          act.actualURL = page.url();
+          // Get the response of the target server.
+          const {response} = navResult;
+          // Add the script nonce, if any, to the act.
+          const scriptNonce = await getNonce(response);
+          if (scriptNonce) {
+            report.jobData.lastScriptNonce = scriptNonce;
+          }
         }
       }
       // Otherwise, i.e. if the launch or navigation failed for another reason:
@@ -570,7 +569,7 @@ const launch = exports.launch = async (
         );
         await wait(1000 * waitSeconds + 100);
         // Then retry the launch and navigation.
-        return launch(report, actIndex, headEmulation, tempBrowserID, tempURL, retries - 1);
+        return await launch(report, actIndex, headEmulation, tempBrowserID, tempURL, retries - 1);
       }
       // Otherwise, i.e. if no retries remain:
       else {
@@ -818,6 +817,8 @@ const doActs = async (report, opts = {}) => {
   }
   // Get a path for temporary reports.
   const reportPath = `${tmpDir}/${report.id}.json`;
+  // Initialize the count of completed acts.
+  let actCount = 0;
   // For each act in the report.
   for (const actIndex in acts) {
     // If the job has been aborted by a signal:
@@ -900,13 +901,7 @@ const doActs = async (report, opts = {}) => {
       else if (type === 'launch') {
         const actLaunchSpecs = launchSpecs(act, report);
         // Launch a browser, navigate to a page, and add the result to the act.
-        await launch(
-          report,
-          actIndex,
-          'high',
-          actLaunchSpecs[0],
-          actLaunchSpecs[1]
-        );
+        await launch(report, actIndex, 'high', ... actLaunchSpecs);
         // If this failed:
         if (! page) {
           // Add this to the act.
@@ -1681,6 +1676,8 @@ const doActs = async (report, opts = {}) => {
       }
       // Add the end time to the act.
       act.endTime = Date.now();
+      // Increment the act count.
+      actCount++;
     }
   }
   console.log('Acts completed');
@@ -1730,13 +1727,7 @@ const doActs = async (report, opts = {}) => {
     for (const specString of Object.keys(launchSpecActs)) {
       const specs = specString.split('>');
       // Replace the browser and navigate to the URL.
-      await launch(
-        report,
-        'standardization',
-        'high',
-        specs[0],
-        specs[1]
-      );
+      await launch(report, null, 'high', ... specs);
       // If the launch and navigation succeeded:
       if (page) {
         // For each test act in the class:
@@ -1941,10 +1932,10 @@ exports.doJob = async (job, opts = {}) => {
         process.exit();
       }
     });
-    // If the job specifies a target:
-    if (job.target) {
+    // If the job specifies a target and requires standardization::
+    if (job.target && ['only', 'also'].includes(job.standard)) {
       // Add a catalog of the target to the report.
-      report.catalog = await catalog(report.target);
+      report.catalog = await getCatalog(report.target);
     }
     // Perform the acts with any specified same-host observation options and get a report.
     report = await doActs(report, opts);
