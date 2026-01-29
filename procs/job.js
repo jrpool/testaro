@@ -255,3 +255,19 @@ exports.cap = rawString => {
 };
 // Simplifies the spacing of a string.
 exports.tidy = string => string.replace(/\s+/g, ' ');
+// Gets a catalog of a target page.
+exports.getCatalog = async (url, browserID) => {
+  // Initialize the catalog.
+  const catalog = {
+    tagNames: {},
+    ids: {},
+    outerHTMLs: {},
+    innerTexts: {},
+    boxIDs: {},
+    pathIDs: {}
+  };
+  // Launch a browser and navigate to the target URL.
+  const browser = await playwrightBrowsers[browserID].launch({headless});
+  const page = await browser.newPage();
+  await page.goto(url);
+};

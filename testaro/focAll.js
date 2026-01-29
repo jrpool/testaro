@@ -32,7 +32,7 @@ exports.reporter = async page => {
   */
   let tabFocused = 0;
   let refocused = 0;
-  const keyName = page.browserID === 'webkit' ? 'Alt+Tab' : 'Tab';
+  const keyName = page.context().browser()?.browserType().name() === 'webkit' ? 'Alt+Tab' : 'Tab';
   while (refocused < 100 && tabFocused < 2000) {
     await page.keyboard.press(keyName);
     const isNewFocus = await page.evaluate(() => {
