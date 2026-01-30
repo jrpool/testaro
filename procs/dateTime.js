@@ -1,5 +1,6 @@
 /*
   © 2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -8,8 +9,8 @@
 */
 
 /*
-  dateOf
-  Returns the date represented by a time stamp.
+  dateTime
+  Processes dates and times.
 */
 
 // Inserts a character periodically in a string.
@@ -32,3 +33,5 @@ exports.dateOf = timeStamp => {
     return null;
   }
 };
+// Returns a string representing the date and time.
+exports.nowString = () => (new Date()).toISOString().slice(2, 16);

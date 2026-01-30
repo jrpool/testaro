@@ -19,7 +19,7 @@ const {actSpecs} = require('../actSpecs');
 // Data on devices.
 const {devices} = require('playwright');
 // Module to get dates from time stamps.
-const {dateOf} = require('./dateOf');
+const {dateOf} = require('./dateTime');
 
 // CONSTANTS
 
