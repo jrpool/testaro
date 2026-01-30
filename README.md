@@ -213,7 +213,7 @@ Here is an example of a job:
 
 This job tells Testaro to perform two _acts_. One performs one test of the Axe tool wih reporting at detail level 2, and the other performs two tests of the QualWeb tool.
 
-Each act includes a `launch` object property. In the first act it is an empty object, the browser ID and target URL specified by the job are used. In the second act it overrides the job values with per-act values.
+Each act includes a `launch` object property. In the first act it is an empty object, so the browser ID and target URL specified by the job are used. In the second act it overrides the job values with per-act values.
 
 Job properties:
 
