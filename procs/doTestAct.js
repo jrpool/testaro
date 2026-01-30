@@ -9,8 +9,9 @@
 */
 
 /*
-  doTestAct
+  doActs
   Performs the tests of an act.
+  This file is designed to be run as a child process.
 */
 
 // IMPORTS
@@ -164,4 +165,5 @@ process.on('unhandledRejection', error => {
 });
 
 const args = process.argv;
+// Perform the specified test act.
 doTestAct(args[2], Number.parseInt(args[3]));

@@ -24,6 +24,8 @@ const httpClient = require('http');
 const httpsClient = require('https');
 // Module to perform jobs.
 const {doJob} = require('./run');
+// Module to process dates and times.
+const {nowString} = require('./procs/dateTime');
 
 // CONSTANTS
 
@@ -34,8 +36,6 @@ const auths = netWatchURLIDs.map(id => process.env[`NETWATCH_URL_${id}_AUTH`]);
 
 // FUNCTIONS
 
-// Returns a string representing the date and time.
-const nowString = () => (new Date()).toISOString().slice(2, 16);
 // Waits.
 const wait = ms => {
   return new Promise(resolve => {
