@@ -16,15 +16,15 @@
 // IMPORTS
 
 // Module to handle errors.
-const {addError} = require('./procs/error');
+const {addError} = require('./error');
 // Function to close a browser and/or its context.
-const {browserClose} = require('./procs/launch');
+const {browserClose, launch} = require('./launch');
 // Module to standardize report formats.
-const {standardize} = require('./procs/standardize');
+const {standardize} = require('./standardize');
 // Module to identify element bounding boxes.
-const {identify} = require('./procs/identify');
+const {identify} = require('./identify');
 // Module to send a notice to an observer.
-const {tellServer} = require('./procs/tellServer');
+const {tellServer} = require('./tellServer');
 // Module to create child processes.
 const {fork} = require('child_process');
 // Module to set operating-system constants.
@@ -48,7 +48,7 @@ const moves = {
   select: 'select',
   text: 'input'
 };
-// Time limits on tools, accounting for page reloads by 6 Testaro tests.
+// Time limits in seconds on tools, accounting for page reloads by 6 Testaro tests.
 const timeLimits = {
   alfa: 20,
   ed11y: 30,
@@ -242,11 +242,10 @@ const isTrue = (object, specs) => {
     return [null, false];
   }
 };
-// Returns the combination of browser ID and target URL of an act.
-const launchSpecs = (act, report) => [
-  act.browserID || report.browserID || '',
-  act.target && act.target.url || report.target && report.target.url || ''
-];
+// Returns the browser ID of an act.
+const getActBrowserID = act => act.browserID || report.browserID || '';
+// Returns the target URL of an act.
+const getActTargetURL = act => act.target?.url || report.target?.url || '';
 // Normalizes a file URL in case it has the Windows path format.
 const normalizeFile = u => {
   if (!u) return u;
@@ -357,7 +356,8 @@ const waitError = (page, act, error, what) => {
 };
 // Performs the acts in a report and adds the results to the report.
 exports.doActs = async (report, opts = {}) => {
-  let page;
+  /** @type {import('playwright').Page | null} */
+  let page = null;
   let {acts} = report;
   // Get the granular observation options, if any.
   const {onProgress = null, signal = null} = opts;
@@ -471,13 +471,18 @@ exports.doActs = async (report, opts = {}) => {
       }
       // Otherwise, if the act is a launch:
       else if (type === 'launch') {
-        const actLaunchSpecs = launchSpecs(act, report);
         // Launch a browser, navigate to a page, and add the result to the act.
-        page = await launch(report, actIndex, ... actLaunchSpecs);
+        page = await launch({
+          report,
+          actIndex,
+          tempBrowserID: getActBrowserID(act),
+          tempURL: getActTargetURL(act),
+          needsXPath: false
+        });
         // If this failed:
         if (! page) {
           // Add this to the act.
-          addError(false, false, report, actIndex, page.error || '');
+          addError(false, false, report, actIndex, page.error ?? '');
         }
       }
       // Otherwise, if the act is a test act:
@@ -567,7 +572,7 @@ exports.doActs = async (report, opts = {}) => {
             // Convert it from JSON to an object and replace the report with the object.
             report = JSON.parse(reportJSON);
             // Redefine the acts as those in the revised report.
-            acts = report.acts;
+            ({acts} = report);
           }
           // If the conversion fails, leaving the report and its acts unchanged:
           catch (error) {
@@ -768,7 +773,7 @@ exports.doActs = async (report, opts = {}) => {
         // Otherwise, if the act is a page switch:
         else if (type === 'page') {
           // Wait for a page to be created and identify it as current.
-          page = await browserContext.waitForEvent('page');
+          page = await page.context().waitForEvent('page');
           // Wait until it is idle.
           await page.waitForLoadState('networkidle', {timeout: 15000});
           // Add the resulting URL to the act.
