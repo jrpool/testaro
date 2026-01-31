@@ -97,7 +97,7 @@ const launchOnce = async opts => {
       browserOptionArgs.push(
         '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'
       );
-      if (opts?.headEmulation === 'high') {
+      if (headEmulation === 'high') {
         browserOptionArgs.push(
           '--disable-gpu',
           '--disable-software-rasterizer',
@@ -215,10 +215,8 @@ const launchOnce = async opts => {
           get: () => ['en-US', 'en']
         });
       });
-      const xPathNeeders = ['aslint', 'htmlcs', 'nuVal', 'nuVnu', 'qualWeb', 'testaro', 'wax'];
-      const needsXPath = act.type === 'test' && xPathNeeders.includes(act.which);
       // If the act is a test act requiring computation of XPaths:
-      if (opts?.needsXPath) {
+      if (needsXPath) {
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
           window.getXPath = element => {
@@ -265,7 +263,7 @@ const launchOnce = async opts => {
       }
       // If the act is a testaro test act:
       // if (act.type === 'test' && act.which === 'testaro') {
-      if (opts?.needsAccessibleName) {
+      if (needsAccessibleName) {
         // Add the dom-accessibility-api script to the page to compute an accessible name.
         await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
         // Add a script to the page to:

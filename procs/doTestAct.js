@@ -19,9 +19,12 @@
 // Module to perform file operations.
 const fs = require('fs/promises');
 // Module to close and launch browsers.
-const {browserClose, launch} = require(`${__dirname}/launch`);
-// Module to set operating-system constants.
-const os = require('os');
+const {browserClose, launch} = require('./launch');
+
+// CONSTANTS
+
+const xPathNonNeeders = ['alfa', 'axe', 'ed11y', 'ibm', 'wave'];
+const accessibleNameNeeders = ['testaro'];
 
 // FUNCTIONS
 
@@ -53,15 +56,16 @@ const doTestAct = async (reportPath, actIndex) => {
     const browserID = act.launch && act.launch.browserID || report.browserID;
     const targetURL = act.launch && act.launch.target && act.launch.target.url || report.target.url;
     // Launch a browser, navigate to the URL, and update the run-module page export.
-    page = await launch(
+    page = await launch({
       report,
       actIndex,
-      'high',
-      browserID,
-      targetURL
-    );
+      tempBrowserID: browserID,
+      tempURL: targetURL,
+      needsXPath: ! xPathNonNeeders.includes(which),
+      needsAccessibleName: accessibleNameNeeders.includes(which)
+    });
     // If the launch aborted the job:
-    if (report.jobData && report.jobData.aborted) {
+    if (report.jobData?.aborted) {
       // Close the browser and its context, if they exist.
       await browserClose(page);
       // Save the revised report.
@@ -73,11 +77,6 @@ const doTestAct = async (reportPath, actIndex) => {
         error: 'Page launch aborted'
       });
       process.exit(1);
-    }
-    // Otherwise, i.e. if the launch did not abort the job:
-    else {
-      // Get the updated page.
-      page = require('../run').page;
     }
   }
   // If the page exists or the tool is Testaro:
