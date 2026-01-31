@@ -17,6 +17,8 @@
 
 // Module to handle errors.
 const {addError} = require('./procs/error');
+// Function to close a browser and/or its context.
+const {browserClose} = require('./procs/launch');
 // Module to standardize report formats.
 const {standardize} = require('./procs/standardize');
 // Module to identify element bounding boxes.
@@ -1397,9 +1399,9 @@ exports.doActs = async (report, opts = {}) => {
       else {
         console.log(`ERROR: Launch or navigation to standardize ${specString} acts failed`);
       }
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
     };
-    // Close the last browser launched for standardization and element identification.
-    await browserClose();
     console.log('Standardization and element identification completed');
     const {acts} = report;
     const idData = {};

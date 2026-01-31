@@ -55,6 +55,20 @@ const wait = ms => {
     }, ms);
   });
 };
+// Close a browser context and/or its browser, if they exist.
+exports.browserClose(async (page) => {
+  if (page) {
+    const browserContext = page.context;
+    if (browserContext) {
+      const {browser} = browserContext;
+      try {
+        await browserContext.close();
+      }
+      catch(error) {}
+      await browser.close();
+    }
+  }
+});
 // Launches a browser, navigates to a URL, and returns a page.
 const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempURL) => {
   const act = report.acts[actIndex] || {};
