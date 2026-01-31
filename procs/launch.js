@@ -16,10 +16,10 @@
 // IMPORTS
 
 // Module to handle errors.
-const {addError} = require('./procs/error');
+const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
 const playwrightBrowsers = {chromium, webkit, firefox};
-const {isBrowserID, isDeviceID, isURL} = require('../job');
+const {isBrowserID, isDeviceID, isURL, isValidJob} = require('./job');
 
 // CONSTANTS
 
@@ -70,12 +70,21 @@ exports.browserClose(async (page) => {
   }
 });
 // Launches a browser, navigates to a URL, and returns a page.
-const launchOnce = async (report, actIndex, tempBrowserID, tempURL, opts) => {
-  const act = report.acts[actIndex] || {};
+const launchOnce = async opts => {
+  const {
+    report = {},
+    actIndex = 0,
+    tempBrowserID = '',
+    tempURL = '',
+    headEmulation = 'high',
+    needsXPath = true,
+    needsAccessibleName = false
+  } = opts;
+  const act = report.acts[actIndex] ?? {};
   const {device} = report;
-  const deviceID = device && device.id;
+  const deviceID = device?.id;
   const browserID = tempBrowserID || report.browserID || '';
-  const url = tempURL || report.target && report.target.url || '';
+  const url = tempURL || report.target?.url || '';
   // If the specified browser and device types and URL are valid:
   if (isBrowserID(browserID) && isDeviceID(deviceID) && isURL(url)) {
     // Replace the report target URL with this URL.
@@ -376,59 +385,76 @@ const launchOnce = async (report, actIndex, tempBrowserID, tempURL, opts) => {
   };
 };
 // Manages browser launching and navigating and returns a page.
-exports.launch = async (
-  report, actIndex, tempBrowserID, tempURL, opts = {
-    headEmulation: 'high',
-    needsXPath: true,
-    needsAccessibleName: false,
-    retries: 2
-  }
-) => {
-  // Try to launch a browser and navigate to the specified URL.
-  let launchResult = await launchOnce(report, actIndex, tempBrowserID, tempURL, opts);
-  // If the launch and navigation succeeded:
-  if (launchResult.success) {
-    // Return the page.
-    return launchResult.page;
-  }
-  // Otherwise, i.e. if the launch or navigation failed:
-  else {
-    // As long as retries remain, decrement the allowed retry count and:
-    while (opts.retries--) {
-      const {error} = launchResult;
-      // Prepare to wait 1 second before a retry.
-      let waitSeconds = 1;
-      // If the error was a visit failure due to rate limiting:
-      if (error.includes('status429/retryAfterSeconds=')) {
-        const waitSecondsRequest = Number(error.replace(/^.+=|\)$/g, ''));
-        // If the requested wait is less than 10 seconds:
-        if (! Number.isNaN(waitSecondsRequest) && waitSecondsRequest < 10) {
-          // Change the wait to the requested one.
-          waitSeconds = waitSecondsRequest;
+exports.launch = async (opts = {}) => {
+  const {
+    report = {},
+    actIndex = 0,
+    tempBrowserID = '',
+    tempURL = '',
+    headEmulation = 'high',
+    needsXPath = true,
+    needsAccessibleName = false,
+    retries = 2
+  } = opts;
+  // If the report is valid:
+  if (isValidJob(report)) {
+    // Try to launch a browser and navigate to the specified URL.
+    let launchResult = await launchOnce(
+      {report, actIndex, tempBrowserID, tempURL, headEmulation, needsXPath, needsAccessibleName}
+    );
+    // If the launch and navigation succeeded:
+    if (launchResult.success) {
+      // Return the page.
+      return launchResult.page;
+    }
+    // Otherwise, i.e. if the launch or navigation failed:
+    else {
+      // As long as retries remain, decrement the allowed retry count and:
+      while (retries--) {
+        const {error} = launchResult;
+        // Prepare to wait 1 second before a retry.
+        let waitSeconds = 1;
+        // If the error was a visit failure due to rate limiting:
+        if (error.includes('status429/retryAfterSeconds=')) {
+          const waitSecondsRequest = Number(error.replace(/^.+=|\)$/g, ''));
+          // If the requested wait is less than 10 seconds:
+          if (! Number.isNaN(waitSecondsRequest) && waitSecondsRequest < 10) {
+            // Change the wait to the requested one.
+            waitSeconds = waitSecondsRequest;
+          }
         }
-      }
-      console.log(
-        `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${opts.retries})`
-      );
-      // Wait as specified.
-      await wait(1000 * waitSeconds);
-      // Retry the launch and navigation.
-      launchResult = await launchOnce(report, actIndex, tempBrowserID, tempURL, opts);
-      // If the launch and navigation succeeded:
-      if (launchResult.success) {
-        // Return the page.
-        return launchResult.page;
-      }
-      // Otherwise, i.e. if the launch or navigation failed:
-      else {
-        // If no retries remain:
-        if (! opts.retries) {
-          // Report this.
-          addError(true, false, report, actIndex, 'ERROR: No retries left');
+        console.log(
+          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retries})`
+        );
+        // Wait as specified.
+        await wait(1000 * waitSeconds);
+        // Retry the launch and navigation.
+        launchResult = await launchOnce(
+          {report, actIndex, tempBrowserID, tempURL, headEmulation, needsXPath, needsAccessibleName}
+        );
+        // If the launch and navigation succeeded:
+        if (launchResult.success) {
+          // Return the page.
+          return launchResult.page;
         }
-        // Return a failure.
-        return null;
+        // Otherwise, i.e. if the launch or navigation failed:
+        else {
+          // If no retries remain:
+          if (! retries) {
+            // Report this.
+            addError(true, false, report, actIndex, 'ERROR: No retries left');
+          }
+          // Return a failure.
+          return null;
+        }
       }
     }
+  }
+  // Otherwise, i.e. if the report is invalid:
+  else {
+    // Report this.
+    addError(true, false, report, actIndex, 'ERROR: Cannot launch browser for invalid job');
+    // Return a failure.
+    return null;
   }
 };

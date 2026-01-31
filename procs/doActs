@@ -400,6 +400,7 @@ exports.doActs = async (report, opts = {}) => {
     // Otherwise, and if the job has not been aborted internally:
     if (report.jobData && ! report.jobData.aborted) {
       let act = acts[actIndex];
+      const browserID =
       const {type, which} = act;
       const actSuffix = type === 'test' ? ` ${which}` : '';
       const message = `>>>> ${type}${actSuffix}`;
