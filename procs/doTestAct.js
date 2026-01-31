@@ -19,7 +19,7 @@
 // Module to perform file operations.
 const fs = require('fs/promises');
 //Modules to close and launch browsers.
-const {browserClose, launch} = require(`${__dirname}/../run`);
+const {browserClose, launch} = require(`${__dirname}/launch`);
 // Module to set operating-system constants.
 const os = require('os');
 
@@ -53,7 +53,7 @@ const doTestAct = async (reportPath, actIndex) => {
     const browserID = act.launch && act.launch.browserID || report.browserID;
     const targetURL = act.launch && act.launch.target && act.launch.target.url || report.target.url;
     // Launch a browser, navigate to the URL, and update the run-module page export.
-    await launch(
+    page = await launch(
       report,
       actIndex,
       'high',
@@ -62,8 +62,8 @@ const doTestAct = async (reportPath, actIndex) => {
     );
     // If the launch aborted the job:
     if (report.jobData && report.jobData.aborted) {
-      // Close any existing browser.
-      await browserClose();
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
       // Save the revised report.
       const reportJSON = JSON.stringify(report);
       await fs.writeFile(reportPath, reportJSON);
@@ -93,8 +93,8 @@ const doTestAct = async (reportPath, actIndex) => {
         // Add prevention data to the job data.
         report.jobData.preventions[which] = act.data.error;
       }
-      // Close any existing browser.
-      await browserClose();
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
       const reportJSON = JSON.stringify(report);
       // Save the revised report.
       await fs.writeFile(reportPath, reportJSON);
@@ -106,8 +106,8 @@ const doTestAct = async (reportPath, actIndex) => {
     }
     // If the tool invocation failed:
     catch(error) {
-      // Close any existing browser.
-      await browserClose();
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
       // Save the revised report.
       const reportJSON = JSON.stringify(report);
       await fs.writeFile(reportPath, reportJSON);
@@ -129,8 +129,6 @@ const doTestAct = async (reportPath, actIndex) => {
     act.data.error = 'No page';
     // Add prevention data to the job data.
     report.jobData.preventions[which] = act.data.error;
-    // Close any existing browser.
-    await browserClose();
     const reportJSON = JSON.stringify(report);
     // Save the revised report.
     await fs.writeFile(reportPath, reportJSON);

@@ -17,8 +17,6 @@
 
 // Module to keep secrets.
 require('dotenv').config({quiet: true});
-// Module to execute shell commands.
-const {execSync} = require('child_process');
 // Function to validate jobs.
 const {isValidJob} = require('./procs/job');
 // Module to process dates and times.
@@ -30,33 +28,8 @@ chromium.use(StealthPlugin());
 webkit.use(StealthPlugin());
 firefox.use(StealthPlugin());
 
-// ########## VARIABLES
-
-// Facts about the current act.
-let cleanupInProgress = false;
-let browserCloseIntentional = false;
-
 // FUNCTIONS
 
-// Closes any current browser.
-const browserClose = exports.browserClose = async () => {
-  // If a browser exists:
-  if (browser) {
-    browserCloseIntentional = true;
-    // Try to close all its contexts and ignore any messages that they are already closed.
-    for (const context of browser.contexts()) {
-      try {
-        await context.close();
-      }
-      catch(error) {
-      }
-    }
-    // Close the browser.
-    await browser.close();
-    browserCloseIntentional = false;
-    browser = null;
-  }
-};
 // Runs a job and returns a report.
 exports.doJob = async (job, opts = {}) => {
   // Make a report as a copy of the job.
@@ -127,48 +100,3 @@ exports.doJob = async (job, opts = {}) => {
   // Return the report.
   return report;
 };
-
-// CLEANUP HANDLERS
-
-// Force-kills any Playwright browser processes synchronously.
-const forceKillBrowsers = () => {
-  if (cleanupInProgress) {
-    return;
-  }
-  cleanupInProgress = true;
-  try {
-    // Kill any Chromium headless shell processes.
-    execSync('pkill -9 -f "chromium_headless_shell.*headless_shell"', {stdio: 'ignore'});
-  }
-  catch(error) {}
-};
-// Force-kills any headless shell processes synchronously on process exit.
-process.on('exit', () => {
-  forceKillBrowsers();
-});
-// Force-kills any headless shell processes synchronously on beforeExit.
-process.on('beforeExit', async () => {
-  if (!browserCloseIntentional) {
-    await browserClose();
-  }
-  forceKillBrowsers();
-});
-// Force-kills any headless shell processes synchronously on uncaught exceptions.
-process.on('uncaughtException', async error => {
-  console.error('Uncaught exception:', error);
-  await browserClose();
-  forceKillBrowsers();
-  process.exit(1);
-});
-// Force-kills any headless shell processes synchronously on SIGINT.
-process.on('SIGINT', async () => {
-  await browserClose();
-  forceKillBrowsers();
-  process.exit(0);
-});
-// Force-kills any headless shell processes synchronously on SIGTERM.
-process.on('SIGTERM', async () => {
-  await browserClose();
-  forceKillBrowsers();
-  process.exit(0);
-});
