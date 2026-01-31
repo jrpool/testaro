@@ -24,7 +24,7 @@ const getCatalog = async report => {
 const {browserID} = report;
 const targetURL = report.target.url;
   // Launch a browser and navigate to the target, and get the resulting page.
-  const page = await launch(report, null, 'high', browserID, targetURL, 2);
+  const page = await launch(report, null, browserID, targetURL);
   // If the launch and navigation succeeded:
   if (page) {
     // Create a catalog of the elements in the page.

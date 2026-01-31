@@ -472,7 +472,7 @@ exports.doActs = async (report, opts = {}) => {
       else if (type === 'launch') {
         const actLaunchSpecs = launchSpecs(act, report);
         // Launch a browser, navigate to a page, and add the result to the act.
-        page = await launch(report, actIndex, 'high', ... actLaunchSpecs);
+        page = await launch(report, actIndex, ... actLaunchSpecs);
         // If this failed:
         if (! page) {
           // Add this to the act.
