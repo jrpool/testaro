@@ -19,6 +19,8 @@
 require('dotenv').config({quiet: true});
 // Function to validate jobs.
 const {isValidJob} = require('./procs/job');
+// Module to create catalogs.
+const {getCatalog} = require('./procs/catalog');
 // Module to process dates and times.
 const {nowString} = require('./procs/dateTime');
 // Module to evade automation detection.
@@ -73,10 +75,10 @@ exports.doJob = async (job, opts = {}) => {
         process.exit();
       }
     });
-    // If the job specifies a target and requires standardization::
-    if (job.target && ['only', 'also'].includes(job.standard)) {
-      // Add a catalog of the target to the report.
-      report.catalog = await getCatalog(report.target);
+    // If the job specifies a browser ID and a target and requires standardization:
+    if (job.browserID && job.target && ['only', 'also'].includes(job.standard)) {
+      // Create a catalog of the target and add it to the report.
+      report.catalog = await getCatalog(report);
     }
     // Perform the acts with any specified same-host observation options.
     await doActs(report, opts);
