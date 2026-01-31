@@ -70,7 +70,7 @@ exports.browserClose(async (page) => {
   }
 });
 // Launches a browser, navigates to a URL, and returns a page.
-const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempURL) => {
+const launchOnce = async (report, actIndex, tempBrowserID, tempURL, opts) => {
   const act = report.acts[actIndex] || {};
   const {device} = report;
   const deviceID = device && device.id;
@@ -88,7 +88,7 @@ const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempUR
       browserOptionArgs.push(
         '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'
       );
-      if (headEmulation === 'high') {
+      if (opts?.headEmulation === 'high') {
         browserOptionArgs.push(
           '--disable-gpu',
           '--disable-software-rasterizer',
@@ -209,7 +209,7 @@ const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempUR
       const xPathNeeders = ['aslint', 'htmlcs', 'nuVal', 'nuVnu', 'qualWeb', 'testaro', 'wax'];
       const needsXPath = act.type === 'test' && xPathNeeders.includes(act.which);
       // If the act is a test act requiring computation of XPaths:
-      if (needsXPath) {
+      if (opts?.needsXPath) {
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
           window.getXPath = element => {
@@ -255,7 +255,8 @@ const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempUR
         });
       }
       // If the act is a testaro test act:
-      if (act.type === 'test' && act.which === 'testaro') {
+      // if (act.type === 'test' && act.which === 'testaro') {
+      if (opts?.needsAccessibleName) {
         // Add the dom-accessibility-api script to the page to compute an accessible name.
         await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
         // Add a script to the page to:
@@ -375,11 +376,16 @@ const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempUR
   };
 };
 // Manages browser launching and navigating and returns a page.
-const launch = exports.launch = async (
-  report, actIndex, headEmulation, tempBrowserID, tempURL, retries = 2
+exports.launch = async (
+  report, actIndex, tempBrowserID, tempURL, opts = {
+    headEmulation: 'high',
+    needsXPath: true,
+    needsAccessibleName: false,
+    retries: 2
+  }
 ) => {
   // Try to launch a browser and navigate to the specified URL.
-  let launchResult = await launchOnce(report, actIndex, headEmulation, tempBrowserID, tempURL);
+  let launchResult = await launchOnce(report, actIndex, tempBrowserID, tempURL, opts);
   // If the launch and navigation succeeded:
   if (launchResult.success) {
     // Return the page.
@@ -388,7 +394,7 @@ const launch = exports.launch = async (
   // Otherwise, i.e. if the launch or navigation failed:
   else {
     // As long as retries remain, decrement the allowed retry count and:
-    while (retries--) {
+    while (opts.retries--) {
       const {error} = launchResult;
       // Prepare to wait 1 second before a retry.
       let waitSeconds = 1;
@@ -402,12 +408,12 @@ const launch = exports.launch = async (
         }
       }
       console.log(
-        `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retries})`
+        `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${opts.retries})`
       );
       // Wait as specified.
       await wait(1000 * waitSeconds);
       // Retry the launch and navigation.
-      launchResult = await launch(report, actIndex, headEmulation, tempBrowserID, tempURL);
+      launchResult = await launchOnce(report, actIndex, tempBrowserID, tempURL, opts);
       // If the launch and navigation succeeded:
       if (launchResult.success) {
         // Return the page.
@@ -416,7 +422,7 @@ const launch = exports.launch = async (
       // Otherwise, i.e. if the launch or navigation failed:
       else {
         // If no retries remain:
-        if (! retries) {
+        if (! opts.retries) {
           // Report this.
           addError(true, false, report, actIndex, 'ERROR: No retries left');
         }
