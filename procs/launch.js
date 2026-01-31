@@ -374,7 +374,7 @@ const launchOnce = async (report, actIndex, headEmulation, tempBrowserID, tempUR
     page
   };
 };
-// Manages browser launching and navigating.
+// Manages browser launching and navigating and returns a page.
 const launch = exports.launch = async (
   report, actIndex, headEmulation, tempBrowserID, tempURL, retries = 2
 ) => {

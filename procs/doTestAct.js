@@ -18,7 +18,7 @@
 
 // Module to perform file operations.
 const fs = require('fs/promises');
-//Modules to close and launch browsers.
+// Module to close and launch browsers.
 const {browserClose, launch} = require(`${__dirname}/launch`);
 // Module to set operating-system constants.
 const os = require('os');
