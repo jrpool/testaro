@@ -123,9 +123,13 @@ const isTrue = (object, specs) => {
   }
 };
 // Returns the browser ID of an act.
-const getActBrowserID = act => act?.browserID || report?.browserID || '';
+const getActBrowserID = (report, actIndex) => report?.acts[actIndex]?.browserID
+|| report?.browserID
+|| '';
 // Returns the target URL of an act.
-const getActTargetURL = act => act?.target?.url || report?.target?.url || '';
+const getActTargetURL = (report, actIndex) => report?.acts[actIndex]?.target?.url
+|| report?.target?.url
+|| '';
 // Normalizes a file URL in case it has the Windows path format.
 const normalizeFile = u => {
   if (!u) return u;
@@ -353,8 +357,8 @@ exports.doActs = async (report, opts = {}) => {
         page = await launch({
           report,
           actIndex,
-          tempBrowserID: getActBrowserID(act),
-          tempURL: getActTargetURL(act),
+          tempBrowserID: getActBrowserID(report, actIndex),
+          tempURL: getActTargetURL(report, actIndex),
           needsXPath: false
         });
         // If this failed:
@@ -1169,8 +1173,8 @@ exports.doActs = async (report, opts = {}) => {
       // If it is a test act:
       if (act.type === 'test') {
         // Classify it by its browser ID and target URL.
-        const browserID = getActBrowserID(act);
-        const targetURL = getActTargetURL(act);
+        const browserID = getActBrowserID(report, index);
+        const targetURL = getActTargetURL(report, index);
         const specString = `${browserID}>${targetURL}`;
         launchTypes[specString] ??= [];
         // Add its index to those with its launch type.
@@ -1184,8 +1188,8 @@ exports.doActs = async (report, opts = {}) => {
       page = await launch({
         report,
         actIndex: null,
-        tempBrowserID: getActBrowserID(null),
-        tempURL: getActTargetURL(null),
+        tempBrowserID: getActBrowserID(null, null),
+        tempURL: getActTargetURL(null, null),
         needsXPath: false
       });
       // If the launch and navigation succeeded:
