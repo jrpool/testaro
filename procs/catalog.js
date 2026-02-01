@@ -55,18 +55,20 @@ exports.getCatalog = async report => {
         // For each element in the page:
         for (const index in elements) {
           const element = elements[index];
-          // Add its properties to the catalog.
-          addToCatalog(index, cat, 'tagName', element.tagName || '');
-          addToCatalog(index, cat, 'id', element.id || '');
-          addToCatalog(index, cat, 'startTag', element.outerHTML?.replace(/>.*$/, '>') || '');
-          const {innerText} = element;
-          const segments = innerText?.trim().split('\n');
-          const tidySegments = segments.map(segment => segment.trim().replace(/\s+/g, ' '));
-          const text = tidySegments.filter(segment => segment.length).join('⁋');
-          addToCatalog(index, cat, 'text', text);
-          const box = element.getBoundingClientRect();
-          addToCatalog(index, cat, 'boxID', box ? Object.values(box).join(':') : '');
-          addToCatalog(index, cat, 'pathID', window.getXPath(element));
+          if (element) {
+            // Add its properties to the catalog.
+            addToCatalog(index, cat, 'tagName', element.tagName || '');
+            addToCatalog(index, cat, 'id', element.id || '');
+            addToCatalog(index, cat, 'startTag', element.outerHTML?.replace(/>.*$/, '>') || '');
+            const {innerText} = element;
+            const segments = innerText?.trim().split('\n');
+            const tidySegments = segments?.map(segment => segment.trim().replace(/\s+/g, ' ')) ?? [];
+            const text = tidySegments.filter(segment => segment.length).join('⁋');
+            addToCatalog(index, cat, 'text', text);
+            const box = element.getBoundingClientRect();
+            addToCatalog(index, cat, 'boxID', box ? Object.values(box).join(':') : '');
+            addToCatalog(index, cat, 'pathID', window.getXPath(element));
+          }
         }
         return cat;
       });
