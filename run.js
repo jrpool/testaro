@@ -15,6 +15,8 @@
 
 // IMPORTS
 
+// Module to perform acts.
+const {doActs} = require('./procs/doActs');
 // Module to keep secrets.
 require('dotenv').config({quiet: true});
 // Function to validate jobs.
@@ -23,8 +25,9 @@ const {isValidJob} = require('./procs/job');
 const {getCatalog} = require('./procs/catalog');
 // Module to process dates and times.
 const {nowString} = require('./procs/dateTime');
-// Module to evade automation detection.
+// Module to create browsers.
 const {chromium, webkit, firefox} = require('playwright-extra');
+// Module to evade automation detection.
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 webkit.use(StealthPlugin());
