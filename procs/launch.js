@@ -136,7 +136,7 @@ const launchOnce = async opts => {
       slowMo: waits || 0,
       args: browserOptionArgs
     };
-    let browser, browserContext;
+    let browser, browserContext, page;
     try {
       // Create a browser of the specified type.
       browser = await browserType.launch(browserOptions);
@@ -204,7 +204,7 @@ const launchOnce = async opts => {
         });
       });
       // Create a page (tab) of the context (window).
-      const page = await browserContext.newPage();
+      page = await browserContext.newPage();
       // Wait until it is stable.
       await page.waitForLoadState('domcontentloaded', {timeout: 5000});
       // Add a script to the page to mask automation detection.
@@ -367,11 +367,7 @@ const launchOnce = async opts => {
         true, false, report, actIndex, `ERROR launching or navigating (${error.message})`
       );
       // Close the browser and its context, if they exist.
-      try {
-        await browserContext.close();
-      }
-      catch(error) {}
-      await browser.close();
+      await browserClose(page);
       // Return a failure.
       return {
         success: false,
