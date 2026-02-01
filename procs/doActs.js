@@ -18,7 +18,7 @@
 // Module to handle errors.
 const {abortActs, addError} = require('./error');
 // Function to close a browser and/or its context.
-const {browserClose, launch} = require('./launch');
+const {browserClose, goTo, launch} = require('./launch');
 // Module to standardize report formats.
 const {standardize} = require('./standardize');
 // Module to identify element bounding boxes.
@@ -89,95 +89,6 @@ const getNonce = async response => {
   }
   // Return the nonce, if any.
   return nonce;
-};
-// Visits a URL and returns the response of the server.
-const goTo = async (report, page, url, timeout, waitUntil) => {
-  // If the URL is a file path:
-  if (url.startsWith('file://')) {
-    // Make it absolute.
-    url = url.replace('file://', `file://${__dirname}/`);
-  }
-  // Visit the URL.
-  const startTime = Date.now();
-  try {
-    const response = await page.goto(url, {
-      timeout,
-      waitUntil
-    });
-    report.jobData.visitLatency += Math.round((Date.now() - startTime) / 1000);
-    const httpStatus = response.status();
-    // If the response status was normal:
-    if ([200, 304].includes(httpStatus) || url.startsWith('file:')) {
-      const actualURL = page.url();
-      const actualNorm = actualURL.startsWith('file:') ? normalizeFile(actualURL) : actualURL;
-      const urlNorm = url.startsWith('file:') ? normalizeFile(url) : url;
-      // If the browser was redirected in violation of a strictness requirement:
-      if (report.strict && deSlash(actualNorm) !== deSlash(urlNorm)) {
-        // Return an error.
-        console.log(`ERROR: Visit to ${url} redirected to ${actualURL}`);
-        return {
-          success: false,
-          error: 'badRedirection'
-        };
-      }
-      // Otherwise, i.e. if no prohibited redirection occurred:
-      else {
-        // Press the Escape key to dismiss any modal dialog.
-        await page.keyboard.press('Escape');
-        // Return the result of the navigation.
-        return {
-          success: true,
-          response
-        };
-      }
-    }
-    // Otherwise, if the response status was prohibition:
-    else if (httpStatus === 403) {
-      // Return this.
-      console.log(`ERROR: Visit to ${url} prohibited (status 403)`);
-      return {
-        success: false,
-        error: 'status403'
-      };
-    }
-    // Otherwise, if the response status was rejection of excessive requests:
-    else if (httpStatus === 429) {
-      const retryHeader = response.headers()['retry-after'];
-      let waitSeconds = 5;
-      if (retryHeader) {
-        waitSeconds = Number.isNaN(Number(retryHeader))
-        ? Math.ceil((new Date(retryHeader) - new Date()) / 1000)
-        : Number(retryHeader);
-      }
-      // Return this.
-      console.log(
-        `ERROR: Visit to ${url} rate-limited (status 429); retry after ${waitSeconds} sec.`
-      );
-      return {
-        success: false,
-        error: `status429/retryAfterSeconds=${waitSeconds}`
-      };
-    }
-    // Otherwise, i.e. if the response status was otherwise abnormal:
-    else {
-      // Return an error.
-      console.log(`ERROR: Visit to ${url} got status ${httpStatus}`);
-      report.jobData.visitRejectionCount++;
-      return {
-        success: false,
-        error: 'badStatus'
-      };
-    }
-  }
-  catch(error) {
-    if (debug) {
-      console.log(`ERROR visiting ${url} (${error.message.slice(0, 200)})`);
-    }
-    return {
-      success: false,
-      error: 'noVisit'
-    };
-  }
 };
 // Returns a property value and whether it satisfies an expectation.
 const isTrue = (object, specs) => {
