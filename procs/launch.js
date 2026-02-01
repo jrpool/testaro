@@ -45,6 +45,8 @@ const errorWords = [
   'violates',
   'warning'
 ];
+// Seconds to wait between actions.
+const waits = process.env.WAITS ?? 0;
 
 // FUNCTIONS
 

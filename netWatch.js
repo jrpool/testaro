@@ -144,13 +144,13 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   // Check it for validity.
                   const jobInvalidity = isValidJob(contentObj);
                   // If it is invalid:
-                  if (jobInvalidity) {
+                  if (! jobInvalidity.isValid) {
                     // Report this to the server.
                     serveObject({
                       message: `invalidJob`,
-                      jobInvalidity
+                      error: jobInvalidity.error
                     }, response);
-                    console.log(`${logStart}invalid job (${jobInvalidity})`);
+                    console.log(`${logStart}invalid job (${jobInvalidity.error})`);
                     resolve(true);
                   }
                   // Otherwise, i.e. if it is valid:
