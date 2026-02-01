@@ -1173,21 +1173,23 @@ exports.doActs = async (report, opts = {}) => {
       }
     });
     // For each browser ID/target URL class:
-    for (const specString of Object.keys(launchSpecActs)) {
-      const specs = specString.split('>');
+    for (const typeName of Object.keys(launchTypes)) {
+      const typeItems = typeName.split('>');
+      const browserID = typeItems[0];
+      const targetURL = typeItems[1];
       // Launch a browser and navigate to the URL.
       page = await launch({
         report,
         actIndex: null,
-        tempBrowserID: getActBrowserID(null, null),
-        tempURL: getActTargetURL(null, null),
+        tempBrowserID: browserID,
+        tempURL: targetURL,
         needsXPath: false
       });
       // If the launch and navigation succeeded:
       if (page) {
         // For each test act in the class:
-        for (const specActIndex of launchSpecActs[specString]) {
-          const act = report.acts[specActIndex];
+        for (const typeActIndex of launchTypes[typeName]) {
+          const act = report.acts[typeActIndex];
           // Initialize the standard result.
           act.standardResult = {
             totals: [0, 0, 0, 0],
