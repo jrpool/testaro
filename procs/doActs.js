@@ -48,6 +48,8 @@ const moves = {
   select: 'select',
   text: 'input'
 };
+// Seconds to wait between actions.
+const waits = Number.parseInt(process.env.WAITS) || 0;
 // Time limits in seconds on tools, accounting for page reloads by 6 Testaro tests.
 const timeLimits = {
   alfa: 20,
@@ -57,8 +59,6 @@ const timeLimits = {
 };
 // Timeout multiplier.
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
-// Seconds to wait between actions.
-const waits = Number.parseInt(process.env.WAITS) || 0;
 
 // FUNCTIONS
 
