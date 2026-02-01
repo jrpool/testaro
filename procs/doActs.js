@@ -16,7 +16,7 @@
 // IMPORTS
 
 // Module to handle errors.
-const {addError} = require('./error');
+const {abortActs, addError} = require('./error');
 // Function to close a browser and/or its context.
 const {browserClose, launch} = require('./launch');
 // Module to standardize report formats.
@@ -62,15 +62,6 @@ const waits = Number.parseInt(process.env.WAITS) || 0;
 
 // FUNCTIONS
 
-// Reports a job being aborted.
-const abortActs = (report, actIndex) => {
-  // Add data on the aborted act to the report.
-  report.jobData.abortTime = nowString();
-  report.jobData.abortedAct = actIndex;
-  report.jobData.aborted = true;
-  // Report that the job is aborted.
-  console.log(`ERROR: Job aborted on act ${actIndex}`);
-};
 // Normalizes spacing characters and cases in a string.
 const debloat = string => string.replace(/\s/g, ' ').trim().replace(/ {2,}/g, ' ').toLowerCase();
 // Returns a string with any final slash removed.
