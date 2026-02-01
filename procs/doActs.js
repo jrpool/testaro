@@ -18,7 +18,7 @@
 // Module to handle errors.
 const {abortActs, addError} = require('./error');
 // Function to close a browser and/or its context.
-const {browserClose, goTo, launch} = require('./launch');
+const {browserClose, getNonce, goTo, launch} = require('./launch');
 // Module to standardize report formats.
 const {standardize} = require('./standardize');
 // Module to identify element bounding boxes.
@@ -68,28 +68,6 @@ const debloat = string => string.replace(/\s/g, ' ').trim().replace(/ {2,}/g, ' 
 const deSlash = string => string.endsWith('/') ? string.slice(0, -1) : string;
 // Returns the first line of an error message.
 const errorStart = error => error.message.replace(/\n.+/s, '');
-// Gets the script nonce from a response.
-const getNonce = async response => {
-  let nonce = '';
-  // If the response includes a content security policy:
-  const headers = await response.allHeaders();
-  const cspWithQuotes = headers && headers['content-security-policy'];
-  if (cspWithQuotes) {
-    // If it requires scripts to have a nonce:
-    const csp = cspWithQuotes.replace(/'/g, '');
-    const directives = csp.split(/ *; */).map(directive => directive.split(/ +/));
-    const scriptDirective = directives.find(dir => dir[0] === 'script-src');
-    if (scriptDirective) {
-      const nonceSpec = scriptDirective.find(valPart => valPart.startsWith('nonce-'));
-      if (nonceSpec) {
-        // Return the nonce.
-        nonce = nonceSpec.replace(/^nonce-/, '');
-      }
-    }
-  }
-  // Return the nonce, if any.
-  return nonce;
-};
 // Returns a property value and whether it satisfies an expectation.
 const isTrue = (object, specs) => {
   const property = specs[0];
