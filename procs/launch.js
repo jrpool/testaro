@@ -18,11 +18,12 @@
 // Module to handle errors.
 const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
-const playwrightBrowsers = {chromium, webkit, firefox};
+const {chromium, webkit, firefox} = require('playwright-extra');
 const {isBrowserID, isDeviceID, isURL, isValidJob} = require('./job');
 
 // CONSTANTS
 
+const playwrightBrowsers = {chromium, webkit, firefox};
 // Strings in log messages indicating errors.
 const errorWords = [
   'but not used',
