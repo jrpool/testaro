@@ -24,15 +24,15 @@ const {dateOf} = require('./dateTime');
 // CONSTANTS
 
 // Names and descriptions of tools.
-const tools = exports.tools ={
+const tools = exports.tools = {
   alfa: 'Alfa',
   aslint: 'ASLint',
   axe: 'Axe',
   ed11y: 'Editoria11y',
-  htmlcs: 'HTML CodeSniffer WCAG 2.1 AA ruleset',
-  ibm: 'IBM Accessibility Checker',
-  nuVal: 'Nu Html Checker API',
-  nuVnu: 'Nu Html Checker',
+  htmlcs: 'HTML CodeSniffer',
+  ibm: 'Accessibility Checker',
+  nuVal: 'Html Checker API',
+  nuVnu: 'Html Checker',
   qualWeb: 'QualWeb',
   testaro: 'Testaro',
   wax: 'WallyAX',

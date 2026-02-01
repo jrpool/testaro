@@ -25,10 +25,10 @@ const {standardize} = require('./standardize');
 const {identify} = require('./identify');
 // Module to send a notice to an observer.
 const {tellServer} = require('./tellServer');
+// Constant describing the tools.
+const {tools} = require('./job');
 // Module to create child processes.
 const {fork} = require('child_process');
-// Module to set operating-system constants.
-const {nowString} = require('./dateTime');
 const os = require('os');
 // Module to handle file system operations.
 const fs = require('fs/promises');
