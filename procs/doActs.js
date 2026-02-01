@@ -379,7 +379,7 @@ exports.doActs = async (report, opts = {}) => {
         // Create a child process to perform the act and add the result to the saved report.
         const actResult = await new Promise(resolve => {
           let closed = false;
-          const child = fork(`${__dirname}/procs/doTestAct`, [reportPath, actIndex]);
+          const child = fork(`${__dirname}/doTestAct`, [reportPath, actIndex]);
           let killTimer = null;
           // Start a timeout timer for the child process.
           const timeoutTimer = setTimeout(() => {
@@ -1162,20 +1162,19 @@ exports.doActs = async (report, opts = {}) => {
     }
     // Notify the observer and log the start of standardization.
     tellServer(report, '', 'Starting result standardization');
-    const launchSpecActs = {};
+    // Initialize a directory of launch types (browser ID/target URL pairs).
+    const launchTypes = {};
     // For each act:
     report.acts.forEach((act, index) => {
       // If it is a test act:
       if (act.type === 'test') {
         // Classify it by its browser ID and target URL.
-        const specs = launchSpecs(act, report);
-        const specString = `${specs[0]}>${specs[1]}`;
-        if (launchSpecActs[specString]) {
-          launchSpecActs[specString].push(index);
-        }
-        else {
-          launchSpecActs[specString] = [index];
-        }
+        const browserID = getActBrowserID(act);
+        const targetURL = getActTargetURL(act);
+        const specString = `${browserID}>${targetURL}`;
+        launchTypes[specString] ??= [];
+        // Add its index to those with its launch type.
+        launchTypes[specString].push(index);
       }
     });
     // For each browser ID/target URL class:
