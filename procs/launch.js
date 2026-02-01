@@ -68,7 +68,12 @@ const browserClose = exports.browserClose = async page => {
         await browserContext.close();
       }
       catch(error) {}
-      await browser.close();
+      if (browser) {
+        try {
+          await browser.close();
+        }
+        catch(error) {}
+      }
     }
   }
 };
