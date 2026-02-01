@@ -59,7 +59,7 @@ const wait = ms => {
   });
 };
 // Close a browser context and/or its browser, if they exist.
-exports.browserClose = (async page => {
+const browserClose = exports.browserClose = async page => {
   if (page) {
     const browserContext = page.context;
     if (browserContext) {
@@ -71,7 +71,7 @@ exports.browserClose = (async page => {
       await browser.close();
     }
   }
-});
+};
 // Launches a browser, navigates to a URL, and returns a page.
 const launchOnce = async opts => {
   const {
