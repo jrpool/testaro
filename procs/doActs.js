@@ -354,7 +354,7 @@ exports.doActs = async (report, opts = {}) => {
   // Get the standardization specification.
   const standard = report.standard || 'only';
   // Set the temporary directory.
-  let tmpDir = `${__dirname}/${process.env.TMPDIRNAME || 'scratch'}`;
+  let tmpDir = `${__dirname}/../${process.env.TMPDIRNAME || 'scratch'}`;
   try {
     await fs.access(tmpDir, fs.constants.W_OK);
   }
