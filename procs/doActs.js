@@ -130,15 +130,6 @@ const getActBrowserID = (report, actIndex) => report?.acts[actIndex]?.browserID
 const getActTargetURL = (report, actIndex) => report?.acts[actIndex]?.target?.url
 || report?.target?.url
 || '';
-// Normalizes a file URL in case it has the Windows path format.
-const normalizeFile = u => {
-  if (!u) return u;
-  if (!u.toLowerCase().startsWith('file:')) return u;
-  // Ensure forward slashes and three slashes after file:
-  let path = u.replace(/^file:\/+/i, '');
-  path = path.replace(/\\/g, '/');
-  return 'file:///' + path.replace(/^\//, '');
-};
 // Returns the text of an element, lower-cased.
 const textOf = async (page, element) => {
   if (element) {
