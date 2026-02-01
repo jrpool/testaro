@@ -406,8 +406,9 @@ exports.launch = async (opts = {}) => {
     }
     // Otherwise, i.e. if the launch or navigation failed:
     else {
+      let retriesLeft = retries;
       // As long as retries remain, decrement the allowed retry count and:
-      while (retries--) {
+      while (retriesLeft--) {
         const {error} = launchResult;
         // Prepare to wait 1 second before a retry.
         let waitSeconds = 1;
@@ -437,7 +438,7 @@ exports.launch = async (opts = {}) => {
         // Otherwise, i.e. if the launch or navigation failed:
         else {
           // If no retries remain:
-          if (! retries) {
+          if (! retriesLeft) {
             // Report this.
             addError(true, false, report, actIndex, 'ERROR: No retries left');
           }
