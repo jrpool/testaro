@@ -498,6 +498,15 @@ const launchOnce = async opts => {
     page
   };
 };
+// Normalizes a file URL in case it has the Windows path format.
+const normalizeFile = u => {
+  if (!u) return u;
+  if (!u.toLowerCase().startsWith('file:')) return u;
+  // Ensure forward slashes and three slashes after file:
+  let path = u.replace(/^file:\/+/i, '');
+  path = path.replace(/\\/g, '/');
+  return 'file:///' + path.replace(/^\//, '');
+};
 // Manages browser launching and navigating and returns a page.
 exports.launch = async (opts = {}) => {
   const {
