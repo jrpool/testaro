@@ -46,7 +46,7 @@ const errorWords = [
   'warning'
 ];
 // Seconds to wait between actions.
-const waits = process.env.WAITS ?? 0;
+const waits = Number(process.env.WAITS) ?? 0;
 
 // FUNCTIONS
 
