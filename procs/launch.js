@@ -166,6 +166,28 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     };
   }
 };
+// Gets the script nonce from a response.
+const getNonce = exports.getNonce = async response => {
+  let nonce = '';
+  // If the response includes a content security policy:
+  const headers = await response.allHeaders();
+  const cspWithQuotes = headers && headers['content-security-policy'];
+  if (cspWithQuotes) {
+    // If it requires scripts to have a nonce:
+    const csp = cspWithQuotes.replace(/'/g, '');
+    const directives = csp.split(/ *; */).map(directive => directive.split(/ +/));
+    const scriptDirective = directives.find(dir => dir[0] === 'script-src');
+    if (scriptDirective) {
+      const nonceSpec = scriptDirective.find(valPart => valPart.startsWith('nonce-'));
+      if (nonceSpec) {
+        // Return the nonce.
+        nonce = nonceSpec.replace(/^nonce-/, '');
+      }
+    }
+  }
+  // Return the nonce, if any.
+  return nonce;
+};
 // Launches a browser, navigates to a URL, and returns a page.
 const launchOnce = async opts => {
   const {
