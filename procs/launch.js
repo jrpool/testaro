@@ -204,6 +204,7 @@ const launchOnce = async opts => {
   const deviceID = device?.id;
   const browserID = tempBrowserID || report.browserID || '';
   const url = tempURL || report.target?.url || '';
+  let page;
   // If the specified browser and device types and URL are valid:
   if (isBrowserID(browserID) && isDeviceID(deviceID) && isURL(url)) {
     // Replace the report target URL with this URL.
@@ -252,7 +253,7 @@ const launchOnce = async opts => {
       slowMo: waits || 0,
       args: browserOptionArgs
     };
-    let browser, browserContext, page;
+    let browser, browserContext;
     try {
       // Create a browser of the specified type.
       browser = await browserType.launch(browserOptions);
