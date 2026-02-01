@@ -40,15 +40,15 @@ exports.doJob = async (job, opts = {}) => {
   // Make a report as a copy of the job.
   const report = JSON.parse(JSON.stringify(job));
   const jobData = report.jobData = {};
-  // Get whether the job is valid and, if not, why.
+  // Get whether the job is valid and, if not, why not.
   const jobInvalidity = isValidJob(job);
   // If it is invalid:
-  if (jobInvalidity) {
+  if (! jobInvalidity.isValid) {
     // Report this.
-    console.log(`ERROR: ${jobInvalidity}`);
+    console.log(`ERROR: ${jobInvalidity.error}`);
     jobData.aborted = true;
     jobData.abortedAct = null;
-    jobData.abortError = jobInvalidity;
+    jobData.abortError = jobInvalidity.error;
   }
   // Otherwise, i.e. if it is valid:
   else {

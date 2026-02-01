@@ -396,7 +396,7 @@ exports.launch = async (opts = {}) => {
     retries = 2
   } = opts;
   // If the report is valid:
-  if (isValidJob(report)) {
+  if (isValidJob(report).isValid) {
     // Try to launch a browser and navigate to the specified URL.
     let launchResult = await launchOnce(
       {report, actIndex, tempBrowserID, tempURL, headEmulation, needsXPath, needsAccessibleName}
