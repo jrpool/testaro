@@ -19,12 +19,6 @@ const {browserClose, launch} = require('./launch');
 
 // FUNCTIONS
 
-// Adds an element property to a catalog.
-const addToCatalog = (elementIndex, catalog, propertyName, value) => {
-  catalog[propertyName] ??= {};
-  catalog[propertyName][value] ??= [];
-  catalog[propertyName][value].push(elementIndex);
-};
 // Creates and returns a catalog.
 exports.getCatalog = async report => {
   const {browserID} = report;
@@ -42,6 +36,12 @@ exports.getCatalog = async report => {
     if (page) {
       // Create a catalog of the elements in the page.
       const catalog = await page.evaluate(() => {
+        // Adds an element property to a catalog.
+        const addToCatalog = (elementIndex, catalog, propertyName, value) => {
+          catalog[propertyName] ??= {};
+          catalog[propertyName][value] ??= [];
+          catalog[propertyName][value].push(elementIndex);
+        };
         const elements = document.querySelectorAll('*');
         // Initialize a catalog.
         const cat = {
