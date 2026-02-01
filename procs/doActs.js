@@ -243,9 +243,9 @@ const isTrue = (object, specs) => {
   }
 };
 // Returns the browser ID of an act.
-const getActBrowserID = act => act.browserID || report.browserID || '';
+const getActBrowserID = act => act?.browserID || report?.browserID || '';
 // Returns the target URL of an act.
-const getActTargetURL = act => act.target?.url || report.target?.url || '';
+const getActTargetURL = act => act?.target?.url || report?.target?.url || '';
 // Normalizes a file URL in case it has the Windows path format.
 const normalizeFile = u => {
   if (!u) return u;
@@ -356,7 +356,6 @@ const waitError = (page, act, error, what) => {
 };
 // Performs the acts in a report and adds the results to the report.
 exports.doActs = async (report, opts = {}) => {
-  /** @type {import('playwright').Page | null} */
   let page = null;
   let {acts} = report;
   // Get the granular observation options, if any.
@@ -772,8 +771,8 @@ exports.doActs = async (report, opts = {}) => {
         }
         // Otherwise, if the act is a page switch:
         else if (type === 'page') {
-          // Wait for a page to be created and identify it as current.
-          page = await page.context().waitForEvent('page');
+          const context = page.context();
+          page = await context.waitForEvent('page');
           // Wait until it is idle.
           await page.waitForLoadState('networkidle', {timeout: 15000});
           // Add the resulting URL to the act.
@@ -1304,7 +1303,13 @@ exports.doActs = async (report, opts = {}) => {
     for (const specString of Object.keys(launchSpecActs)) {
       const specs = specString.split('>');
       // Launch a browser and navigate to the URL.
-      page = await launch(report, null, 'high', ... specs);
+      page = await launch({
+        report,
+        actIndex: null,
+        tempBrowserID: getActBrowserID(null),
+        tempURL: getActTargetURL(null),
+        needsXPath: false
+      });
       // If the launch and navigation succeeded:
       if (page) {
         // For each test act in the class:
