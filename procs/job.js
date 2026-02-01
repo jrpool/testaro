@@ -167,7 +167,7 @@ const isValidAct = exports.isValidAct = act => {
     return false;
   }
 };
-// Returns blank if a job is valid, or an error message.
+// Returns whether a job is valid and, if not, why not.
 exports.isValidJob = job => {
   // If any job was provided:
   if (job) {
@@ -187,38 +187,68 @@ exports.isValidJob = job => {
     } = job;
     // Return an error for the first missing or invalid property.
     if (! id || typeof id !== 'string') {
-      return 'Bad job ID';
+      return {
+        isValid: false,
+        error: 'Bad job ID'
+      };
     }
     if (typeof strict !== 'boolean') {
-      return 'Bad job strict';
+      return {
+        isValid: false,
+        error: 'Bad job strict'
+      };
     }
     if (! ['also', 'only', 'no'].includes(standard)) {
-      return 'Bad job standard';
+      return {
+        isValid: false,
+        error: 'Bad job standard'
+      };
     }
     if (typeof observe !== 'boolean') {
-      return 'Bad job observe';
+      return {
+        isValid: false,
+        error: 'Bad job observe'
+      }
     }
     if (! isDeviceID(device.id)) {
-      return 'Bad job deviceID';
+      return {
+        isValid: false,
+        error: 'Bad job deviceID'
+      };
     }
     if (! isBrowserID(browserID)) {
-      return 'Bad job browserID';
+      return {
+        isValid: false,
+        error: 'Bad job browserID'
+      };
     }
     if (
       ! (creationTimeStamp && typeof creationTimeStamp === 'string' && dateOf(creationTimeStamp))
     ) {
-      return 'bad job creationTimeStamp';
+      return {
+        isValid: false,
+        error: 'Bad job creationTimeStamp'
+      };
     }
     if (
       ! (executionTimeStamp && typeof executionTimeStamp === 'string') && dateOf(executionTimeStamp)
     ) {
-      return 'bad job executionTimeStamp';
+      return {
+        isValid: false,
+        error: 'Bad job executionTimeStamp'
+      };
     }
     if (typeof target !== 'object' || target.url && ! isURL(target.url) || target.what === '') {
-      return 'bad job target';
+      return {
+        isValid: false,
+        error: 'Bad job target'
+      };
     }
     if (sources && typeof sources !== 'object') {
-      return 'Bad job sources';
+      return {
+        isValid: false,
+        error: 'Bad job sources'
+      };
     }
     if (
       ! acts
@@ -226,18 +256,29 @@ exports.isValidJob = job => {
       || ! acts.length
       || ! acts.every(act => act.type && typeof act.type === 'string')
     ) {
-      return 'Bad job acts';
+      return {
+        isValid: false,
+        error: 'Bad job acts'
+      };
     }
     const invalidAct = acts.find(act => ! isValidAct(act));
     if (invalidAct) {
-      return `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`;
+      return {
+        isValid: false,
+        error: `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`
+      };
     }
-    return '';
+    return {
+      isValid: true
+    };
   }
   // Otherwise, i.e. if no job was provided:
   else {
     // Return this.
-    return 'no job';
+    return {
+      isValid: false,
+      error: 'No job'
+    };
   }
 };
 // Limits the length of and unilinearizes a string.
