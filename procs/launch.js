@@ -56,7 +56,7 @@ const wait = ms => {
   });
 };
 // Close a browser context and/or its browser, if they exist.
-exports.browserClose(async (page) => {
+exports.browserClose = (async page => {
   if (page) {
     const browserContext = page.context;
     if (browserContext) {
