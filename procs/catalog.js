@@ -38,9 +38,11 @@ exports.getCatalog = async report => {
       const catalog = await page.evaluate(() => {
         // Adds an element property to a catalog.
         const addToCatalog = (elementIndex, catalog, propertyName, value) => {
-          catalog[propertyName] ??= {};
-          catalog[propertyName][value] ??= [];
-          catalog[propertyName][value].push(elementIndex);
+          if (value) {
+            catalog[propertyName] ??= {};
+            catalog[propertyName][value] ??= [];
+            catalog[propertyName][value].push(elementIndex);
+          }
         };
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
