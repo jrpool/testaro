@@ -523,7 +523,8 @@ exports.launch = async (opts = {}) => {
     retries = 2
   } = opts;
   // If the report is valid:
-  if (isValidJob(report).isValid) {
+  const jobValidation = isValidJob(report);
+  if (jobValidation.isValid) {
     // Try to launch a browser and navigate to the specified URL.
     let launchResult = await launchOnce(
       {report, actIndex, tempBrowserID, tempURL, headEmulation, needsXPath, needsAccessibleName}
@@ -580,7 +581,13 @@ exports.launch = async (opts = {}) => {
   // Otherwise, i.e. if the report is invalid:
   else {
     // Report this.
-    addError(true, false, report, actIndex, 'ERROR: Cannot launch browser for invalid job');
+    addError(
+      true,
+      false,
+      report,
+      actIndex,
+      `ERROR: Cannot launch browser for invalid job (${jobValidation.error})`
+    );
     // Return a failure.
     return null;
   }

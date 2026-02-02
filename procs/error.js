@@ -29,7 +29,7 @@ exports.addError = (alsoLog, alsoAbort, report, actIndex, message) => {
     // Log it.
     console.log(message);
   }
-  const act = report.acts[actIndex];
+  const act = report.acts[actIndex ?? -1];
   // If an act was specified:
   if (act) {
     // Add error data to the result.

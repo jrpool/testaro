@@ -1181,7 +1181,7 @@ exports.doActs = async (report, opts = {}) => {
       const targetURL = typeItems[1];
       // Launch a browser and navigate to the URL.
       page = await launch({
-        localReport,
+        report: localReport,
         actIndex: null,
         tempBrowserID: browserID,
         tempURL: targetURL,

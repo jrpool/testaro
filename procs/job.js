@@ -172,6 +172,7 @@ exports.isValidJob = job => {
   // If any job was provided:
   if (job) {
     // Get its properties.
+    console.log(`XXX Job ID is ${job.id}`);
     const {
       id,
       strict,
