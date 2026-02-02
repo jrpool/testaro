@@ -83,8 +83,8 @@ exports.doJob = async (job, opts = {}) => {
       // Create a catalog of the target and add it to the report.
       report.catalog = await getCatalog(report);
     }
-    // Perform the acts with any specified same-host observation options.
-    await doActs(report, opts);
+    // Perform the acts and revise the report.
+    report = await doActs(report, opts);
     // Add the end time and duration to the report.
     const endTime = new Date();
     report.jobData.endTime = nowString();
