@@ -76,14 +76,24 @@ exports.getCatalog = async report => {
           addToCatalog(index, cat, 'boxID', box ? Object.values(box).join(':') : '');
           addToCatalog(index, cat, 'pathID', window.getXPath(element));
         }
+        // For each path ID in the catalog:
         Object.keys(cat.pathID).forEach(pathID => {
+          // Add it to the element data in the catalog.
           cat.element[cat.pathID[pathID][0]] = {
             pathID
           };
         });
+        // For each text in the catalog:
         Object.keys(cat.text).forEach(text => {
-          if (cat.text[text].length === 1) {
-            cat.element[cat.text[text][0]].text = text;
+          const textData = cat.text[text];
+          // If only 1 element has it:
+          if (textData.length === 1) {
+            const elementIndex = textData[0];
+            // If it is not in the head:
+            if (! cat.element[elementIndex].pathID.includes('/head[1]')) {
+              // Add it to the element data in the catalog.
+              cat.element[textData[0]].text = text;
+            }
           }
         })
         return cat;
