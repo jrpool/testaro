@@ -1210,8 +1210,6 @@ exports.doActs = async (report, opts = {}) => {
           for (const instance of act.standardResult.instances) {
             let {catalogIndex, boxID, pathID} = instance;
             // If the instance has no catalog index and is missing a box ID or a valid path ID:
-            console.log(`XXX catalogIndex is ${catalogIndex}`);
-            console.log(`XXX Instance:\n${JSON.stringify(instance, null, 2)}`);
             if (! catalogIndex && ! boxID && (! pathID || pathID.includes(' '))) {
               const elementID = await identify(instance, page);
               // If it has no box ID but the element has a bounding box:
