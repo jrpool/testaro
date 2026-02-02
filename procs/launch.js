@@ -23,6 +23,9 @@ const {isBrowserID, isDeviceID, isURL, isValidJob} = require('./job');
 
 // CONSTANTS
 
+// Whether to log page-context log messages.
+const debug = process.env.DEBUG === 'true';
+// Playwright browser types.
 const playwrightBrowsers = {chromium, webkit, firefox};
 // Strings in log messages indicating errors.
 const errorWords = [
