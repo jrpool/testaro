@@ -47,6 +47,7 @@ exports.getCatalog = async report => {
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
         const cat = {
+          element: [],
           tagName: {},
           id: {},
           startTag: {},
@@ -75,6 +76,16 @@ exports.getCatalog = async report => {
           addToCatalog(index, cat, 'boxID', box ? Object.values(box).join(':') : '');
           addToCatalog(index, cat, 'pathID', window.getXPath(element));
         }
+        Object.keys(cat.pathID).forEach(pathID => {
+          cat.element[cat.pathID[pathID][0]] = {
+            pathID
+          };
+        });
+        Object.keys(cat.text).forEach(text => {
+          if (cat.text[text].length === 1) {
+            cat.element[cat.text[text][0]].text = text;
+          }
+        })
         return cat;
       });
       // Close the browser and its context.
