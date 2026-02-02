@@ -71,7 +71,7 @@ exports.reporter = async (page, report, actIndex) => {
       const targetClass = evaluation.target;
       // If it has a non-collection violator:
       if (targetClass && ! targetClass._members) {
-        // Convert the evaluation to an item.
+        // Convert the evaluation to an element-specific item.
         const item = evaluation.toJSON();
         const {diagnostic, expectations, outcome, rule, target} = item;
         // If the outcome of the item is a failure or warning:
@@ -105,44 +105,21 @@ exports.reporter = async (page, report, actIndex) => {
           // If standard results are to be reported:
           if (standard) {
             const {requirements, uri} = rule;
-            // Get properties required for a standard instance.
+            // Get the pathID of the element.
             const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, ''));
-            const {name} = target;
-            let tagName = name?.toUpperCase();
-            if (pathID && tagName?.startsWith('TEXT') || ! tagName) {
-              tagName = pathID.split('/').pop().replace(/\[.+/, '').toUpperCase() || '';
-            }
-            let boxID = '';
-            const targetLoc = page.locator(`xpath=${pathID}`);
-            try {
-              const box = await targetLoc.boundingBox({timeout: 50});
-              if (box) {
-                boxID = Object.values(box).join(':');
-              }
-            }
-            catch(error) {}
-            const text = [];
-            try {
-              const textRaw = await targetLoc.innerText({timeout: 50});
-              const segments = textRaw?.trim().split(/[\t\n]+/).filter(segment => segment.length);
-              if (segments?.length) {
-                if (segments.length > 1) {
-                  text.push(segments[0], segments[segments.length - 1]);
-                }
-                else {
-                  text.push(segments[0]);
-                }
-              }
-            }
-            catch(error) {}
-            // Get rule-specific properties of a standard instance.
+            const {catalog} = report;
+            // Use it to get the index of the element in the catalog.
+            let catalogIndex = catalog.pathID?.[pathID]?.[0];
+            // Get the rule ID of the item.
             let ruleID = uri.replace(/^.+-/, '');
+            // Get the rule description of the item.
             let what = tidy(expectations?.[0]?.[1]?.error?.message || '');
             if (! what) {
               if (requirements && requirements.length && requirements[0].title) {
                 what = requirements[0].title;
               }
             }
+            // Get the ordinal severity of the item.
             let ordinalSeverity = 2;
             // If the outcome is untestability:
             if (outcome === 'cantTell') {
@@ -159,17 +136,7 @@ exports.reporter = async (page, report, actIndex) => {
               what,
               ordinalSeverity,
               count: 1,
-              tagName,
-              id: getIdentifiers(code)[1],
-              location: {
-                doc: 'dom',
-                type: 'xpath',
-                spec: pathID
-              },
-              excerpt: cap(tidy(item.code)),
-              text,
-              boxID,
-              pathID
+              catalogIndex
             });
           }
         }
