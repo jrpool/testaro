@@ -81,21 +81,18 @@ exports.getCatalog = async report => {
           // Add it to the element data in the catalog.
           cat.element[cat.pathID[pathID][0]] = {pathID};
         });
-        console.log('XXX About to add texts');
         // For each text in the catalog:
         Object.keys(cat.text).forEach(text => {
           const textElementIndexes = cat.text[text];
-          console.log(`XXX Text ${text} has indexes ${textElementIndexes}`);
           // If every element that has it is in the same subtree, so is page-unique:
           if (
             textElementIndexes.slice(0, -1).every(
-              index => cat
+              (elementIndex, index) => cat
               .element[textElementIndexes[index + 1]]
               .pathID
-              .startsWith(cat.element[textElementIndexes[index]].pathID)
+              .startsWith(cat.element[elementIndex].pathID)
             )
           ) {
-            console.log('XXX Text is page-unique');
             // For each element that has it:
             textElementIndexes.forEach(index => {
               // If it is not in the head:
