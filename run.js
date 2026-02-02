@@ -84,9 +84,7 @@ exports.doJob = async (job, opts = {}) => {
       report.catalog = await getCatalog(report);
     }
     // Perform the acts and revise the report.
-    console.log('XXX About to call doActs');
     report = await doActs(report, opts);
-    console.log(`XXX Report ID after doActs is ${report.id}`);
     // Add the end time and duration to the report.
     const endTime = new Date();
     report.jobData.endTime = nowString();
