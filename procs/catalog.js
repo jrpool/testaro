@@ -85,17 +85,23 @@ exports.getCatalog = async report => {
         });
         // For each text in the catalog:
         Object.keys(cat.text).forEach(text => {
-          const textData = cat.text[text];
-          // If only 1 element has it:
-          if (textData.length === 1) {
-            const elementIndex = textData[0];
-            // If it is not in the head:
-            if (! cat.element[elementIndex].pathID.includes('/head[1]')) {
-              // Add it to the element data in the catalog.
-              cat.element[textData[0]].text = text;
-            }
+          const textElementIndexes = cat.text[text];
+          // If every element that has it is in the same subtree, so it is page-unique:
+          if (
+            textElementIndexes.slice(0, -1).every(
+              index => cat.element[index + 1].pathID.startsWith(cat.element[index].pathID)
+            )
+          ) {
+            // For each element that has it:
+            textElementIndexes.forEach(index => {
+              // If it is not in the head:
+              if (! cat.element[index].pathID.includes('/head[1]')) {
+                // Add it to the element data in the catalog.
+                cat.element[index].text = text;
+              }
+            });
           }
-        })
+        });
         return cat;
       });
       // Close the browser and its context.
