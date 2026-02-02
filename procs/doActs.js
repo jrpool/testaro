@@ -1231,8 +1231,8 @@ exports.doActs = async (report, opts = {}) => {
                 }
               }
             }
-            // If the instance excerpt contains a unique Testaro identifier attribute:
-            if (instance.excerpt.includes(' data-testaro-id="')) {
+            // If the instance has an excerpt that contains a unique Testaro identifier attribute:
+            if (instance.excerpt?.includes(' data-testaro-id="')) {
               // Delete the attribute.
               instance.excerpt = instance
               .excerpt
