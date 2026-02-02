@@ -105,8 +105,8 @@ exports.reporter = async (page, report, actIndex) => {
           // If standard results are to be reported:
           if (standard) {
             const {requirements, uri} = rule;
-            // Get the pathID of the element.
-            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, ''));
+            // Get the pathID of the element or, if none, the document pathID.
+            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, '')) || '/html';
             const {catalog} = report;
             // Use it to get the index of the element in the catalog.
             let catalogIndex = catalog.pathID?.[pathID]?.[0];
