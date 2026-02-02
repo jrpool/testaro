@@ -1208,9 +1208,9 @@ exports.doActs = async (report, opts = {}) => {
           tellServer(localReport, '', 'Starting element identification');
           // For each of the standard instances of the act:
           for (const instance of act.standardResult.instances) {
-            let {boxID, pathID} = instance;
-            // If the instance does not have both a box ID and a valid path ID:
-            if (! boxID && (! pathID || pathID.includes(' '))) {
+            let {catalogIndex, boxID, pathID} = instance;
+            // If the instance has no catalog index and is missing a box ID or a valid path ID:
+            if (! catalogIndex && ! boxID && (! pathID || pathID.includes(' '))) {
               const elementID = await identify(instance, page);
               // If it has no box ID but the element has a bounding box:
               if (elementID.boxID && ! boxID) {
