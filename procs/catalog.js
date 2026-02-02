@@ -58,7 +58,12 @@ exports.getCatalog = async report => {
           // Add its properties to the catalog.
           addToCatalog(index, cat, 'tagName', element.tagName || '');
           addToCatalog(index, cat, 'id', element.id || '');
-          addToCatalog(index, cat, 'startTag', element.outerHTML?.replace(/>.*$/, '>') || '');
+          addToCatalog(
+            index,
+            cat,
+            'startTag',
+            element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? ''
+          );
           const {innerText} = element;
           const segments = innerText?.trim().split('\n');
           const tidySegments = segments?.map(segment => segment.trim().replace(/\s+/g, ' ')) ?? [];
