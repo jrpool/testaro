@@ -57,6 +57,9 @@ const boxToString = exports.boxToString = box => {
 // Normalizes an XPath.
 const getNormalizedXPath = exports.getNormalizedXPath = xPath => {
   if (xPath) {
+    if (xPath === '/') {
+      xPath = '/html';
+    }
     xPath = xPath.replace(/^\.\/\//, '/');
     const segments = xPath.split('/');
     // Initialize an array of normalized segments.
