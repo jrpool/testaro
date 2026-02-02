@@ -37,8 +37,8 @@ firefox.use(StealthPlugin());
 
 // Runs a job and returns a report.
 exports.doJob = async (job, opts = {}) => {
-  // Make a report as a copy of the job.
-  const report = JSON.parse(JSON.stringify(job));
+  // Initialize a report as a copy of the job.
+  let report = JSON.parse(JSON.stringify(job));
   const jobData = report.jobData = {};
   // Get whether the job is valid and, if not, why not.
   const jobInvalidity = isValidJob(job);
