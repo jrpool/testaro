@@ -70,7 +70,9 @@ exports.getCatalog = async report => {
           const {innerText} = element;
           const segments = innerText?.trim().split('\n');
           const tidySegments = segments?.map(segment => segment.trim().replace(/\s+/g, ' ')) ?? [];
-          const text = tidySegments.filter(segment => segment.length).join('⁋');
+          const nonEmptySegments = tidySegments.filter(segment => segment.length);
+          const neededSegments = nonEmptySegments.splice(1, nonEmptySegments.length - 2);
+          const text = neededSegments.join('⁋');
           addToCatalog(index, cat, 'text', text);
           const box = element.getBoundingClientRect();
           addToCatalog(index, cat, 'boxID', box ? Object.values(box).join(':') : '');
