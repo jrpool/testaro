@@ -352,7 +352,7 @@ exports.doActs = async (report, opts = {}) => {
           actIndex,
           tempBrowserID: getActBrowserID(localReport, actIndex),
           tempURL: getActTargetURL(localReport, actIndex),
-          needsXPath: false
+          xPathNeed: 'none'
         });
         // If this failed:
         if (! page) {
@@ -1187,7 +1187,7 @@ exports.doActs = async (report, opts = {}) => {
         actIndex: null,
         tempBrowserID: browserID,
         tempURL: targetURL,
-        needsXPath: false
+        xPathNeed: 'none'
       });
       // If the launch and navigation succeeded:
       if (page) {
