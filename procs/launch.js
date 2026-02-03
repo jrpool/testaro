@@ -200,7 +200,7 @@ const launchOnce = async opts => {
     tempBrowserID = '',
     tempURL = '',
     headEmulation = 'high',
-    xPathNeed = 'script',
+    neededXPath = 'script',
     needsAccessibleName = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
@@ -326,7 +326,7 @@ const launchOnce = async opts => {
       });
       // Create a page (tab) of the context (window).
       page = await browserContext.newPage();
-      // If XPath annotations are needed, wait for post-launch elements to be added.
+      // If XPath attributes are needed, wait for post-launch elements to be added.
       const waitType = neededXPath === 'attribute' ? 'networkidle' : 'domcontentloaded';
       // Wait until the page is stable.
       await page.waitForLoadState(waitType, {timeout: 5000});
