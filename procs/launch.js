@@ -570,7 +570,7 @@ exports.launch = async (opts = {}) => {
         await wait(1000 * waitSeconds);
         // Retry the launch and navigation.
         launchResult = await launchOnce(
-          {report, actIndex, tempBrowserID, tempURL, headEmulation, needsXPath, needsAccessibleName}
+          {report, actIndex, tempBrowserID, tempURL, headEmulation, xPathNeed, needsAccessibleName}
         );
         // If the launch and navigation succeeded:
         if (launchResult.success) {
