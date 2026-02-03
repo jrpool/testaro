@@ -1213,7 +1213,6 @@ exports.doActs = async (report, opts = {}) => {
             let {catalogIndex, boxID, pathID} = instance;
             // If the instance has no catalog index and is missing a box ID or a valid path ID:
             if (! catalogIndex && ! boxID && (! pathID || pathID.includes(' '))) {
-              console.log(`XXX Incomplete instance:\n${JSON.stringify(instance, null, 2)}`);
               const elementID = await identify(instance, page);
               // If it has no box ID but the element has a bounding box:
               if (elementID.boxID && ! boxID) {
