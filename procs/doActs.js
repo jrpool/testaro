@@ -446,8 +446,6 @@ exports.doActs = async (report, opts = {}) => {
           try {
             // Reassign it to the local report.
             localReport = JSON.parse(localReportJSON);
-            // Reassign the element property of the catalog to the catalog, deleting the rest.
-            localReport.catalog = localReport.catalog.element;
             // Redefine the acts as those in the revised local report.
             ({acts} = localReport);
           }
@@ -1134,6 +1132,8 @@ exports.doActs = async (report, opts = {}) => {
       actCount++;
     }
   }
+  // Reassign the element property of the catalog to the catalog, deleting the rest.
+  localReport.catalog = localReport.catalog.element;
   console.log('Acts completed');
   // If standardization is required:
   if (['also', 'only'].includes(standard)) {
@@ -1213,6 +1213,7 @@ exports.doActs = async (report, opts = {}) => {
             let {catalogIndex, boxID, pathID} = instance;
             // If the instance has no catalog index and is missing a box ID or a valid path ID:
             if (! catalogIndex && ! boxID && (! pathID || pathID.includes(' '))) {
+              console.log(`XXX Incomplete instance:\n${JSON.stringify(instance, null, 2)}`);
               const elementID = await identify(instance, page);
               // If it has no box ID but the element has a bounding box:
               if (elementID.boxID && ! boxID) {
