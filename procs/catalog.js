@@ -47,7 +47,7 @@ exports.getCatalog = async report => {
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
         const cat = {
-          element: [],
+          element: {},
           tagName: {},
           id: {},
           startTag: {},
@@ -58,7 +58,7 @@ exports.getCatalog = async report => {
         // For each element in the page:
         for (const index in elements) {
           const element = elements[index];
-          // Add its properties to the catalog.
+          // Index it by its properties in the catalog.
           addToCatalog(index, cat, 'tagName', element.tagName || '');
           addToCatalog(index, cat, 'id', element.id || '');
           addToCatalog(
@@ -82,12 +82,17 @@ exports.getCatalog = async report => {
             boxID ? ['x', 'y', 'width', 'height'].map(key => Math.round(boxID[key])).join(':') : ''
           );
           addToCatalog(index, cat, 'pathID', window.getXPath(element));
+          // Add an entry for it to the element data in the catalog.
+          cat.element[index] = {
+            tagName,
+            id,
+            startTag,
+            textLinkable: false,
+            text,
+            boxID,
+            pathID
+          };
         }
-        // For each path ID in the catalog:
-        Object.keys(cat.pathID).forEach(pathID => {
-          // Add it to the element data in the catalog.
-          cat.element[cat.pathID[pathID][0]] = {pathID};
-        });
         // For each text in the catalog:
         Object.keys(cat.text).forEach(text => {
           const textElementIndexes = cat.text[text];
@@ -104,8 +109,8 @@ exports.getCatalog = async report => {
             textElementIndexes.forEach(index => {
               // If it is not in the head:
               if (! cat.element[index].pathID.includes('/head[1]')) {
-                // Add it to the element data in the catalog.
-                cat.element[index].text = text;
+                // Mark it as linkable in the element data in the catalog.
+                cat.element[index].textLinkable = true;
               }
             });
           }
