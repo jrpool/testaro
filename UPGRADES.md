@@ -3,7 +3,7 @@
 ## License
 
 © 2025 CVS Health and/or one of its affiliates. All rights reserved.
-© 2025 Jonathan Robert Pool.
+© 2025–2026 Jonathan Robert Pool.
 
 Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
 at the project root for details.
