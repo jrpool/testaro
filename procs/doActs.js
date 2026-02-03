@@ -1292,7 +1292,7 @@ exports.doActs = async (report, opts = {}) => {
     };
     console.log('Standardization and element identification completed');
     const {acts} = localReport;
-    const idData = {};
+    const catalogData = {};
     // For each act:
     for (const act of acts) {
       // If it is a test act:
@@ -1304,7 +1304,7 @@ exports.doActs = async (report, opts = {}) => {
           catalogCount: 0,
           catalogPercent: null
         };
-        const actCatalogData = idData[which];
+        const actCatalogData = catalogData[which];
         const {standardResult} = act;
         const {instances} = standardResult;
         // For each standard instance in the act:
@@ -1318,15 +1318,15 @@ exports.doActs = async (report, opts = {}) => {
             actCatalogData.catalogCount++;
           }
         }
-        const {catalogCount} = actCatalogData;
+        const {catalogCount, instanceCount} = actCatalogData;
         // If there are any instances:
         if (instanceCount) {
-          // Add the catalog percentage to the catalogData property.
+          // Add the catalog percentage to the actCatalogData property.
           actCatalogData.catalogPercent = Math.round(100 * catalogCount / instanceCount);
         }
       }
     }
-    localReport.jobData.idData = idData;
+    localReport.jobData.catalogData = catalogData;
   }
   // Delete the temporary local report file.
   await fs.rm(reportPath, {force: true});
