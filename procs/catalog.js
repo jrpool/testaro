@@ -36,13 +36,15 @@ exports.getCatalog = async report => {
     if (page) {
       // Create a catalog of the elements in the page.
       const catalog = await page.evaluate(() => {
-        // Adds an element property to a catalog.
+        // Adds an element property to a catalog and returns its value.
         const addToCatalog = (elementIndex, catalog, propertyName, value) => {
           if (value) {
             catalog[propertyName] ??= {};
             catalog[propertyName][value] ??= [];
             catalog[propertyName][value].push(elementIndex);
+            return value;
           }
+          return '';
         };
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
@@ -59,9 +61,9 @@ exports.getCatalog = async report => {
         for (const index in elements) {
           const element = elements[index];
           // Index it by its properties in the catalog.
-          addToCatalog(index, cat, 'tagName', element.tagName || '');
-          addToCatalog(index, cat, 'id', element.id || '');
-          addToCatalog(
+          const tagName =addToCatalog(index, cat, 'tagName', element.tagName || '');
+          const id = addToCatalog(index, cat, 'id', element.id || '');
+          const startTag = addToCatalog(
             index,
             cat,
             'startTag',
@@ -72,16 +74,17 @@ exports.getCatalog = async report => {
           const tidySegments = segments?.map(segment => segment.trim().replace(/\s+/g, ' ')) ?? [];
           const neededSegments = tidySegments.filter(segment => segment.length);
           neededSegments.splice(1, neededSegments.length - 2);
-          const text = neededSegments.join('⁋');
-          addToCatalog(index, cat, 'text', text);
-          const boxID = element.getBoundingClientRect();
-          addToCatalog(
+          const text = addToCatalog(index, cat, 'text', neededSegments.join('⁋'));
+          const domRect = element.getBoundingClientRect();
+          const boxID = addToCatalog(
             index,
             cat,
             'boxID',
-            boxID ? ['x', 'y', 'width', 'height'].map(key => Math.round(boxID[key])).join(':') : ''
+            domRect
+            ? ['x', 'y', 'width', 'height'].map(key => Math.round(domRect[key])).join(':')
+            : ''
           );
-          addToCatalog(index, cat, 'pathID', window.getXPath(element));
+          const pathID = addToCatalog(index, cat, 'pathID', window.getXPath(element));
           // Add an entry for it to the element data in the catalog.
           cat.element[index] = {
             tagName,
