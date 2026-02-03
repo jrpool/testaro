@@ -74,7 +74,7 @@ exports.getCatalog = async report => {
           const tidySegments = segments?.map(segment => segment.trim().replace(/\s+/g, ' ')) ?? [];
           const neededSegments = tidySegments.filter(segment => segment.length);
           neededSegments.splice(1, neededSegments.length - 2);
-          const text = addToCatalog(index, cat, 'text', neededSegments.join('◥◤'));
+          const text = addToCatalog(index, cat, 'text', neededSegments.join('◢‖◤'));
           const domRect = element.getBoundingClientRect();
           const boxID = addToCatalog(
             index,
