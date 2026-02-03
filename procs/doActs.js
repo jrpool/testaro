@@ -446,6 +446,8 @@ exports.doActs = async (report, opts = {}) => {
           try {
             // Reassign it to the local report.
             localReport = JSON.parse(localReportJSON);
+            // Reassign the element property of the catalog to the catalog, deleting the rest.
+            localReport.catalog = localReport.catalog.element;
             // Redefine the acts as those in the revised local report.
             ({acts} = localReport);
           }
