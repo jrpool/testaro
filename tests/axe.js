@@ -134,19 +134,26 @@ exports.reporter = async (page, report, actIndex) => {
       irrelevants.forEach(irrelevant => {
         delete axeReport[irrelevant];
       });
-      // If standard results are to be reported and there are any violations:
+      // If standard results are to be reported and there are any suspicions:
       if (standard && (totals.rulesViolated || totals.rulesWarned)) {
+        // For each certainty type:
         ['incomplete', 'violations'].forEach(certainty => {
+          // If there are any suspicions of this type:
           if (nativeResult?.details?.[certainty]) {
+            // For each rule with any suspicions:
             nativeResult.details[certainty].forEach(rule => {
+              // For each element suspected of violating the rule:
               rule.nodes.forEach(node => {
+                // Get descriptions of the rule.
                 const whatSet = new Set([
                   rule.help,
                   ... node.any.map(anyItem => anyItem.message),
                   ... node.all.map(allItem => allItem.message)
                 ]);
+                // Get the ordinal severity of the suspicion.
                 const ordinalSeverity = severityWeights[node.impact]
                 + (certainty === 'violations' ? 2 : 0);
+                const xPath = node.html;
                 const identifiers = getIdentifiers(node.html);
                 const instance = {
                   ruleID: rule.id,

@@ -200,7 +200,7 @@ const launchOnce = async opts => {
     tempBrowserID = '',
     tempURL = '',
     headEmulation = 'high',
-    neededXPath = 'script',
+    xPathNeed = 'script',
     needsAccessibleName = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
@@ -342,7 +342,7 @@ const launchOnce = async opts => {
         });
       });
       // If an XPath computation script is required:
-      if (neededXPath !== 'none') {
+      if (xPathNeed !== 'none') {
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
           window.getXPath = element => {
@@ -386,8 +386,8 @@ const launchOnce = async opts => {
             return `/${segments.join('/')}`;
           };
         });
-        // If XPath annotations, too, are needed:
-        if (neededXPath === 'attribute') {
+        // If XPath attributes, too, are needed:
+        if (xPathNeed === 'attribute') {
           // Use the script to add them.
           await page.evaluate(() => {
             const elements = document.querySelectorAll('*');

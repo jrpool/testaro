@@ -23,7 +23,12 @@ const {browserClose, launch} = require('./launch');
 
 // CONSTANTS
 
-const xPathNonNeeders = ['alfa', 'axe', 'ed11y', 'ibm', 'wave'];
+const xPathNeeds = {
+  alfa: 'attribute',
+  axe: 'attribute',
+  ed11y: 'attribute',
+  ibm: 'attribute'
+};
 const accessibleNameNeeders = ['testaro'];
 
 // FUNCTIONS
@@ -61,7 +66,7 @@ const doTestAct = async (reportPath, actIndex) => {
       actIndex,
       tempBrowserID: browserID,
       tempURL: targetURL,
-      needsXPath: ! xPathNonNeeders.includes(which),
+      neededXPath: xPathNeeds[which] ?? 'none',
       needsAccessibleName: accessibleNameNeeders.includes(which)
     });
     // If the launch aborted the job:
