@@ -530,7 +530,7 @@ exports.launch = async (opts = {}) => {
     tempBrowserID = '',
     tempURL = '',
     headEmulation = 'high',
-    needsXPath = true,
+    xPathNeed = 'script',
     needsAccessibleName = false,
     retries = 2
   } = opts;
