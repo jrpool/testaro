@@ -228,6 +228,8 @@ exports.reporter = async (page, report, actIndex) => {
         }
         // If standard results are to be reported:
         if (standard) {
+          const {catalog} = report;
+          console.log(`XXX catalog:\n${JSON.stringify(catalog, null, 2)}`);
           const ruleIDs = Object.keys(rules);
           // For each violated rule:
           for (let ruleID of ruleIDs) {
@@ -246,14 +248,17 @@ exports.reporter = async (page, report, actIndex) => {
                 // Differentiate it.
                 ruleID = changer[changer.length - 1];
               }
+              console.log(`XXX Rule ID is ${ruleID}`);
               // Get the ordinal severity of the violation.
               const ordinalSeverity = issueType === 'warning' ? 1 : 2;
               // Get the pathID of the element.
               const {xpath} = element;
+              console.log(`XXX path is ${xpath}`);
               const pathID = getNormalizedXPath(xpath);
-              const {catalog} = report;
+              console.log(`XXX pathID is ${pathID}`);
               // Use it to get the index of the element in the catalog.
               const catalogIndex = catalog.pathID?.[pathID]?.[0];
+              console.log(`XXX catalogIndex is ${catalogIndex}`);
               // Add an instance to the standard result.
               standardResult.instances.push({
                 ruleID,
