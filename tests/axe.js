@@ -153,9 +153,7 @@ exports.reporter = async (page, report, actIndex) => {
                 const ordinalSeverity = severityWeights[node.impact]
                 + (certainty === 'violations' ? 2 : 0);
                 // Get the XPath of the suspected element from its data-xpath attribute.
-                console.log(`XXX Element HTML is ${node.html}`);
                 const xPath = getAttributeXPath(node.html);
-                console.log(`XXX Element XPath is ${xPath}`);
                 // Get the catalog index of the suspected element from its XPath.
                 const catalogIndex = getXPathCatalogIndex(report.catalog, xPath) ?? '';
                 const instance = {
