@@ -455,8 +455,8 @@ const convert = (toolName, data, result, standardResult) => {
       standardResult.instances.push(instance);
     });
   }
-  // Populate the totals of the standard result if the tool is not Alfa, Testaro or WAVE.
-  if (! ['alfa', 'testaro', 'wave'].includes(toolName)) {
+  // Populate the totals of the standard result if the tool is not Alfa, ASLint, Testaro or WAVE.
+  if (! ['alfa', 'aslint', 'testaro', 'wave'].includes(toolName)) {
     standardResult.instances.forEach(instance => {
       standardResult.totals[instance.ordinalSeverity] += instance.count || 1;
     });
