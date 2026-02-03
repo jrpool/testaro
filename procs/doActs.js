@@ -1132,11 +1132,11 @@ exports.doActs = async (report, opts = {}) => {
       actCount++;
     }
   }
-  // Reassign the element property of the catalog to the catalog, deleting the rest.
-  localReport.catalog = localReport.catalog.element;
   console.log('Acts completed');
   // If standardization is required:
   if (['also', 'only'].includes(standard)) {
+    // Reassign the element property of the catalog to the catalog, deleting the rest.
+    localReport.catalog = localReport.catalog.element;
     // If granular reporting has been specified:
     if (localReport.observe) {
       // If a progress callback has been provided:
