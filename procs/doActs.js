@@ -1233,13 +1233,13 @@ exports.doActs = async (report, opts = {}) => {
                 }
               }
             }
-            // If the instance has an excerpt that contains a unique Testaro identifier attribute:
-            if (instance.excerpt?.includes(' data-testaro-id="')) {
+            // If the instance has an excerpt that contains an XPath attribute:
+            if (instance.excerpt?.includes(' data-xpath="')) {
               // Delete the attribute.
               instance.excerpt = instance
               .excerpt
-              .replace(/ data-testaro-id="[^" ]*("|$)/g, '')
-              .replace(/ data-testaro-id="[^" ]* /g, ' ');
+              .replace(/ data-xpath="[^" ]*("|$)/g, '')
+              .replace(/ data-xpath="[^" ]* /g, ' ');
             }
             pathID = instance.pathID;
             // If the instance has no or an empty text property:
