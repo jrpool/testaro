@@ -74,8 +74,13 @@ exports.getCatalog = async report => {
           neededSegments.splice(1, neededSegments.length - 2);
           const text = neededSegments.join('⁋');
           addToCatalog(index, cat, 'text', text);
-          const box = element.getBoundingClientRect();
-          addToCatalog(index, cat, 'boxID', box ? Object.values(box).join(':') : '');
+          const boxID = element.getBoundingClientRect();
+          addToCatalog(
+            index,
+            cat,
+            'boxID',
+            boxID ? ['x', 'y', 'width', 'height'].map(key => boxID[key]).join(':') : ''
+          );
           addToCatalog(index, cat, 'pathID', window.getXPath(element));
         }
         // For each path ID in the catalog:
