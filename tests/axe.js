@@ -32,9 +32,8 @@
 // IMPORTS
 
 const axePlaywright = require('axe-playwright');
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 // Module to simplify strings.
-const {cap} = require('../procs/job');
-const {getIdentifiers} = require('../procs/getElementData');
 const {injectAxe} = axePlaywright;
 
 // CONSTANTS
