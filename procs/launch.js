@@ -539,7 +539,7 @@ exports.launch = async (opts = {}) => {
   if (jobValidation.isValid) {
     // Try to launch a browser and navigate to the specified URL.
     let launchResult = await launchOnce(
-      {report, actIndex, tempBrowserID, tempURL, headEmulation, needsXPath, needsAccessibleName}
+      {report, actIndex, tempBrowserID, tempURL, headEmulation, xPathNeed, needsAccessibleName}
     );
     // If the launch and navigation succeeded:
     if (launchResult.success) {
