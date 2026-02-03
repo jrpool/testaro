@@ -1209,8 +1209,11 @@ exports.doActs = async (report, opts = {}) => {
           // Notify the observer and log the start of identification.
           tellServer(localReport, '', 'Starting element identification');
           // For each of the standard instances of the act:
+          console.log(`XXX There are ${act.standardResult.instances.length} standard instances`);
           for (const instance of act.standardResult.instances) {
             let {catalogIndex, boxID, pathID} = instance;
+            console.log(`XXX Instance:\n${JSON.stringify(instance, null, 2)}`);
+            console.log(`XXX catalogIndex is ${catalogIndex}`);
             // If the instance has no catalog index and is missing a box ID or a valid path ID:
             if (! catalogIndex && ! boxID && (! pathID || pathID.includes(' '))) {
               const elementID = await identify(instance, page);

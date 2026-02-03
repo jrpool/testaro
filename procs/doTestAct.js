@@ -66,7 +66,7 @@ const doTestAct = async (reportPath, actIndex) => {
       actIndex,
       tempBrowserID: browserID,
       tempURL: targetURL,
-      neededXPath: xPathNeeds[which] ?? 'none',
+      xPathNeed: xPathNeeds[which] ?? 'none',
       needsAccessibleName: accessibleNameNeeders.includes(which)
     });
     // If the launch aborted the job:
