@@ -10,7 +10,7 @@
 
 /*
   launch.js
-  Launches a browser and navigates to a URL.
+  Creates a browser, context, and page and navigates to a URL.
 */
 
 // IMPORTS
@@ -191,15 +191,16 @@ const getNonce = exports.getNonce = async response => {
   // Return the nonce, if any.
   return nonce;
 };
-// Launches a browser, navigates to a URL, and returns a page.
+// Creates a browser, context, and page; navigates to a URL; and returns the page.
 const launchOnce = async opts => {
+  // Get the arguments. Permitted neededXPath values are script, attribute, none.
   const {
     report = {},
     actIndex = 0,
     tempBrowserID = '',
     tempURL = '',
     headEmulation = 'high',
-    needsXPath = true,
+    neededXPath = 'script',
     needsAccessibleName = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
@@ -325,8 +326,10 @@ const launchOnce = async opts => {
       });
       // Create a page (tab) of the context (window).
       page = await browserContext.newPage();
-      // Wait until it is stable.
-      await page.waitForLoadState('domcontentloaded', {timeout: 5000});
+      // If XPath annotations are needed, wait for post-launch elements to be added.
+      const waitType = neededXPath === 'attribute' ? 'networkidle' : 'domcontentloaded';
+      // Wait until the page is stable.
+      await page.waitForLoadState(waitType, {timeout: 5000});
       // Add a script to the page to mask automation detection.
       await page.addInitScript(() => {
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
@@ -338,8 +341,8 @@ const launchOnce = async opts => {
           get: () => ['en-US', 'en']
         });
       });
-      // If the act is a test act requiring computation of XPaths:
-      if (needsXPath) {
+      // If an XPath computation script is required:
+      if (neededXPath !== 'none') {
         // Add a script to the page to add a window method to get the XPath of an element.
         await page.addInitScript(() => {
           window.getXPath = element => {
@@ -383,9 +386,18 @@ const launchOnce = async opts => {
             return `/${segments.join('/')}`;
           };
         });
+        // If XPath annotations, too, are needed:
+        if (neededXPath === 'attribute') {
+          // Use the script to add them.
+          await page.evaluate(() => {
+            const elements = document.querySelectorAll('*');
+            elements.forEach(element => {
+              element.setAttribute('data-xpath', window.getXPath(element));
+            });
+          });
+        }
       }
-      // If the act is a testaro test act:
-      // if (act.type === 'test' && act.which === 'testaro') {
+      // If an accessible-name computation script is needed:
       if (needsAccessibleName) {
         // Add the dom-accessibility-api script to the page to compute an accessible name.
         await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
