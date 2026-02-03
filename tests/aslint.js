@@ -15,8 +15,6 @@
 
 // IMPORTS
 
-// Function to add unique identifiers to the elements in the page.
-const {addTestaroIDs} = require('../procs/testaro');
 // Module to simplify strings.
 const {cap, tidy} = require('../procs/job');
 // Module to handle files.
@@ -130,8 +128,6 @@ const aslintData = {
 
 // Conducts and reports the ASLint tests.
 exports.reporter = async (page, report, actIndex) => {
-  // Add unique Testaro identifiers to the elements in the page.
-  await addTestaroIDs(page);
   // Initialize the act report.
   let data = {};
   const result = {
@@ -240,56 +236,31 @@ exports.reporter = async (page, report, actIndex) => {
             // For each violation:
             for (const result of results) {
               const {message, element} = result;
+              // Get a description of the violated rule.
               const what = message?.actual?.description ?? '';
-              // Get the values of the properties required for a standard result.
-              if (ruleID) {
-                const changer = aslintData[ruleID]?.find(
-                  specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
-                );
-                if (changer) {
-                  ruleID = changer[changer.length - 1];
-                }
+              const changer = aslintData[ruleID]?.find(
+                specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
+              );
+              // If the rule ID is differentiatable:
+              if (changer) {
+                // Differentiate it.
+                ruleID = changer[changer.length - 1];
               }
+              // Get the ordinal severity of the violation.
               const ordinalSeverity = issueType === 'warning' ? 1 : 2;
-              const {html, xpath} = element;
-              const excerpt = html?.replace(/\s+/g, ' ') ?? '';
-              let tagName = '';
-              let id = '';
-              let text = [];
-              let notInDOM = false;
-              let boxID = '';
-              let pathID = '';
-              if (excerpt) {
-                const elementData = await getElementData(page, excerpt);
-                ({tagName, id, text, notInDOM, boxID, pathID, originalExcerpt} = elementData);
-              }
-              if (! pathID) {
-                pathID = getNormalizedXPath(xpath);
-              }
-              if (pathID && ! tagName) {
-                tagName = pathID?.replace(/[^-\w].*$/, '').toUpperCase() ?? '';
-              }
-              if (ruleID.endsWith('_svg') && ! tagName) {
-                tagName = 'SVG';
-              }
+              // Get the pathID of the element.
+              const {xpath} = element;
+              const pathID = getNormalizedXPath(xpath);
+              const {catalog} = report;
+              // Use it to get the index of the element in the catalog.
+              const catalogIndex = catalog.pathID?.[pathID]?.[0];
               // Add an instance to the standard result.
               standardResult.instances.push({
                 ruleID,
                 what,
                 ordinalSeverity,
                 count: 1,
-                tagName,
-                id,
-                location: {
-                  notInDOM,
-                  doc: 'dom',
-                  type: 'xpath',
-                  spec: pathID
-                },
-                excerpt: cap(tidy(originalExcerpt)),
-                text,
-                boxID,
-                pathID
+                catalogIndex
               });
             }
           }
