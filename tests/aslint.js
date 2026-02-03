@@ -262,6 +262,8 @@ exports.reporter = async (page, report, actIndex) => {
                 count: 1,
                 catalogIndex
               });
+              // Increment the standard total.
+              standardResult.totals[ordinalSeverity]++;
             }
           }
         }
