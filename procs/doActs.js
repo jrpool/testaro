@@ -1298,47 +1298,31 @@ exports.doActs = async (report, opts = {}) => {
       // If it is a test act:
       if (act.type === 'test') {
         const {which} = act;
-        // Initialize an idData property for the tool if necessary.
-        idData[which] ??= {
+        // Initialize a catalogData property for the tool if necessary.
+        catalogData[which] ??= {
           instanceCount: 0,
-          boxIDCount: 0,
-          pathIDCount: 0,
-          textCount: 0,
-          boxIDPercent: null,
-          pathIDPercent: null,
-          textPercent: null
+          catalogCount: 0,
+          catalogPercent: null
         };
-        const actIDData = idData[which];
+        const actCatalogData = idData[which];
         const {standardResult} = act;
         const {instances} = standardResult;
         // For each standard instance in the act:
         for (const instance of instances) {
-          const {boxID, pathID, text} = instance;
+          const {catalogIndex} = instance;
           // Increment the instance count.
-          actIDData.instanceCount++;
-          // If the instance has a box ID:
-          if (boxID) {
-            // Increment the box ID count.
-            actIDData.boxIDCount++;
-          }
-          // If the instance has a path ID:
-          if (pathID) {
-            // Increment the path ID count.
-            actIDData.pathIDCount++;
-          }
-          // If the instance has any text segments:
-          if (text?.[0]?.length) {
+          actCatalogData.instanceCount++;
+          // If the instance has a catalogIndex value:
+          if (catalogIndex) {
             // Increment the text count.
-            actIDData.textCount++;
+            actCatalogData.catalogCount++;
           }
         }
-        const {instanceCount, boxIDCount, pathIDCount, textCount} = actIDData;
+        const {catalogCount} = actCatalogData;
         // If there are any instances:
         if (instanceCount) {
-          // Add the box ID path ID, and text percentages to the iData property.
-          actIDData.boxIDPercent = Math.round(100 * boxIDCount / instanceCount);
-          actIDData.pathIDPercent = Math.round(100 * pathIDCount / instanceCount);
-          actIDData.textPercent = Math.round(100 * textCount / instanceCount);
+          // Add the catalog percentage to the catalogData property.
+          actCatalogData.catalogPercent = Math.round(100 * catalogCount / instanceCount);
         }
       }
     }
