@@ -326,10 +326,6 @@ const launchOnce = async opts => {
       });
       // Create a page (tab) of the context (window).
       page = await browserContext.newPage();
-      // If XPath attributes are needed, wait for post-launch elements to be added.
-      const waitType = xPathNeed === 'attribute' ? 'networkidle' : 'domcontentloaded';
-      // Wait until the page is stable.
-      await page.waitForLoadState(waitType, {timeout: 5000});
       // Add a script to the page to mask automation detection.
       await page.addInitScript(() => {
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
@@ -386,16 +382,6 @@ const launchOnce = async opts => {
             return `/${segments.join('/')}`;
           };
         });
-        // If XPath attributes, too, are needed:
-        if (xPathNeed === 'attribute') {
-          // Use the script to add them.
-          await page.evaluate(() => {
-            const elements = document.querySelectorAll('*');
-            elements.forEach(element => {
-              element.setAttribute('data-xpath', window.getXPath(element));
-            });
-          });
-        }
       }
       // If an accessible-name computation script is needed:
       if (needsAccessibleName) {
@@ -469,10 +455,21 @@ const launchOnce = async opts => {
           };
         });
       }
-      // Navigate to the specified URL.
-      const navResult = await goTo(report, page, url, 15000, 'domcontentloaded');
+      const waitType = xPathNeed === 'attribute' ? 'networkidle' : 'domcontentloaded';
+      // Navigate to the specified URL and wait for the stability required by the next action.
+      const navResult = await goTo(report, page, url, 15000, waitType);
       // If the navigation succeeded:
       if (navResult.success) {
+        // If XPath attributes are needed:
+        if (xPathNeed === 'attribute') {
+          // Use the added script to add them.
+          await page.evaluate(() => {
+            const elements = document.querySelectorAll('*');
+            elements.forEach(element => {
+              element.setAttribute('data-xpath', window.getXPath(element));
+            });
+          });
+        }
         // If the launch was for an act:
         if (act) {
           // Add the actual URL to the act.
