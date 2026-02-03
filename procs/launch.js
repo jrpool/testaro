@@ -193,14 +193,14 @@ const getNonce = exports.getNonce = async response => {
 };
 // Creates a browser, context, and page; navigates to a URL; and returns the page.
 const launchOnce = async opts => {
-  // Get the arguments. Permitted neededXPath values are script, attribute, none.
+  // Get the arguments. Permitted xPathNeed values are script, attribute, none.
   const {
     report = {},
     actIndex = 0,
     tempBrowserID = '',
     tempURL = '',
     headEmulation = 'high',
-    neededXPath = 'script',
+    xPathNeed = 'script',
     needsAccessibleName = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
@@ -327,7 +327,7 @@ const launchOnce = async opts => {
       // Create a page (tab) of the context (window).
       page = await browserContext.newPage();
       // If XPath attributes are needed, wait for post-launch elements to be added.
-      const waitType = neededXPath === 'attribute' ? 'networkidle' : 'domcontentloaded';
+      const waitType = xPathNeed === 'attribute' ? 'networkidle' : 'domcontentloaded';
       // Wait until the page is stable.
       await page.waitForLoadState(waitType, {timeout: 5000});
       // Add a script to the page to mask automation detection.
