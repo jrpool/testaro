@@ -153,22 +153,16 @@ exports.reporter = async (page, report, actIndex) => {
                 // Get the ordinal severity of the suspicion.
                 const ordinalSeverity = severityWeights[node.impact]
                 + (certainty === 'violations' ? 2 : 0);
-                const xPath = node.html;
-                const identifiers = getIdentifiers(node.html);
+                // Get the XPath of the suspected element from its data-xpath attribute.
+                const xPath = getAttributeXPath(node.html);
+                // Get the catalog index of the suspected element from its XPath.
+                const catalogIndex = getXPathCatalogIndex(report.catalog, xPath) ?? '';
                 const instance = {
                   ruleID: rule.id,
                   what: Array.from(whatSet.values()).join('; '),
                   ordinalSeverity,
-                  tagName: identifiers[0],
-                  id: identifiers[1],
-                  location: {
-                    doc: 'dom',
-                    type: 'selector',
-                    spec: node.target && node.target.length ? node.target[0] : ''
-                  },
-                  excerpt: cap(node.html),
-                  boxID: '',
-                  pathID: ''
+                  count: 1,
+                  catalogIndex
                 };
                 standardResult.instances.push(instance);
               });
