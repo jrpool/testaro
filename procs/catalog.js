@@ -79,7 +79,7 @@ exports.getCatalog = async report => {
             index,
             cat,
             'boxID',
-            boxID ? ['x', 'y', 'width', 'height'].map(key => boxID[key]).join(':') : ''
+            boxID ? ['x', 'y', 'width', 'height'].map(key => Math.round(boxID[key])).join(':') : ''
           );
           addToCatalog(index, cat, 'pathID', window.getXPath(element));
         }
