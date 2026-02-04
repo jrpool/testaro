@@ -455,7 +455,7 @@ const launchOnce = async opts => {
           };
         });
       }
-      const waitType = xPathNeed === 'attribute' ? 'networkidle' : 'domcontentloaded';
+      const waitType = xPathNeed === 'none' ? 'domcontentloaded' : 'networkidle';
       // Navigate to the specified URL and wait for the stability required by the next action.
       const navResult = await goTo(report, page, url, 15000, waitType);
       // If the navigation succeeded:
