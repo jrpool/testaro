@@ -30,6 +30,8 @@ const {tools} = require('./job');
 // Module to create child processes.
 const {fork} = require('child_process');
 const os = require('os');
+// Function to prune a catalog.
+const {pruneCatalog} = require('./catalog');
 // Module to handle file system operations.
 const fs = require('fs/promises');
 
@@ -1296,6 +1298,7 @@ exports.doActs = async (report, opts = {}) => {
       await browserClose(page);
     };
     console.log('Standardization and element identification completed');
+    localReport.jobData.elementCount = Object.keys(localReport.catalog).length;
     const {acts} = localReport;
     const catalogData = {};
     // For each act:
@@ -1331,7 +1334,10 @@ exports.doActs = async (report, opts = {}) => {
         }
       }
     }
+    // Add the catalog data to the local report.
     localReport.jobData.catalogData = catalogData;
+    // Prune the catalog in the local report.
+    pruneCatalog(localReport);
   }
   // Delete the temporary local report file.
   await fs.rm(reportPath, {force: true});
