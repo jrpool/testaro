@@ -96,10 +96,11 @@ exports.reporter = async (page, report, actIndex) => {
   // If a standard result is to be reported:
   if (standard) {
     const {standardResult} = result;
+    const {warningCount, errorCount, results} = result.nativeResult;
     // Populate the standard-result totals.
-    standardResult.totals = [nativeResult.warningCount, 0, nativeResult.werrorCount, 0];
+    standardResult.totals = [warningCount, 0, errorCount, 0];
     // For each native-result instance:
-    nativeResult.results.forEach(nativeInstance => {
+    results.forEach(nativeInstance => {
       // Create a standard-result instance.
       const {test, content, dismissalKey, xPath} = nativeInstance;
       const instance = {};
