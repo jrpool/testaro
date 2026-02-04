@@ -244,50 +244,12 @@ const convert = (toolName, data, result, standardResult) => {
     standardResult.prevented = true;
   }
   // alfa, aslint
-  else if (['alfa', 'aslint', 'axe'].includes(toolName) && result.standardResult) {
+  else if (['alfa', 'aslint', 'axe', 'ed11y'].includes(toolName) && result.standardResult) {
     // Move the results to standard locations.
     Object.assign(result, result.nativeResult);
     Object.assign(standardResult, result.standardResult);
     delete result.nativeResult;
     delete result.standardResult;
-  }
-  // ed11y
-  else if (
-    toolName === 'ed11y'
-    && result
-    && ['imageAlts', 'violations', 'errorCount', 'warningCount']
-    .every(key => result[key] !== undefined)
-  ) {
-    // For each violation:
-    result.violations.forEach(violation => {
-      const {test, content, tagName, id, loc, excerpt, boxID, pathID} = violation;
-      if (['test', 'content'].every(key => key)) {
-        // Standardize the what property.
-        let what = '';
-        if (content.includes('<p>This')) {
-          what = content.replace(/^.*?<p>(This.+?)<\/p> *<p>(.*?)<\/p>.*/, '$1 $2');
-        }
-        else {
-          what = content.replace(/^.*?<p>(.+?)<\/p>.*/, '$1');
-        }
-        // Add a standard instance to the standard result.
-        standardResult.instances.push({
-          ruleID: test,
-          what,
-          ordinalSeverity: 0,
-          tagName,
-          id: isBadID(id) ? '' : id,
-          location: {
-            doc: 'dom',
-            type: 'box',
-            spec: loc
-          },
-          excerpt,
-          boxID,
-          pathID
-        });
-      }
-    });
   }
   // htmlcs
   else if (toolName === 'htmlcs' && result) {
