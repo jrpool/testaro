@@ -133,3 +133,35 @@ exports.getCatalog = async report => {
   console.log('ERROR: Job omits browser ID or target URL, preventing catalog creation');
   return {};
 };
+// Prunes an elements-only catalog.
+exports.pruneCatalog = report => {
+  const {acts} = report;
+  const citedElementIndexes = new Set();
+  // For each act in the report:
+  acts.forEach(act => {
+    // If it is a test with a standard result:
+    if (act.type === 'test' && act.standardResult) {
+      const {instances} = act.standardResult;
+      // For each instance of the standard result:
+      instances.forEach(instance => {
+        const {catalogIndex} = instance;
+        // If the instance has a catalog index:
+        if (catalogIndex) {
+          // Ensure the index is classified as cited.
+          citedElementIndexes.add(catalogIndex);
+        }
+      });
+    }
+  });
+  const prunedCatalog = {};
+  // For each element in the catalog:
+  report.catalog.forEach(element => {
+    // If it is cited by at least 1 instance:
+    if (citedElementIndexes.has(element.index)) {
+      // Add it to the pruned catalog.
+      prunedCatalog[element.index] = element;
+    }
+  });
+  // Replace the catalog with the pruned catalog.
+  report.catalog = prunedCatalog;
+};
