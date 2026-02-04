@@ -19,6 +19,7 @@
 const fs = require('fs/promises');
 // Function to normalize an XPath.
 const {getNormalizedXPath} = require('../procs/identify');
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -249,7 +250,7 @@ exports.reporter = async (page, report, actIndex) => {
               const {xpath} = element;
               const pathID = getNormalizedXPath(xpath);
               // Use it to get the index of the element in the catalog.
-              const catalogIndex = catalog.pathID?.[pathID]?.[0];
+              const catalogIndex = getXPathCatalogIndex(catalog, pathID);
               // Add an instance to the standard result.
               standardResult.instances.push({
                 ruleID,

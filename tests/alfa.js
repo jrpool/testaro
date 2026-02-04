@@ -17,9 +17,9 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
-const {cap, tidy} = require('../procs/job');
-const {getIdentifiers} = require('../procs/standardize');
+const {tidy} = require('../procs/job');
 const {getNormalizedXPath} = require('../procs/identify');
+const {getXPathCatalogIndex} = require('../procs/xPath');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // FUNCTIONS
@@ -127,7 +127,7 @@ exports.reporter = async (page, report, actIndex) => {
             const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, '')) || '/html';
             const {catalog} = report;
             // Use it to get the index of the element in the catalog.
-            const catalogIndex = catalog.pathID?.[pathID]?.[0];
+            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
             // Increment the standard total.
             standardResult.totals[ordinalSeverity]++;
             // Add a standard instance to the standard result.
