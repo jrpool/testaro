@@ -52,11 +52,19 @@ exports.reporter = async (page, report, actIndex) => {
   const nativeResult = await page.evaluate(args => new Promise(async resolve => {
     const {scriptNonce, script, rulesToTest} = args;
     // When the script has been executed, creating data in an Ed11y object:
-    document.addEventListener('ed11yResults', () => {
-      // Populate the native result with the data.
-      const output = Ed11y;
-      // Return the native result.
-      resolve(output.results);
+    document.addEventListener('ed11yResults', async () => {
+      const {results} = Ed11y;
+      resolve({
+        resultCount: results.length,
+        errorCount: Ed11y.errorCount,
+        warningCount: Ed11y.warningCount,
+        results: results.map(result => ({
+          test: result.test,
+          content: result.content.replace(/\s+/g, ' ').trim(),
+          dismissalKey: result.dismissalKey,
+          xPath: window.getXPath(result.element)
+        }))
+      });
     });
     // Add the tool script to the page.
     const toolScript = document.createElement('script');

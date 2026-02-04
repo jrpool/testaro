@@ -26,7 +26,7 @@ const {browserClose, launch} = require('./launch');
 const xPathNeeds = {
   alfa: 'attribute',
   axe: 'attribute',
-  ed11y: 'attribute',
+  ed11y: 'script',
   ibm: 'attribute'
 };
 const accessibleNameNeeders = ['testaro'];

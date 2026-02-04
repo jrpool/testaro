@@ -304,7 +304,7 @@ const launchOnce = async opts => {
           // If debugging is on:
           if (debug) {
             // Log the start of the message on the console.
-            console.log(`\n${msgText.slice(0, 1000)}`);
+            console.log(`\n${msgText.slice(0, 3000)}`);
           }
           // Add statistics on the message to the report.
           const msgTextLC = msgText.toLowerCase();
