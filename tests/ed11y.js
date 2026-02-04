@@ -17,10 +17,8 @@
 
 // Module to handle files.
 const fs = require('fs/promises');
-// Module to normalize XPaths.
-const {getNormalizedXPath} = require('../procs/identify');
-// Module to get the XPath of an element.
-const {xPath} = require('playwright-dompath');
+// Module to get catalog indexes from XPaths.
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // FUNCTIONS
 
