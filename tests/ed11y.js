@@ -48,12 +48,13 @@ exports.reporter = async (page, report, actIndex) => {
   }
   // Get the tool script.
   const script = await fs.readFile(`${__dirname}/../ed11y/editoria11y.min.js`, 'utf8');
-  // Perform the specified tests and get the violating elements and violation facts.
-  const nativeResult = await page.evaluate(args => new Promise(async resolve => {
+  // Perform the specified tests and populate the native result.
+  result.nativeResult = await page.evaluate(args => new Promise(async resolve => {
     const {scriptNonce, script, rulesToTest} = args;
     // When the script has been executed, creating data in an Ed11y object:
     document.addEventListener('ed11yResults', async () => {
       const {results} = Ed11y;
+      // Return the native result.
       resolve({
         resultCount: results.length,
         errorCount: Ed11y.errorCount,
@@ -62,6 +63,7 @@ exports.reporter = async (page, report, actIndex) => {
           test: result.test,
           content: result.content.replace(/\s+/g, ' ').trim(),
           dismissalKey: result.dismissalKey,
+          html: result.element.outerHTML.slice(0, 500),
           xPath: window.getXPath(result.element)
         }))
       });
@@ -91,7 +93,24 @@ exports.reporter = async (page, report, actIndex) => {
     script,
     rulesToTest: act.rules
   });
-  result.nativeResult = nativeResult;
+  // If a standard result is to be reported:
+  if (standard) {
+    const {standardResult} = result;
+    // Populate the standard-result totals.
+    standardResult.totals = [nativeResult.warningCount, 0, nativeResult.werrorCount, 0];
+    // For each native-result instance:
+    nativeResult.results.forEach(nativeInstance => {
+      // Create a standard-result instance.
+      const {test, content, dismissalKey, xPath} = nativeInstance;
+      const instance = {};
+      instance.ruleID = test;
+      instance.what = content;
+      instance.ordinalSeverity = dismissalKey ? 0 : 2;
+      instance.count = 1;
+      instance.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+      standardResult.instances.push(instance);
+    });
+  }
   return {
     data,
     result

@@ -60,9 +60,9 @@ exports.getAttributeXPath = html => {
   const match = html.match(/ data-xpath="([^" ]+)"/);
   return match ? match[1] : '';
 };
-// Gets a catalog index from an XPath.
+// Gets a catalog index as a string from an XPath.
 exports.getXPathCatalogIndex = (catalog, xPath) => {
-  const index = catalog.pathID[xPath]?.[0] || null;
+  const index = catalog.pathID[xPath]?.[0] ?? '';
   return index;
 };
 // Gets a locator from an XPath. (Normalize this identifier if ever called, or delete.)
