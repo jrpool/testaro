@@ -49,14 +49,14 @@ exports.reporter = async (page, report, actIndex) => {
   // Get the tool script.
   const script = await fs.readFile(`${__dirname}/../ed11y/editoria11y.min.js`, 'utf8');
   // Perform the specified tests and get the violating elements and violation facts.
-  const nativeResultJSHandle = await page.evaluateHandle(args => new Promise(async resolve => {
+  const nativeResult = await page.evaluate(args => new Promise(async resolve => {
     const {scriptNonce, script, rulesToTest} = args;
     // When the script has been executed, creating data in an Ed11y object:
     document.addEventListener('ed11yResults', () => {
       // Populate the native result with the data.
-      const nativeResult = Ed11y;
+      const output = Ed11y;
       // Return the native result.
-      resolve(nativeResult);
+      resolve(output.results);
     });
     // Add the tool script to the page.
     const toolScript = document.createElement('script');
@@ -74,10 +74,8 @@ exports.reporter = async (page, report, actIndex) => {
     }
     catch(error) {
       resolve({
-        nativeResult: {
-          prevented: true,
-          error: error.message
-        }
+        prevented: true,
+        error: error.message
       });
     };
   }), {
@@ -85,7 +83,7 @@ exports.reporter = async (page, report, actIndex) => {
     script,
     rulesToTest: act.rules
   });
-  result.nativeResult = await nativeResultJSHandle.jsonValue();
+  result.nativeResult = nativeResult;
   return {
     data,
     result
