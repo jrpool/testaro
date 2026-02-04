@@ -1211,79 +1211,82 @@ exports.doActs = async (report, opts = {}) => {
           // For each of the standard instances of the act:
           for (const instance of act.standardResult.instances) {
             let {catalogIndex, boxID, pathID} = instance;
-            // If the instance has no catalogIndex property and is missing a box ID or valid path ID:
-            if (catalogIndex === undefined && (! boxID || ! pathID || pathID.includes(' '))) {
-              const elementID = await identify(instance, page);
-              // If it has no box ID but the element has a bounding box:
-              if (elementID.boxID && ! boxID) {
-                // Add a box ID to the instance.
-                instance.boxID = elementID.boxID;
-              }
-              // If it has no valid path ID:
-              if (! pathID || pathID.includes(' ')) {
-                // If the element has a valid path ID:
-                if (elementID.pathID && ! elementID.pathID.includes(' ')) {
-                  // Add or replace the path ID of the instance.
-                  instance.pathID = elementID.pathID;
+            // If the instance has no catalogIndex property:
+            if (catalogIndex === undefined) {
+              // If the instance has no box ID or has no valid path ID:
+              if (! boxID || ! pathID || pathID.includes(' ')) {
+                const elementID = await identify(instance, page);
+                // If it has no box ID but the element has a bounding box:
+                if (elementID.boxID && ! boxID) {
+                  // Add a box ID to the instance.
+                  instance.boxID = elementID.boxID;
                 }
-                // Otherwise, if the instance has an invalid but uncorrectable path ID:
+                // If it has no valid path ID:
+                if (! pathID || pathID.includes(' ')) {
+                  // If the element has a valid path ID:
+                  if (elementID.pathID && ! elementID.pathID.includes(' ')) {
+                    // Add or replace the path ID of the instance.
+                    instance.pathID = elementID.pathID;
+                  }
+                  // Otherwise, if the instance has an invalid but uncorrectable path ID:
+                  else if (pathID) {
+                    // Delete it.
+                    delete instance.pathID;
+                  }
+                }
+              }
+              // If the instance has an excerpt that contains an XPath attribute:
+              if (instance.excerpt?.includes(' data-xpath="')) {
+                // Delete the attribute.
+                instance.excerpt = instance
+                .excerpt
+                .replace(/ data-xpath="[^" ]*("|$)/g, '')
+                .replace(/ data-xpath="[^" ]* /g, ' ');
+              }
+              pathID = instance.pathID;
+              // If the instance has no or an empty text property:
+              if (! instance.text) {
+                const {excerpt} = instance;
+                // If the instance has a markup-free non-empty excerpt:
+                if (
+                  excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
+                ) {
+                  // Add the excerpt (up to any ellipsis) to the text property.
+                  instance.text = [excerpt.split(/ … | *\.\.\./)[0]];
+                }
+                // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
                 else if (pathID) {
-                  // Delete it.
-                  delete instance.pathID;
+                  // Initialize a text property.
+                  let text = '';
+                  // Get the element if it has text content.
+                  const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
+                  // If it exists and is unique:
+                  if (await elementLoc.count() === 1) {
+                    // If it contains any noscript elements:
+                    if (await elementLoc.locator('noscript').count()) {
+                      // Change the text string to the text content without noscript elements.
+                      text = await elementLoc.evaluate(node => {
+                        const elementClone = node.cloneNode(true);
+                        elementClone
+                        .querySelectorAll('noscript')
+                        .forEach(noscript => noscript.remove());
+                        return elementClone.innerText;
+                      });
+                    }
+                    // Otherwise, i.e. if it contains no noscript element:
+                    else {
+                      // Change the text string to the text content of the element.
+                      text = await elementLoc.innerText();
+                    }
+                  }
+                  // Add the text string, truncated if necessary, to the instance.
+                  const textArray = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
+                  instance.text = textArray.filter(segment => segment.length);
                 }
               }
             }
-            // If the instance has an excerpt that contains an XPath attribute:
-            if (instance.excerpt?.includes(' data-xpath="')) {
-              // Delete the attribute.
-              instance.excerpt = instance
-              .excerpt
-              .replace(/ data-xpath="[^" ]*("|$)/g, '')
-              .replace(/ data-xpath="[^" ]* /g, ' ');
-            }
-            pathID = instance.pathID;
-            // If the instance has no or an empty text property:
-            if (! instance.text) {
-              const {excerpt} = instance;
-              // If the instance has a markup-free non-empty excerpt:
-              if (
-                excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
-              ) {
-                // Add the excerpt (up to any ellipsis) to the text property.
-                instance.text = [excerpt.split(/ … | *\.\.\./)[0]];
-              }
-              // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
-              else if (pathID) {
-                // Initialize a text property.
-                let text = '';
-                // Get the element if it has text content.
-                const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
-                // If it exists and is unique:
-                if (await elementLoc.count() === 1) {
-                  // If it contains any noscript elements:
-                  if (await elementLoc.locator('noscript').count()) {
-                    // Change the text string to the text content without noscript elements.
-                    text = await elementLoc.evaluate(node => {
-                      const elementClone = node.cloneNode(true);
-                      elementClone
-                      .querySelectorAll('noscript')
-                      .forEach(noscript => noscript.remove());
-                      return elementClone.innerText;
-                    });
-                  }
-                  // Otherwise, i.e. if it contains no noscript element:
-                  else {
-                    // Change the text string to the text content of the element.
-                    text = await elementLoc.innerText();
-                  }
-                }
-                // Add the text string, truncated if necessary, to the instance.
-                const textArray = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
-                instance.text = textArray.filter(segment => segment.length);
-              }
-            }
-          };
-        };
+          }
+        }
       }
       // Otherwise, i.e. if the launch or navigation failed:
       else {
