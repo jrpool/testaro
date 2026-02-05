@@ -56,8 +56,6 @@ exports.reporter = async (page, report, actIndex) => {
     };
   }
   try {
-    // Wait for a stable page to make the page and its alfa version consistent.
-    await page.waitForLoadState('networkidle', {timeout: 2000});
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     // Test the page content with the specified rules.

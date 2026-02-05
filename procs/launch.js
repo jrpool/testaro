@@ -10,7 +10,7 @@
 
 /*
   launch.js
-  Creates a browser, context, and page and navigates to a URL.
+  Creates a browser, context, and page, navigates, and acts.
 */
 
 // IMPORTS
@@ -54,7 +54,7 @@ const waits = Number(process.env.WAITS) ?? 0;
 // FUNCTIONS
 
 // Waits.
-const wait = ms => {
+const wait = exports.wait = ms => {
   return new Promise(resolve => {
     setTimeout(() => {
       resolve('');
@@ -195,6 +195,7 @@ const getNonce = exports.getNonce = async response => {
 const launchOnce = async opts => {
   // Get the arguments. Permitted xPathNeed values are script, attribute, none.
   const {
+    waitLimit = 'none',
     report = {},
     actIndex = 0,
     tempBrowserID = '',
@@ -455,9 +456,15 @@ const launchOnce = async opts => {
           };
         });
       }
-      const waitType = xPathNeed === 'none' ? 'domcontentloaded' : 'networkidle';
+      let waitUntil = xPathNeed === 'none' ? 'domcontentloaded' : 'networkidle';
+      if (waitLimit === 'mild' && waitUntil === 'networkidle') {
+        waitUntil = 'domcontentloaded';
+      }
+      if (waitLimit === 'extreme') {
+        waitUntil = 'load';
+      }
       // Navigate to the specified URL and wait for the stability required by the next action.
-      const navResult = await goTo(report, page, url, 15000, waitType);
+      const navResult = await goTo(report, page, url, 15000, waitUntil);
       // If the navigation succeeded:
       if (navResult.success) {
         // If XPath attributes are needed:
@@ -536,7 +543,16 @@ exports.launch = async (opts = {}) => {
   if (jobValidation.isValid) {
     // Try to launch a browser and navigate to the specified URL.
     let launchResult = await launchOnce(
-      {report, actIndex, tempBrowserID, tempURL, headEmulation, xPathNeed, needsAccessibleName}
+      {
+        priorTries: false,
+        report,
+        actIndex,
+        tempBrowserID,
+        tempURL,
+        headEmulation,
+        xPathNeed,
+        needsAccessibleName
+      }
     );
     // If the launch and navigation succeeded:
     if (launchResult.success) {
@@ -560,6 +576,7 @@ exports.launch = async (opts = {}) => {
             waitSeconds = waitSecondsRequest;
           }
         }
+        // Report the wait.
         console.log(
           `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retries})`
         );
@@ -567,7 +584,16 @@ exports.launch = async (opts = {}) => {
         await wait(1000 * waitSeconds);
         // Retry the launch and navigation.
         launchResult = await launchOnce(
-          {report, actIndex, tempBrowserID, tempURL, headEmulation, xPathNeed, needsAccessibleName}
+          {
+            waitLimit: retriesLeft === 0 ? 'extreme' : 'mild',
+            report,
+            actIndex,
+            tempBrowserID,
+            tempURL,
+            headEmulation,
+            xPathNeed,
+            needsAccessibleName
+          }
         );
         // If the launch and navigation succeeded:
         if (launchResult.success) {
@@ -576,15 +602,17 @@ exports.launch = async (opts = {}) => {
         }
         // Otherwise, i.e. if the launch or navigation failed:
         else {
-          // If no retries remain:
-          if (! retriesLeft) {
-            // Report this.
-            addError(true, false, report, actIndex, 'ERROR: No retries left');
-          }
-          // Return a failure.
-          return null;
+          // Report this.
+          console.log(`WARNING: Retry failed; retries left: ${retries}`);
         }
       }
+      // If the retries were exhausted:
+      if (retriesLeft === -1) {
+        // Report this.
+        addError(true, false, report, actIndex, 'ERROR: No retries left');
+      }
+      // Return a failure.
+      return null;
     }
   }
   // Otherwise, i.e. if the report is invalid:

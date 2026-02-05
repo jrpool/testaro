@@ -18,7 +18,7 @@
 // Module to handle errors.
 const {abortActs, addError} = require('./error');
 // Function to close a browser and/or its context.
-const {browserClose, getNonce, goTo, launch} = require('./launch');
+const {browserClose, getNonce, goTo, launch, wait} = require('./launch');
 // Module to standardize report formats.
 const {standardize} = require('./standardize');
 // Module to identify element bounding boxes.
@@ -54,7 +54,7 @@ const moves = {
 const waits = Number.parseInt(process.env.WAITS) || 0;
 // Time limits in seconds on tools, accounting for page reloads by 6 Testaro tests.
 const timeLimits = {
-  alfa: 20,
+  alfa: 30,
   ed11y: 30,
   ibm: 30,
   testaro: 150 + Math.round(6 * waits / 1000)
