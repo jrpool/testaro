@@ -136,13 +136,10 @@ exports.reporter = async (page, report, actIndex) => {
           ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
           count: 1
         };
-        const xPath = getAttributeXPath(parts[5]);
         const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
-        if (catalogIndex) {
-          instance.catalogIndex = catalogIndex;
-        }
-        else if (xPath) {
-          instance.pathID = xPath;
+        instance.catalogIndex = catalogIndex ?? '';
+        if (! catalogIndex) {
+          instance.pathID = getAttributeXPath(parts[5]);
         }
         standardResult.instances.push(instance);
       }
