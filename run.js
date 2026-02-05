@@ -36,6 +36,8 @@ const {standardize} = require('./procs/standardize');
 const {identify} = require('./procs/identify');
 // Module to send a notice to an observer.
 const {tellServer} = require('./procs/tellServer');
+// Shared configuration for timeout multiplier.
+const {applyMultiplier, timeoutMultiplier} = require('./procs/config');
 // Module to create child processes.
 const {fork} = require('child_process');
 // Module to set operating-system constants.
@@ -85,8 +87,6 @@ const timeLimits = {
   ibm: 30,
   testaro: 150 + Math.round(6 * waits / 1000)
 };
-// Timeout multiplier.
-const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
 // ########## VARIABLES
 
@@ -397,7 +397,7 @@ const launch = exports.launch = async (
       // Reassign the page variable to a new page (tab) of the context (window).
       page = await browserContext.newPage();
       // Wait until it is stable.
-      await page.waitForLoadState('domcontentloaded', {timeout: 5000});
+      await page.waitForLoadState('domcontentloaded', {timeout: applyMultiplier(5000)});
       // Add a script to the page to mask automation detection.
       await page.addInitScript(() => {
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
@@ -1113,7 +1113,7 @@ const doActs = async (report, opts = {}) => {
           if (what === 'url') {
             // Wait for the URL to be the exact text.
             try {
-              await page.waitForURL(which, {timeout: 15000});
+              await page.waitForURL(which, {timeout: applyMultiplier(15000)});
               result.found = true;
               result.url = page.url();
             }
@@ -1135,7 +1135,7 @@ const doActs = async (report, opts = {}) => {
                 which,
                 {
                   polling: 1000,
-                  timeout: 5000
+                  timeout: applyMultiplier(5000)
                 }
               );
               result.found = true;
@@ -1159,7 +1159,7 @@ const doActs = async (report, opts = {}) => {
                 which,
                 {
                   polling: 2000,
-                  timeout: 15000
+                  timeout: applyMultiplier(15000)
                 }
               );
               result.found = true;
@@ -1177,7 +1177,7 @@ const doActs = async (report, opts = {}) => {
           // Wait for it.
           const stateIndex = ['loaded', 'idle'].indexOf(act.which);
           await page.waitForLoadState(
-            ['domcontentloaded', 'networkidle'][stateIndex], {timeout: [10000, 15000][stateIndex]}
+            ['domcontentloaded', 'networkidle'][stateIndex], {timeout: applyMultiplier([10000, 15000][stateIndex])}
           )
           // If the wait times out:
           .catch(async error => {
@@ -1199,7 +1199,7 @@ const doActs = async (report, opts = {}) => {
           // Wait for a page to be created and identify it as current.
           page = await browserContext.waitForEvent('page');
           // Wait until it is idle.
-          await page.waitForLoadState('networkidle', {timeout: 15000});
+          await page.waitForLoadState('networkidle', {timeout: applyMultiplier(15000)});
           // Add the resulting URL to the act.
           const result = {
             url: page.url()
@@ -1319,8 +1319,8 @@ const doActs = async (report, opts = {}) => {
                 const move = isClick ? 'click' : 'Enter keypress';
                 try {
                   await isClick
-                    ? selection.click({timeout: 4000})
-                    : selection.press('Enter', {timeout: 4000});
+                    ? selection.click({timeout: applyMultiplier(4000)})
+                    : selection.press('Enter', {timeout: applyMultiplier(4000)});
                   act.result.success = true;
                   act.result.move = move;
                 }
@@ -1331,7 +1331,7 @@ const doActs = async (report, opts = {}) => {
                 }
                 if (act.result.success) {
                   try {
-                    await page.context().waitForEvent('networkidle', {timeout: 10000});
+                    await page.context().waitForEvent('networkidle', {timeout: applyMultiplier(10000)});
                     act.result.idleTimely = true;
                   }
                   catch(error) {
@@ -1345,13 +1345,13 @@ const doActs = async (report, opts = {}) => {
               // FUNCTION DEFINITION END
               // If the move is a button click, perform it.
               if (type === 'button') {
-                await selection.click({timeout: 3000});
+                await selection.click({timeout: applyMultiplier(3000)});
                 act.result.success = true;
                 act.result.move = 'clicked';
               }
               // Otherwise, if it is checking a radio button or checkbox, perform it.
               else if (['checkbox', 'radio'].includes(type)) {
-                await selection.waitForElementState('stable', {timeout: 2000})
+                await selection.waitForElementState('stable', {timeout: applyMultiplier(2000)})
                 .catch(error => {
                   console.log(`ERROR waiting for stable ${type} (${error.message})`);
                   act.result.success = false;
@@ -1362,7 +1362,7 @@ const doActs = async (report, opts = {}) => {
                   if (isEnabled) {
                     await selection.check({
                       force: true,
-                      timeout: 2000
+                      timeout: applyMultiplier(2000)
                     })
                     .catch(error => {
                       console.log(`ERROR checking ${type} (${error.message})`);
@@ -1383,7 +1383,7 @@ const doActs = async (report, opts = {}) => {
               }
               // Otherwise, if it is focusing the element, perform it.
               else if (type === 'focus') {
-                await selection.focus({timeout: 2000});
+                await selection.focus({timeout: applyMultiplier(2000)});
                 act.result.success = true;
                 act.result.move = 'focused';
               }
@@ -1402,9 +1402,9 @@ const doActs = async (report, opts = {}) => {
                 else {
                   // Click the link and wait for the resulting navigation.
                   try {
-                    await selection.click({timeout: 5000});
+                    await selection.click({timeout: applyMultiplier(5000)});
                     // Wait for the new content to load.
-                    await page.waitForLoadState('domcontentloaded', {timeout: 6000});
+                    await page.waitForLoadState('domcontentloaded', {timeout: applyMultiplier(6000)});
                     act.result.success = true;
                     act.result.move = 'clicked';
                     act.result.newURL = page.url();

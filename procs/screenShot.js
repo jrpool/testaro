@@ -11,6 +11,11 @@
   firefox browser type.
 */
 
+// IMPORTS
+
+// Shared configuration for timeout multiplier.
+const {applyMultiplier} = require('./config');
+
 // FUNCTIONS
 
 // Creates and returns a screenshot.
@@ -18,7 +23,7 @@ exports.screenShot = async (page, exclusion = null) => {
   const options = {
     fullPage: true,
     omitBackground: true,
-    timeout: 4000
+    timeout: applyMultiplier(4000)
   };
   if (exclusion) {
     options.mask = [exclusion];
