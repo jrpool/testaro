@@ -132,7 +132,7 @@ exports.reporter = async (page, report, actIndex) => {
       if (standard) {
         const instance = {
           ruleID: parts[1],
-          what: parts[3],
+          what: parts[4],
           ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
           count: 1
         };
