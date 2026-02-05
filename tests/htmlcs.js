@@ -126,7 +126,27 @@ exports.reporter = async (page, report, actIndex) => {
         // Increment the warning total.
         nativeResult.totals.cantTell++;
       }
+      // If standard results are to be reported:
+      if (standard) {
+        const instance = {
+          ruleID: parts[1],
+          what: parts[3],
+          ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
+          count: 1
+        };
+        const xPath = getAttributeXPath(parts[5]);
+        const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+        if (catalogIndex) {
+          instance.catalogIndex = catalogIndex;
+        }
+        else if (xPath) {
+          instance.pathID = xPath;
+        }
+        standardResult.instances.push(instance);
+      }
     }
+    standardResult.totals[0] = nativeResult.totals.cantTell;
+    standardResult.totals[1] = nativeResult.totals.failed;
   }
   return {
     data,
