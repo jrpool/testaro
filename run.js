@@ -759,6 +759,7 @@ const isTrue = (object, specs) => {
 // Adds a wait error result to an act.
 const waitError = (page, act, error, what) => {
   console.log(`ERROR waiting for ${what} (${error.message})`);
+  act.result ??= {};
   act.result.found = false;
   act.result.url = page.url();
   act.result.error = `ERROR waiting for ${what}`;
