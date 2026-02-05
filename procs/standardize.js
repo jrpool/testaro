@@ -40,35 +40,6 @@ const getIdentifiers = exports.getIdentifiers = code => {
   }
   return ['', ''];
 };
-// Converts issue instances at an htmlcs severity level.
-const doHTMLCS = (result, standardResult, severity) => {
-  if (result[severity]) {
-    Object.keys(result[severity]).forEach(ruleID => {
-      const ruleData = result[severity][ruleID];
-      Object.keys(ruleData).forEach(what => {
-        ruleData[what].forEach(item => {
-          const {tagName, id, excerpt, notInDOM, boxID, pathID} = item;
-          const instance = {
-            ruleID,
-            what,
-            ordinalSeverity: ['Warning', '', '', 'Error'].indexOf(severity),
-            tagName: tagName.toUpperCase(),
-            id: isBadID(id.slice(1)) ? '' : id.slice(1),
-            location: {
-              doc: notInDOM ? 'notInDOM' : 'dom',
-              type: '',
-              spec: ''
-            },
-            excerpt: cap(excerpt),
-            boxID,
-            pathID
-          };
-          standardResult.instances.push(instance);
-        });
-      });
-    });
-  }
-};
 // Converts issue instances from a nuVal or nuVnu result.
 const doNu = (withSource, result, standardResult) => {
   const items = result && result.messages;
@@ -244,17 +215,12 @@ const convert = (toolName, data, result, standardResult) => {
     standardResult.prevented = true;
   }
   // alfa, aslint
-  else if (['alfa', 'aslint', 'axe', 'ed11y'].includes(toolName) && result.standardResult) {
+  else if (['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs'].includes(toolName) && result.standardResult) {
     // Move the results to standard locations.
     Object.assign(result, result.nativeResult);
     Object.assign(standardResult, result.standardResult);
     delete result.nativeResult;
     delete result.standardResult;
-  }
-  // htmlcs
-  else if (toolName === 'htmlcs' && result) {
-    doHTMLCS(result, standardResult, 'Warning');
-    doHTMLCS(result, standardResult, 'Error');
   }
   // ibm
   else if (toolName === 'ibm' && result.totals) {
@@ -417,8 +383,8 @@ const convert = (toolName, data, result, standardResult) => {
       standardResult.instances.push(instance);
     });
   }
-  // Populate the totals of the standard result if the tool is not Alfa, ASLint, Testaro or WAVE.
-  if (! ['alfa', 'aslint', 'testaro', 'wave'].includes(toolName)) {
+  // Populate the totals of the standard result if the tool is not Alfa, ASLint, HTMLCS, Testaro or WAVE.
+  if (! ['alfa', 'aslint', 'htmlcs', 'testaro', 'wave'].includes(toolName)) {
     standardResult.instances.forEach(instance => {
       standardResult.totals[instance.ordinalSeverity] += instance.count || 1;
     });
