@@ -432,7 +432,7 @@ const launchOnce = async opts => {
                 },
                 excerpt,
                 boxID: [x, y, width, height].join(':'),
-                pathID: window.getXPath(element)
+                pathID: ''
               };
             }
             // Otherwise, i.e. if no element has been specified, return a summary instance.
