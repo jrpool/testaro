@@ -17,6 +17,8 @@
 
 // Function to launch a browser.
 const {launch} = require('../run');
+// Shared configuration for timeout multiplier.
+const {timeoutMultiplier} = require('../procs/config');
 
 // CONSTANTS
 
@@ -401,7 +403,6 @@ const allRules = [
     defaultOn: false
   }
 ];
-const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 
 // ERROR HANDLER
 process.on('unhandledRejection', reason => {

@@ -19,6 +19,8 @@
 const {getBasicResult, getVisibleCountChange} = require('../procs/testaro');
 // Module to perform Playwright operations.
 const playwright = require('playwright');
+// Shared configuration for timeout multiplier.
+const {applyMultiplier} = require('../procs/config');
 
 // FUNCTIONS
 
@@ -71,7 +73,7 @@ exports.reporter = async (page, withItems) => {
     const elementCount0 = await loc0.count();
     try {
       // Hover over the element.
-      await loc.hover({timeout: 400});
+      await loc.hover({timeout: applyMultiplier(400)});
       // Get the change in the count of the visible elements in the observation tree.
       const changeData = await getVisibleCountChange(rootLoc, elementCount0, 400, 75);
       const {change, elapsedTime} = changeData;

@@ -13,6 +13,11 @@
   This test reports nonstandard keyboard navigation among tab elements in visible tab lists. Standards are based on https://www.w3.org/TR/wai-aria-practices-1.1/#tabpanel.
 */
 
+// IMPORTS
+
+// Shared configuration for timeout multiplier.
+const {applyMultiplier} = require('../procs/config');
+
 // CONSTANTS
 
 const data = {};
@@ -111,7 +116,7 @@ const testKey = async (
   let pressed = true;
   // Click the tab element, to make the focus on it effective.
   await tabElement.click({
-    timeout: 500
+    timeout: applyMultiplier(500)
   })
   .catch(async error => {
     console.log(
@@ -135,7 +140,7 @@ const testKey = async (
   if (pressed) {
     // Refocus the tab element and press the specified key (page.keyboard.press may fail).
     await tabElement.press(keyName, {
-      timeout: 1000
+      timeout: applyMultiplier(1000)
     })
     .catch(error => {
       console.log(`ERROR: could not press ${keyName} (${error.message})`);
