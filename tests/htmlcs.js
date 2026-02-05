@@ -146,7 +146,7 @@ exports.reporter = async (page, report, actIndex) => {
       }
     }
     standardResult.totals[0] = nativeResult.totals.cantTell;
-    standardResult.totals[1] = nativeResult.totals.failed;
+    standardResult.totals[2] = nativeResult.totals.failed;
   }
   return {
     data,
