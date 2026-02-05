@@ -155,11 +155,12 @@ exports.pruneCatalog = report => {
   });
   const prunedCatalog = {};
   // For each element in the catalog:
-  report.catalog.forEach(element => {
+  const {catalog} = report;
+  Object.keys(catalog).forEach(elementIndex => {
     // If it is cited by at least 1 instance:
-    if (citedElementIndexes.has(element.index)) {
+    if (citedElementIndexes.has(elementIndex)) {
       // Add it to the pruned catalog.
-      prunedCatalog[element.index] = element;
+      prunedCatalog[elementIndex] = catalog[elementIndex];
     }
   });
   // Replace the catalog with the pruned catalog.
