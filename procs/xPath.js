@@ -13,11 +13,6 @@
   Processes element XPaths.
 */
 
-// IMPORTS
-
-// Module to get the XPath of an element.
-const {xPath} = require('playwright-dompath');
-
 // FUNCTIONS
 
 // Normalizes an XPath.
@@ -83,4 +78,17 @@ exports.getLocatorFromXPathXXX = async (page, xPath) => {
     // Return this.
     return null;
   }
+};
+// Annotates every element on a page with its XPath.
+exports.addXPaths = async page => {
+  // Wait for the page to be fully loaded.
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => {
+    // For each element:
+    for (const element of Array.from(document.querySelectorAll('*'))) {
+      const xPath = window.getXPath(element);
+      // Add its XPath as an attribute to the element.
+      element.setAttribute('data-xpath', xPath);
+    }
+  });
 };

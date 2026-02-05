@@ -27,6 +27,7 @@ const xPathNeeds = {
   alfa: 'attribute',
   axe: 'attribute',
   ed11y: 'script',
+  htmlcs: 'attribute',
   ibm: 'attribute'
 };
 const accessibleNameNeeders = ['testaro'];
