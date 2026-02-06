@@ -215,42 +215,12 @@ const convert = (toolName, data, result, standardResult) => {
     standardResult.prevented = true;
   }
   // alfa, aslint
-  else if (['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs'].includes(toolName) && result.standardResult) {
+  else if (['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs', 'ibm'].includes(toolName) && result.standardResult) {
     // Move the results to standard locations.
     Object.assign(result, result.nativeResult);
     Object.assign(standardResult, result.standardResult);
     delete result.nativeResult;
     delete result.standardResult;
-  }
-  // ibm
-  else if (toolName === 'ibm' && result.totals) {
-    if (result.items) {
-      result.items.forEach(item => {
-        const identifiers = getIdentifiers(item.snippet);
-        if (! identifiers[0] && item.path && item.path.dom) {
-          const tagNameArray = item.path.dom.match(/^.+\/([^/[]+)/s);
-          if (tagNameArray && tagNameArray.length === 2) {
-            identifiers[0] = tagNameArray[1].toUpperCase();
-          }
-        }
-        const instance = {
-          ruleID: item.ruleId,
-          what: item.message,
-          ordinalSeverity: ['', 'recommendation', '', 'violation'].indexOf(item.level),
-          tagName: identifiers[0],
-          id: identifiers[1],
-          location: {
-            doc: 'dom',
-            type: 'xpath',
-            spec: item.path.dom
-          },
-          excerpt: cap(item.snippet),
-          boxID: '',
-          pathID: ''
-        };
-        standardResult.instances.push(instance);
-      });
-    }
   }
   // nuVal
   else if (toolName === 'nuVal' && result) {
