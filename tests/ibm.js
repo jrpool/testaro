@@ -21,7 +21,7 @@
 // IMPORTS
 
 // Function to get the index of an element in the catalog.
-const {getXPathCatalogIndex, getNormalizedXPath} = require('../procs/xpath');
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xpath');
 // Scanner. Importing and executing 'close' crashed the Node process.
 const accessibilityChecker = require('accessibility-checker');
 const {getCompliance} = accessibilityChecker;
@@ -173,7 +173,8 @@ exports.reporter = async (page, report, actIndex) => {
             ordinalSeverity: item.level === 'recommendation' ? 0 : 2,
             count: 1
           };
-          const xPath = getNormalizedXPath(item.path?.dom);
+          // Get the XPath from the added attribute, because path.dom is wrong.
+          const xPath = getAttributeXPath(item.snippet);
           const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
           // If a catalog index was found:
           if (catalogIndex) {
