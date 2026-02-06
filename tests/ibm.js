@@ -21,7 +21,7 @@
 // IMPORTS
 
 // Function to get the index of an element in the catalog.
-const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xpath');
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 // Scanner. Importing and executing 'close' crashed the Node process.
 const accessibilityChecker = require('accessibility-checker');
 const {getCompliance} = accessibilityChecker;
