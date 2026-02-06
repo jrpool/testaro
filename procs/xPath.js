@@ -80,9 +80,9 @@ exports.getLocatorFromXPathXXX = async (page, xPath) => {
   }
 };
 // Annotates every element on a page with its XPath.
-exports.addXPaths = async page => {
+exports.addXPathsXXX = async page => {
   // Wait for the page to be fully loaded.
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('networkidle', {timeout: 10000});
   await page.evaluate(() => {
     // For each element:
     for (const element of Array.from(document.querySelectorAll('*'))) {

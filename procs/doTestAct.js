@@ -23,13 +23,15 @@ const {browserClose, launch} = require('./launch');
 
 // CONSTANTS
 
+// Whether each tool needs the window.getXPath script and, if so, also data-xpath attributes.
 const xPathNeeds = {
   alfa: 'none',
   aslint: 'none',
   axe: 'attribute',
   ed11y: 'script',
   htmlcs: 'attribute',
-  ibm: 'attribute'
+  ibm: 'attribute',
+  nuVal: 'attribute'
 };
 const accessibleNameNeeders = ['testaro'];
 

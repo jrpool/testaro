@@ -14,10 +14,6 @@
 
 // ########## IMPORTS
 
-// Module to add Testaro IDs to elements.
-const {addTestaroIDs} = require('./testaro');
-// Module to get location data from an element.
-const {getElementData} = require('./getElementData');
 // Module to get the document source.
 const {getSource} = require('./getSource');
 
@@ -47,8 +43,6 @@ exports.getContent = async (page, withSource) => {
   }
   // Otherwise, i.e. if the specified content type was the Playwright page content:
   else {
-    // Annotate all elements on the page with unique identifiers.
-    await addTestaroIDs(page);
     // Add the annotated page content to the data.
     data.testTarget = await page.content();
   }
@@ -90,12 +84,6 @@ exports.curate = async (page, data, nuData, rules) => {
     result.messages = result.messages.filter(
       message => ! badMessages.has(message.message)
     );
-    // For each message:
-    for (const message of result.messages) {
-      const {extract} = message;
-      // Add location data for the element to the message.
-      message.elementLocation = await getElementData(page, extract);
-    }
   }
   // Return the result.
   return result;
