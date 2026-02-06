@@ -50,9 +50,7 @@ exports.getContent = async (page, withSource) => {
   return data;
 };
 // Postprocesses a result from nuVal or nuVnu tests.
-exports.curate = async (page, data, nuData, rules) => {
-  // Delete most of the test target from the data.
-  data.testTarget = `${data.testTarget.slice(0, 200)}…`;
+exports.curate = async (data, nuData, rules) => {
   let result;
   // If a result was obtained:
   if (nuData) {

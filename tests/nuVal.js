@@ -27,9 +27,7 @@ exports.reporter = async (page, report, actIndex) => {
   // Initialize the act report.
   const data = {};
   const result = {
-    nativeResult: {
-      messages: []
-    },
+    nativeResult: {},
     standardResult: {}
   };
   const standard = report.standard !== 'no';
@@ -83,8 +81,36 @@ exports.reporter = async (page, report, actIndex) => {
       data.prevented = true;
       data.error = message;
     };
-    // Postprocess the response data.
-    result.nativeResult = await curate(page, data, nuData, rules);
+    // Postprocess the response data and add the postprocessed data to the native result.
+    result.nativeResult = await curate(data, nuData, rules);
+    // If standard results are to be reported:
+    if (standard) {
+      // For each message in the native result:
+      nativeResult.messages.forEach(message => {
+        const ordinalSeverity = message.type === 'info' ? 0 : 3;
+        // Increment the applicable standard-result total.
+        standardResult.totals[ordinalSeverity]++;
+        // Initialize a standard instance.
+        const standardInstance = {
+          ruleID: message.message,
+          what: message.message,
+          ordinalSeverity,
+          count: 1,
+        };
+        const xPath = getAttributeXPath(message.extract);
+        if (xPath) {
+          const catalogIndex = getXPathCatalogIndex(catalog, xPath);
+          if (catalogIndex) {
+            standardInstance.catalogIndex = catalogIndex;
+          }
+          else {
+            standardInstance.pathID = xPath;
+          }
+        }
+        // Add the standard instance to the standard result.
+        standardResult.instances.push(standardInstance);
+      })
+    }
   }
   // Otherwise, i.e. if the page content was not obtained:
   else {
