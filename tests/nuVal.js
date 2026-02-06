@@ -17,6 +17,8 @@
 
 // Module to get the content.
 const {curate, getContent} = require('../procs/nu');
+// Module to process XPaths.
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // FUNCTIONS
 
@@ -40,7 +42,7 @@ exports.reporter = async (page, report, actIndex) => {
       instances: []
     };
   }
-  const {nativeResult, standardResult} = result;
+  const {standardResult} = result;
   // Get the content.
   const content = await getContent(page, withSource);
   const {testTarget} = content;
@@ -86,7 +88,7 @@ exports.reporter = async (page, report, actIndex) => {
     // If standard results are to be reported:
     if (standard) {
       // For each message in the native result:
-      nativeResult.messages.forEach(message => {
+      result.nativeResult.messages.forEach(message => {
         const ordinalSeverity = message.type === 'info' ? 0 : 3;
         // Increment the applicable standard-result total.
         standardResult.totals[ordinalSeverity]++;
@@ -99,7 +101,7 @@ exports.reporter = async (page, report, actIndex) => {
         };
         const xPath = getAttributeXPath(message.extract);
         if (xPath) {
-          const catalogIndex = getXPathCatalogIndex(catalog, xPath);
+          const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
           if (catalogIndex) {
             standardInstance.catalogIndex = catalogIndex;
           }
