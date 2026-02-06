@@ -24,6 +24,8 @@ const os = require('os');
 const {vnu} = require('vnu-jar');
 // Module to get the content.
 const {curate, getContent} = require('../procs/nu');
+// Module to process XPaths.
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -33,29 +35,29 @@ const tmpDir = os.tmpdir();
 
 // Conducts and reports the Nu Html Checker tests.
 exports.reporter = async (page, report, actIndex) => {
+  // Initialize the act report.
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
+  const {standardResult} = result;
   // Get the nuVal act, if it exists.
   const nuValAct = report.acts.find(act => act.type === 'test' && act.which === 'nuVal');
   // If it does not exist or it exists but was prevented:
   if (! nuValAct || nuValAct.data?.prevented) {
     const act = report.acts[actIndex];
     const {rules, withSource} = act;
-    // Initialize the act report.
-    const data = {};
-    const result = {
-      nativeResult: {},
-      standardResult: {}
-    };
-    const standard = report.standard !== 'no';
-    // If standard results are to be reported:
-    if (standard) {
-      // Initialize the standard result.
-      result.standardResult = {
-        prevented: false,
-        totals: [0, 0, 0, 0],
-        instances: []
-      };
-    }
-    const {standardResult} = result;
     // Get the content.
     const content = await getContent(page, withSource);
     const {testTarget} = content;
