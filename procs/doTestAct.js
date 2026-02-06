@@ -24,12 +24,12 @@ const {browserClose, launch} = require('./launch');
 // CONSTANTS
 
 const xPathNeeds = {
-  alfa: 'attribute',
+  alfa: 'none',
   aslint: 'none',
   axe: 'attribute',
   ed11y: 'script',
   htmlcs: 'attribute',
-  ibm: 'none'
+  ibm: 'attribute'
 };
 const accessibleNameNeeders = ['testaro'];
 

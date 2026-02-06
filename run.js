@@ -79,7 +79,7 @@ exports.doJob = async (job, opts = {}) => {
       }
     });
     // If the job specifies a browser ID and a target and requires standardization:
-    if (job.browserID && job.target && ['only', 'also'].includes(job.standard)) {
+    if (job.browserID && job.target && job.standard !== 'no') {
       // Create a catalog of the target and add it to the report.
       report.catalog = await getCatalog(report);
     }

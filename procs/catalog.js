@@ -61,7 +61,7 @@ exports.getCatalog = async report => {
         for (const index in elements) {
           const element = elements[index];
           // Index it by its properties in the catalog.
-          const tagName =addToCatalog(index, cat, 'tagName', element.tagName || '');
+          const tagName = addToCatalog(index, cat, 'tagName', element.tagName || '');
           const id = addToCatalog(index, cat, 'id', element.id || '');
           const startTag = addToCatalog(
             index,

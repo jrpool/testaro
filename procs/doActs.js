@@ -1215,26 +1215,18 @@ exports.doActs = async (report, opts = {}) => {
             let {catalogIndex, boxID, pathID} = instance;
             // If the instance has no catalogIndex property:
             if (catalogIndex === undefined) {
-              // If the instance has no box ID or has no valid path ID:
-              if (! boxID || ! pathID || pathID.includes(' ')) {
+              // If the instance has no valid path ID:
+              if (! pathID || pathID.includes(' ')) {
                 const elementID = await identify(instance, page);
-                // If it has no box ID but the element has a bounding box:
-                if (elementID.boxID && ! boxID) {
-                  // Add a box ID to the instance.
-                  instance.boxID = elementID.boxID;
+                // If the element has a valid path ID:
+                if (elementID.pathID && ! elementID.pathID.includes(' ')) {
+                  // Add or replace the path ID of the instance.
+                  instance.pathID = elementID.pathID;
                 }
-                // If it has no valid path ID:
-                if (! pathID || pathID.includes(' ')) {
-                  // If the element has a valid path ID:
-                  if (elementID.pathID && ! elementID.pathID.includes(' ')) {
-                    // Add or replace the path ID of the instance.
-                    instance.pathID = elementID.pathID;
-                  }
-                  // Otherwise, if the instance has an invalid but uncorrectable path ID:
-                  else if (pathID) {
-                    // Delete it.
-                    delete instance.pathID;
-                  }
+                // Otherwise, if the instance has an invalid but uncorrectable path ID:
+                else if (pathID) {
+                  // Delete it.
+                  delete instance.pathID;
                 }
               }
               // If the instance has an excerpt that contains an XPath attribute:

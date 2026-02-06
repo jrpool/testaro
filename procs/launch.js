@@ -464,7 +464,7 @@ const launchOnce = async opts => {
         waitUntil = 'load';
       }
       // Navigate to the specified URL and wait for the stability required by the next action.
-      const navResult = await goTo(report, page, url, 15000, waitUntil);
+      const navResult = await goTo(report, page, url, 10000, waitUntil);
       // If the navigation succeeded:
       if (navResult.success) {
         // If XPath attributes are needed:
@@ -499,9 +499,7 @@ const launchOnce = async opts => {
     // If an error occurred:
     catch(error) {
       // Report this.
-      addError(
-        true, false, report, actIndex, `ERROR launching or navigating (${error.message})`
-      );
+      console.log(`ERROR launching or navigating (${error.message})`);
       // Close the browser and its context, if they exist.
       await browserClose(page);
       // Return a failure.
