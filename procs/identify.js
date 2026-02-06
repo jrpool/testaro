@@ -146,47 +146,49 @@ exports.identify = async (instance, page) => {
   };
   const {excerpt, id, location} = instance;
   const tagName = tagify(instance.tagName);
-  const {type, spec} = location;
-  // If the instance specifies a CSS selector or XPath location:
-  if (['selector', 'xpath'].includes(type)) {
-    let specifier = spec;
-    // If the specified location is an XPath:
-    if (type === 'xpath') {
-      // Remove any final text-node segment.
-      specifier = spec.replace(/\/text\(\)\[\d+\]$/, '');
-    }
-    // If any specifier remains:
-    if (specifier) {
+  if (location) {
+    const {type, spec} = location;
+    // If the instance specifies a CSS selector or XPath location:
+    if (['selector', 'xpath'].includes(type)) {
+      let specifier = spec;
+      // If the specified location is an XPath:
       if (type === 'xpath') {
-        // Prefix it for playwright-dompath.
-        specifier = `xpath=${specifier}`;
+        // Remove any final text-node segment.
+        specifier = spec.replace(/\/text\(\)\[\d+\]$/, '');
       }
-      try {
-        // Get a Playwright locator for it.
-        const locators = page.locator(specifier);
-        // Get the count of its referents.
-        const locatorCount = await locators.count();
-        // If the specifier is valid and the count is 1:
-        if (locatorCount === 1) {
-          // Add a box ID and a path ID to the result.
-          await addIDs(locators, elementID);
+      // If any specifier remains:
+      if (specifier) {
+        if (type === 'xpath') {
+          // Prefix it for playwright-dompath.
+          specifier = `xpath=${specifier}`;
         }
-        /*
-          Otherwise, if the specifier is invalid or the count is not 1, and the instance specifies
-          an XPath location:
-        */
-        else if (type === 'xpath') {
-          // Use the normalized XPath location as the path ID.
-          elementID.pathID = getNormalizedXPath(specifier.replace(/^xpath=/, ''));
+        try {
+          // Get a Playwright locator for it.
+          const locators = page.locator(specifier);
+          // Get the count of its referents.
+          const locatorCount = await locators.count();
+          // If the specifier is valid and the count is 1:
+          if (locatorCount === 1) {
+            // Add a box ID and a path ID to the result.
+            await addIDs(locators, elementID);
+          }
+          /*
+            Otherwise, if the specifier is invalid or the count is not 1, and the instance specifies
+            an XPath location:
+          */
+          else if (type === 'xpath') {
+            // Use the normalized XPath location as the path ID.
+            elementID.pathID = getNormalizedXPath(specifier.replace(/^xpath=/, ''));
+          }
         }
-      }
-      // If the specifier is invalid:
-      catch(error) {
-        // Add this to the instance.
-        instance.invalidity = {
-          badProperty: 'location',
-          validityError: error.message
-        };
+        // If the specifier is invalid:
+        catch(error) {
+          // Add this to the instance.
+          instance.invalidity = {
+            badProperty: 'location',
+            validityError: error.message
+          };
+        }
       }
     }
   }
