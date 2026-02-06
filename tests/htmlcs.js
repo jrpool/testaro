@@ -136,7 +136,7 @@ exports.reporter = async (page, report, actIndex) => {
           ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
           count: 1
         };
-        const xPath = getAttributeXPath(parts[5]);
+        const xPath = getAttributeXPath(parts[5]) || '/html';
         const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
         instance.catalogIndex = catalogIndex ?? '';
         if (! catalogIndex) {
