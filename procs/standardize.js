@@ -215,7 +215,10 @@ const convert = (toolName, data, result, standardResult) => {
     standardResult.prevented = true;
   }
   // alfa, aslint
-  else if (['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs', 'ibm'].includes(toolName) && result.standardResult) {
+  else if (
+    ['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs', 'ibm', 'nuVal'].includes(toolName)
+    && result.standardResult
+  ) {
     // Move the results to standard locations.
     Object.assign(result, result.nativeResult);
     Object.assign(standardResult, result.standardResult);

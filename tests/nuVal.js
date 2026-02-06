@@ -24,27 +24,46 @@ const {curate, getContent} = require('../procs/nu');
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
   const {rules, withSource} = act;
-  // Get the content and add it to the data.
-  const data = await getContent(page, withSource);
-  let result;
-  // If it was obtained:
-  if (data.testTarget) {
-    let nuData;
+  // Initialize the act report.
+  const data = {};
+  const result = {
+    nativeResult: {
+      messages: []
+    },
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
+  const {nativeResult, standardResult} = result;
+  // Get the content.
+  const content = await getContent(page, withSource);
+  const {testTarget} = content;
+  // If it was obtained and contains a test target:
+  if (testTarget) {
     const fetchOptions = {
       method: 'post',
       headers: {
         'User-Agent': 'Mozilla/5.0',
         'Content-Type': 'text/html; charset=utf-8'
-      }
+      },
+      body: testTarget
     };
     const nuURL = 'https://validator.w3.org/nu/?parser=html&out=json';
+    let nuData;
     try {
-      fetchOptions.body = data.testTarget;
       // Get a Nu Html Checker report from the W3C validator service.
       nuResponse = await fetch(nuURL, fetchOptions);
       // If the acquisition succeeded:
       if (nuResponse.ok) {
-        // Get the response body as JSON.
+        // Get the response body as an object.
         nuData = await nuResponse.json();
       }
       // Otherwise, i.e. if the request failed:
@@ -65,7 +84,7 @@ exports.reporter = async (page, report, actIndex) => {
       data.error = message;
     };
     // Postprocess the response data.
-    result = await curate(page, data, nuData, rules);
+    result.nativeResult = await curate(page, data, nuData, rules);
   }
   // Otherwise, i.e. if the page content was not obtained:
   else {
