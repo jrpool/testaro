@@ -51,7 +51,12 @@ exports.reporter = async (page, report, actIndex) => {
     const {scriptNonce, script, rulesToTest} = args;
     // When the script has been executed, creating data in an Ed11y object:
     document.addEventListener('ed11yResults', async () => {
-      const {results} = Ed11y;
+      let {results} = Ed11y;
+      // If rules were selected:
+      if (rulesToTest) {
+        // Remove results of other rules.
+        results = results.filter(result => rulesToTest.includes(result.test));
+      }
       // Return the native result.
       resolve({
         resultCount: results.length,
