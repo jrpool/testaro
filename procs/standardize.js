@@ -216,7 +216,7 @@ const convert = (toolName, data, result, standardResult) => {
   }
   // alfa, aslint
   else if (
-    ['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs', 'ibm', 'nuVal'].includes(toolName)
+    ['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs', 'ibm', 'nuVal', 'nuVnu'].includes(toolName)
     && result.standardResult
   ) {
     // Move the results to standard locations.

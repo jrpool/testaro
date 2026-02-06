@@ -99,13 +99,20 @@ exports.reporter = async (page, report, actIndex) => {
           ordinalSeverity,
           count: 1,
         };
+        // Get the XPath of the element from its extract.
         const xPath = getAttributeXPath(message.extract);
+        // If the acquisition succeeded:
         if (xPath) {
+          // Get the catalog index of the element from the XPath.
           const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+          // If the acquisition succeeded:
           if (catalogIndex) {
+            // Add the catalog index to the standard instance.
             standardInstance.catalogIndex = catalogIndex;
           }
+          // Otherwise, i.e. if the acquisition failed:
           else {
+            // Add the XPath of the standard instance as its pathID.
             standardInstance.pathID = xPath;
           }
         }
