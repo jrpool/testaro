@@ -210,55 +210,54 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                 for (const ruleID of ruleIDs) {
                   const ruleAssertions = assertions[ruleID];
                   const {metadata} = ruleAssertions;
-                  // If result data exist for the rule:
-                  if (metadata) {
-                    // If there were no warnings or failures:
-                    if (metadata.warning === 0 && metadata.failed === 0) {
-                      // Delete the rule data.
-                      delete assertions[ruleID];
-                    }
-                    // Otherwise, i.e. if there was at least 1 warning or failure:
-                    else {
-                      if (ruleAssertions.results) {
-                        // Delete nonviolations from the results.
-                        ruleAssertions.results = ruleAssertions.results.filter(
-                          raResult => raResult.verdict !== 'passed'
-                        );
+                  // If there were any warnings or failures:
+                  if (metadata?.warning || metadata?.failed) {
+                    // Delete nonviolations from the results.
+                    ruleAssertions.results = ruleAssertions.results.filter(
+                      raResult => raResult.verdict !== 'passed'
+                    );
+                    // For each test result:
+                    for (const raResult of ruleAssertions.results) {
+                      const {elements, verdict} = raResult;
+                      // If any violations are reported:
+                      if (elements?.length) {
+                        // For each violating element:
+                        for (const element of elements) {
+                          // Limit the size of its reported excerpt.
+                          if (element.htmlCode && element.htmlCode.length > 2000) {
+                            element.htmlCode = `${element.htmlCode.slice(0, 2000)} …`;
+                          }
+                          // If standard results are to be reported:
+                          if (standard) {
+                            // Initialize a standard instance.
+                            const instance = {
+                              ruleID,
+                              what: raResult.description,
+                              ordinalSeverity: ordinalSeverities[section][verdict],
+                              count: 1
+                            };
+                            // Get the pathID of the element or, if none, the document pathID.
+                            const pathID = getAttributeXPath(element.htmlCode) || '/html';
+                            const {catalog} = report;
+                            // Use it to get the catalog index.
+                            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
+                            // If the acquisition succeeded:
+                            if (catalogIndex) {
+                              // Add the catalog index to the instance.
+                              instance.catalogIndex = catalogIndex;
+                            }
+                            // Otherwise, i.e. if the acquisition failed:
+                            else {
+                              // Add the XPath to the instance.
+                              instance.pathID = pathID;
+                            }
+                            // Add the instance to the standard result.
+                            standardResult.instances.push(instance);
+                          }
+                        };
                       }
-                    }
+                    };
                   }
-                  const {results} = ruleAssertions;
-                  // For each test result:
-                  for (const raResult of results) {
-                    const {elements, verdict} = raResult;
-                    // If any violations are reported:
-                    if (elements?.length) {
-                      // For each violating element:
-                      for (const element of elements) {
-                        // Limit the size of its reported excerpt.
-                        if (element.htmlCode && element.htmlCode.length > 2000) {
-                          element.htmlCode = `${element.htmlCode.slice(0, 2000)} …`;
-                        }
-                        // If standard results are to be reported:
-                        if (standard) {
-                          // Initialize a standard instance.
-                          const instance = {
-                            ruleID,
-                            what: raResult.description,
-                            ordinalSeverity: ordinalSeverities[section][verdict],
-                            count: 1
-                          };
-                          // Get the pathID of the element or, if none, the document pathID.
-                          const pathID = getAttributeXPath(element.htmlCode) || '/html';
-                          const {catalog} = report;
-                          // Use it to add the catalog index to the instance.
-                          instance.catalogIndex = getXPathCatalogIndex(catalog, pathID);
-                          // Add the instance to the standard result.
-                          standardResult.instances.push(instance);
-                        }
-                      };
-                    }
-                  };
                 };
               }
               else {
