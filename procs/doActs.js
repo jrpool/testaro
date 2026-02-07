@@ -1249,46 +1249,61 @@ exports.doActs = async (report, opts = {}) => {
     console.log('Standardization and element identification completed');
     // If a catalog was created:
     if (localReport.catalog) {
-      localReport.jobData.elementCount = Object.keys(localReport.catalog).length;
+      const {catalog} = localReport;
+      const elementCount = Object.keys(catalog).length;
+      const textCount = Object.values(catalog).filter(entry => entry.text).length;
+      const linkableTextCount = Object.values(catalog).filter(entry => entry.textLinkable).length;
+      // Prune it.
+      pruneCatalog(localReport);
+      const entryCount = Object.keys(catalog).length;
+      // Initialize a collection of data on it.
+      const catalogData = {
+        elementCount,
+        entryCount,
+        text: {
+          count: textCount,
+          countPercent: Math.round(100 * textCount / entryCount),
+          linkableCount: linkableTextCount,
+          linkablePercent: Math.round(100 * linkableTextCount / textCount)
+        },
+        tools: {}
+      };
       const {acts} = localReport;
-      const catalogData = {};
       // For each act:
       for (const act of acts) {
         // If it is a test act:
         if (act.type === 'test') {
           const {which} = act;
-          // Initialize a catalogData property for the tool if necessary.
-          catalogData[which] ??= {
+          // Initialize an entry for it if necessary.
+          catalogData.tools[which] ??= {
             instanceCount: 0,
             catalogCount: 0,
             catalogPercent: null
           };
-          const actCatalogData = catalogData[which];
+          const actCatalogData = catalogData.tools[which];
           const {standardResult} = act;
           const {instances} = standardResult;
           // For each standard instance in the act:
           for (const instance of instances) {
-            const {catalogIndex} = instance;
             // Increment the instance count.
             actCatalogData.instanceCount++;
+            const {catalogIndex} = instance;
             // If the instance has a catalogIndex value:
             if (catalogIndex) {
-              // Increment the text count.
+              // Increment the catalog count.
               actCatalogData.catalogCount++;
             }
           }
           const {catalogCount, instanceCount} = actCatalogData;
           // If there are any instances:
           if (instanceCount) {
-            // Add the catalog percentage to the actCatalogData property.
+            // Add the catalog percentage to the tool data.
             actCatalogData.catalogPercent = Math.round(100 * catalogCount / instanceCount);
           }
         }
       }
       // Add the catalog data to the local report.
       localReport.jobData.catalogData = catalogData;
-      // Prune the catalog in the local report.
-      pruneCatalog(localReport);
     }
   }
   // Delete the temporary local report file.
