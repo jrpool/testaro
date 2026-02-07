@@ -230,9 +230,10 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                           // If standard results are to be reported:
                           if (standard) {
                             // Initialize a standard instance.
+                            const what = `[${verdict}] ${raResult.description}`;
                             const instance = {
                               ruleID,
-                              what: raResult.description,
+                              what,
                               ordinalSeverity: ordinalSeverities[section][verdict],
                               count: 1
                             };
