@@ -105,51 +105,6 @@ const doNuVal = (withSource, result, standardResult) => {
 const doNuVnu = (withSource, result, standardResult) => {
   doNu(withSource, result, standardResult);
 };
-// Converts instances of a qualWeb rule class.
-const doQualWeb = (result, standardResult, ruleClassName) => {
-  if (result.modules && result.modules[ruleClassName]) {
-    const ruleClass = result.modules[ruleClassName];
-    const severities = {
-      'best-practices': {
-        warning: 0,
-        failed: 1
-      },
-      'wcag-techniques': {
-        warning: 0,
-        failed: 2
-      },
-      'act-rules': {
-        warning: 1,
-        failed: 3
-      }
-    };
-    Object.keys(ruleClass.assertions).forEach(ruleID => {
-      const ruleResult = ruleClass.assertions[ruleID];
-      ruleResult.results.forEach(item => {
-        item.elements.forEach(element => {
-          const {htmlCode} = element;
-          const identifiers = getIdentifiers(htmlCode);
-          const instance = {
-            ruleID,
-            what: item.description,
-            ordinalSeverity: severities[ruleClassName][item.verdict] || 0,
-            tagName: identifiers[0],
-            id: identifiers[1],
-            location: {
-              doc: 'dom',
-              type: 'selector',
-              spec: element.pointer
-            },
-            excerpt: cap(htmlCode),
-            boxID: element.locationData?.boxID || '',
-            pathID: element.locationData?.pathID || ''
-          };
-          standardResult.instances.push(instance);
-        });
-      });
-    });
-  }
-};
 // Converts instances of a wave rule category.
 const doWAVE = (result, standardResult, categoryName) => {
   // If results for the category are reported:
@@ -214,9 +169,9 @@ const convert = (toolName, data, result, standardResult) => {
     // Add that to the standard result and disregard tool-specific conversions.
     standardResult.prevented = true;
   }
-  // alfa, aslint
+  // Otherwise, if the act was not prevented and the tool is self-standardizing:
   else if (
-    ['alfa', 'aslint', 'axe', 'ed11y', 'htmlcs', 'ibm', 'nuVal', 'nuVnu'].includes(toolName)
+    ! ['testaro', 'wave', 'wax'].includes(toolName)
     && result.standardResult
   ) {
     // Move the results to standard locations.
@@ -232,26 +187,6 @@ const convert = (toolName, data, result, standardResult) => {
   // nuVnu
   else if (toolName === 'nuVnu' && result) {
     doNuVnu(data.withSource, result, standardResult);
-  }
-  // qualWeb
-  else if (
-    toolName === 'qualWeb'
-    && result.modules
-    && (
-      result.modules['act-rules']
-      || result.modules['wcag-techniques']
-      || result.modules['best-practices']
-    )
-  ) {
-    if (result.modules['act-rules']) {
-      doQualWeb(result, standardResult, 'act-rules');
-    }
-    if (result.modules['wcag-techniques']) {
-      doQualWeb(result, standardResult, 'wcag-techniques');
-    }
-    if (result.modules['best-practices']) {
-      doQualWeb(result, standardResult, 'best-practices');
-    }
   }
   // testaro
   else if (toolName === 'testaro') {

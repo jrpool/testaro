@@ -29,6 +29,20 @@ const qualWeb = new QualWeb({
 const actRulesModule = new ACTRules({});
 const wcagModule = new WCAGTechniques({});
 const bpModule = new BestPractices({});
+const ordinalSeverities = {
+  'act-rules': {
+    'warning': 1,
+    'failure': 3
+  },
+  'wcag-techniques': {
+    'warning': 0,
+    'failure': 2
+  },
+  'best-practices': {
+    'warning': 0,
+    'failure': 1
+  }
+}
 
 // FUNCTIONS
 
@@ -36,13 +50,27 @@ const bpModule = new BestPractices({});
 exports.reporter = async (page, report, actIndex, timeLimit) => {
   const act = report.acts[actIndex];
   const {withNewContent, rules} = act;
-  const data = {};
-  let result = {};
   const clusterOptions = {
     maxConcurrency: 1,
     timeout: timeLimit * 1000,
     monitor: false
   };
+  // Initialize the act report.
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
   try {
     // Start the QualWeb core engine.
     await qualWeb.start(clusterOptions, {
@@ -158,12 +186,13 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       };
     }
     // Otherwise, i.e. if the evaluation succeeded, get the report.
-    result = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
+    result.nativeResult = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
+    const {nativeResult, standardResult} = result;
     // If it contains a copy of the DOM:
-    if (result && result.system && result.system.page && result.system.page.dom) {
+    if (nativeResult?.system?.page?.dom) {
       // Delete the copy.
-      delete result.system.page.dom;
-      const {modules} = result;
+      delete nativeResult.system.page.dom;
+      const {modules} = nativeResult;
       // If the report contains a modules property:
       if (modules) {
         // For each test section in it:
@@ -197,18 +226,34 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                       }
                     }
                   }
-                  // Shorten long HTML codes of elements.
                   const {results} = ruleAssertions;
                   // For each test result:
                   for (const raResult of results) {
-                    const {elements} = raResult;
+                    const {elements, verdict} = raResult;
                     // If any violations are reported:
-                    if (elements && elements.length) {
+                    if (elements?.length) {
                       // For each violating element:
                       for (const element of elements) {
                         // Limit the size of its reported excerpt.
-                        if (element.htmlCode && element.htmlCode.length > 700) {
-                          element.htmlCode = `${element.htmlCode.slice(0, 700)} …`;
+                        if (element.htmlCode && element.htmlCode.length > 2000) {
+                          element.htmlCode = `${element.htmlCode.slice(0, 2000)} …`;
+                        }
+                        // If standard results are to be reported:
+                        if (standard) {
+                          // Initialize a standard instance.
+                          const instance = {
+                            ruleID,
+                            what: raResult.description,
+                            ordinalSeverity: ordinalSeverities[section][verdict],
+                            count: 1
+                          };
+                          // Get the pathID of the element or, if none, the document pathID.
+                          const pathID = getAttributeXPath(element.htmlCode) || '/html';
+                          const {catalog} = report;
+                          // Use it to add the catalog index to the instance.
+                          instance.catalogIndex = getXPathCatalogIndex(catalog, pathID);
+                          // Add the instance to the standard result.
+                          standardResult.instances.push(instance);
                         }
                       };
                     }
