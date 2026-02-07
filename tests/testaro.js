@@ -16,7 +16,8 @@
 // IMPORTS
 
 // Function to launch a browser.
-const {launch} = require('../run');
+const {launch} = require('../procs/launch');
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -429,7 +430,7 @@ exports.reporter = async (page, report, actIndex) => {
   // Get the specification of rules to be tested for.
   const ruleSpec = act.rules
   || ['y', ... allRules.filter(rule => rule.defaultOn).map(rule => rule.id)];
-  // Initialize the act data and result.
+  // Initialize the act report.
   const data = {
     prevented: false,
     error: '',
@@ -439,7 +440,13 @@ exports.reporter = async (page, report, actIndex) => {
     ruleTestTimes: {},
     ruleData: {}
   };
-  const result = {};
+  const result = {
+    standardResult: {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    }
+  };
   const allRuleIDs = allRules.map(rule => rule.id);
   // If the rule specification is invalid:
   if (! (
@@ -485,18 +492,16 @@ exports.reporter = async (page, report, actIndex) => {
         // Report this.
         console.log(`WARNING: Relaunching browser for test ${rule} after abnormal closure`);
       }
-      // Replace the browser and the page and navigate to the target.
-      await launch(
+      // Create a browser, replace the page, and navigate to the target.
+      page = await launch({
         report,
         actIndex,
-        headEmulation,
-        browserID,
-        url
-      );
-      page = require('../run').page;
+        tempBrowserID: browserID,
+        tempURL: url
+      });
     }
     // Get the current browser.
-    const {browser} = require('../run');
+    const browser = page.context().browser();
     // Report crashes and disconnections during this test.
     let crashHandler;
     let disconnectHandler;
@@ -520,9 +525,9 @@ exports.reporter = async (page, report, actIndex) => {
       ruleArgs.push(... args[ruleID]);
     }
     // Initialize the rule result.
-    result[ruleID] ??= {};
-    const ruleResult = result[ruleID];
-    ruleResult.what = rule.what || '';
+    const ruleResult = {
+      what: rule.what ?? ''
+    };
     const startTime = Date.now();
     let timeout;
     let testRetries = 2;
@@ -535,7 +540,7 @@ exports.reporter = async (page, report, actIndex) => {
         // If the time limit expires during the test:
         const timer = new Promise(resolve => {
           timeout = setTimeout(() => {
-            // Add data about the test, including its prevention, to the result.
+            // Add data about the test, including its prevention, to the tool data and rule result.
             const endTime = Date.now();
             testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
             data.rulePreventions.push(ruleID);
@@ -550,17 +555,26 @@ exports.reporter = async (page, report, actIndex) => {
         const ruleReport = require(`../testaro/${ruleID}`).reporter(... ruleArgs);
         // Get the rule report or a timeout report.
         const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
-        // If the test was completed:
-        if (! ruleOrTimeoutReport.timedOut) {
-          // Add data from the rule report to the tool result.
+        // If the test timed out:
+        if (ruleOrTimeoutReport.timedOut) {
+          // Report this.
+          data.rulePreventions.push(ruleID);
+          data.rulePreventionMessages[ruleID] = 'Timeout';
+          // Stop retrying the test.
+          break;
+        }
+        // Otherwise, i.e. if the test was completed:
+        else {
           const endTime = Date.now();
+          // Add the elapsed time of this test to the tool test times.
           testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
+          // Add data from the rule report to the tool result.
           Object.keys(ruleOrTimeoutReport).forEach(key => {
             ruleResult[key] = ruleOrTimeoutReport[key];
           });
           // If the test was prevented:
           if (ruleResult.data?.prevented && ruleResult.data.error) {
-            // Add this to the tool result.
+            // Add this to the tool data.
             data.rulePreventions.push(ruleID);
             data.rulePreventionMessages[ruleID] = ruleResult.data.error;
           }
@@ -575,7 +589,7 @@ exports.reporter = async (page, report, actIndex) => {
           // For any other property of the rule report data object:
           ruleDataMiscKeys.forEach(key => {
             data.ruleData[ruleID] ??= {};
-            // Add it to the tool result.
+            // Add it to the tool data.
             data.ruleData[ruleID][key] = ruleResult.data[key];
           });
           // Prevent a retry of the test.
@@ -585,14 +599,6 @@ exports.reporter = async (page, report, actIndex) => {
             // Stop testing.
             break;
           }
-        }
-        // Otherwise, i.e. if the test timed out:
-        else {
-          // Report this.
-          data.rulePreventions.push(ruleID);
-          data.rulePreventionMessages[ruleID] = 'Timeout';
-          // Stop retrying the test.
-          break;
         }
       }
       // If an error is thrown by the test:
