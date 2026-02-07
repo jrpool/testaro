@@ -37,8 +37,6 @@ const fs = require('fs/promises');
 
 // CONSTANTS
 
-// Whether to log page-context log messages.
-const debug = process.env.DEBUG === 'true';
 // CSS selectors for targets of moves.
 const moves = {
   button: 'button, [role=button], input[type=submit]',

@@ -19,8 +19,6 @@ const {QualWeb} = require('@qualweb/core');
 const {ACTRules} = require('@qualweb/act-rules');
 const {WCAGTechniques} = require('@qualweb/wcag-techniques');
 const {BestPractices} = require('@qualweb/best-practices');
-const {addTestaroIDs} = require('../procs/testaro');
-const {getElementData} = require('../procs/getElementData');
 
 // CONSTANTS
 
@@ -45,8 +43,6 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     timeout: timeLimit * 1000,
     monitor: false
   };
-  // Annotate all elements on the page with unique identifiers.
-  await addTestaroIDs(page);
   try {
     // Start the QualWeb core engine.
     await qualWeb.start(clusterOptions, {
@@ -210,8 +206,6 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                     if (elements && elements.length) {
                       // For each violating element:
                       for (const element of elements) {
-                        // Add location data from its excerpt to the element data.
-                        element.locationData = await getElementData(page, element.htmlCode);
                         // Limit the size of its reported excerpt.
                         if (element.htmlCode && element.htmlCode.length > 700) {
                           element.htmlCode = `${element.htmlCode.slice(0, 700)} …`;
