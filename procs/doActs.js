@@ -1249,12 +1249,15 @@ exports.doActs = async (report, opts = {}) => {
     console.log('Standardization and element identification completed');
     // If a catalog was created:
     if (localReport.catalog) {
-      const {catalog} = localReport;
+      let {catalog} = localReport;
+      // Get its element count.
       const elementCount = Object.keys(catalog).length;
+      // Prune it, removing elements with no reported violations.
+      pruneCatalog(localReport);
+      ({catalog} = localReport);
+      // Get properties of the pruned catalog.
       const textCount = Object.values(catalog).filter(entry => entry.text).length;
       const linkableTextCount = Object.values(catalog).filter(entry => entry.textLinkable).length;
-      // Prune it.
-      pruneCatalog(localReport);
       const entryCount = Object.keys(catalog).length;
       // Initialize a collection of data on it.
       const catalogData = {
