@@ -1237,47 +1237,6 @@ exports.doActs = async (report, opts = {}) => {
                 .replace(/ data-xpath="[^" ]*("|$)/g, '')
                 .replace(/ data-xpath="[^" ]* /g, ' ');
               }
-              pathID = instance.pathID;
-              // If the instance has no or an empty text property:
-              if (! instance.text) {
-                const {excerpt} = instance;
-                // If the instance has a markup-free non-empty excerpt:
-                if (
-                  excerpt && ! ['<', '>', '=', '#'].some(markupChar => excerpt.includes(markupChar))
-                ) {
-                  // Add the excerpt (up to any ellipsis) to the text property.
-                  instance.text = [excerpt.split(/ … | *\.\.\./)[0]];
-                }
-                // Otherwise, i.e. if it has no markup-free excerpt but has a non-empty path ID:
-                else if (pathID) {
-                  // Initialize a text property.
-                  let text = '';
-                  // Get the element if it has text content.
-                  const elementLoc = page.locator(`xpath=${pathID}`, {hasText: /.+/});
-                  // If it exists and is unique:
-                  if (await elementLoc.count() === 1) {
-                    // If it contains any noscript elements:
-                    if (await elementLoc.locator('noscript').count()) {
-                      // Change the text string to the text content without noscript elements.
-                      text = await elementLoc.evaluate(node => {
-                        const elementClone = node.cloneNode(true);
-                        elementClone
-                        .querySelectorAll('noscript')
-                        .forEach(noscript => noscript.remove());
-                        return elementClone.innerText;
-                      });
-                    }
-                    // Otherwise, i.e. if it contains no noscript element:
-                    else {
-                      // Change the text string to the text content of the element.
-                      text = await elementLoc.innerText();
-                    }
-                  }
-                  // Add the text string, truncated if necessary, to the instance.
-                  const textArray = [text.trim().replace(/\s+/g, ' ').slice(0, 300)];
-                  instance.text = textArray.filter(segment => segment.length);
-                }
-              }
             }
           }
         }

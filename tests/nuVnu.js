@@ -120,6 +120,11 @@ exports.reporter = async (page, report, actIndex) => {
               standardInstance.pathID = xPath;
             }
           }
+          // Otherwise, i.e. if the acquisition failed:
+          else {
+            // Add the extract of the native instance to the standard instance.
+            standardInstance.excerpt = message.extract ?? '';
+          }
           // Add the standard instance to the standard result.
           standardResult.instances.push(standardInstance);
         });
