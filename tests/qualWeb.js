@@ -224,7 +224,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                         // For each violating element:
                         for (const element of elements) {
                           // Limit the size of its reported excerpt.
-                          if (element.htmlCode && element.htmlCode.length > 2000) {
+                          if (element.htmlCode?.length > 2000) {
                             element.htmlCode = `${element.htmlCode.slice(0, 2000)} …`;
                           }
                           // If standard results are to be reported:
@@ -257,6 +257,11 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                         };
                       }
                     };
+                  }
+                  // Otherwise, i.e. if there were no warnings or failures:
+                  else {
+                    // Delete the rule.
+                    delete assertions[ruleID];
                   }
                 };
               }
