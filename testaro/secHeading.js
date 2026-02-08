@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the children of the element.
     const children = Array.from(element.children);

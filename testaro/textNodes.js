@@ -16,7 +16,7 @@
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems, detailLevel, text = '') => {
+exports.reporter = async (page, catalog, withItems, detailLevel, text = '') => {
   let data = {};
   // Get the data on the text nodes.
   try {

@@ -21,7 +21,7 @@ const {getLocatorData} = require('../procs/getLocatorData');
 // ########## FUNCTIONS
 
 // Performs the test.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Initialize the standard result.
   const data = {};
   const totals = [0, 0, 0, 0];

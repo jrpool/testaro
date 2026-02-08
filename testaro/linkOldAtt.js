@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const attNames = element.getAttributeNames();
     const allBadAttNames = ['charset', 'coords', 'name', 'rev', 'shape'];

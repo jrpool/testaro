@@ -15,7 +15,7 @@
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems, attributeName, areLicit, values) => {
+exports.reporter = async (page, catalog, withItems, attributeName, areLicit, values) => {
   // Return totals and standard instances for the rule.
   return await page.evaluate(args => {
     const [withItems, attributeName, areLicit, values] = args;

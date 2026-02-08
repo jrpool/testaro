@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get whether the element has a non-spacing child text node.
     const hasText = Array.from(element.childNodes).some(child =>
