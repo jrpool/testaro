@@ -56,18 +56,12 @@ exports.reporter = async page => {
   });
   // If there are any instances:
   if (data.total) {
-    // Add a summary instance.
+    // Add a summary instance to the standard instances.
     standardInstances.push({
       ruleID: 'headEl',
       what: `Invalid elements within the head: ${data.badTagNames.join(', ')}`,
       ordinalSeverity: 2,
-      count: data.total,
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: ''
+      count: data.total
     });
   }
   totals = [0, 0, data.total, 0];
