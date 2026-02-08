@@ -17,7 +17,7 @@
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Return totals and standard instances for the rule.
   return await page.evaluate(withItems => {
     // Get all links.

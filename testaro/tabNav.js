@@ -371,7 +371,7 @@ const testTabLists = async (tabLists, withItems, page) => {
   }
 };
 // Tests tab-list navigation and reports results.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Initialize the results.
   data.totals = {
     navigations: {

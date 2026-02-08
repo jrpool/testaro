@@ -90,7 +90,7 @@ const focusSuccess = async (miLocsDir, priorIndex, key, isPseudo) => {
   return result;
 };
 // Performs the test and reports the result.
-exports.reporter = async (page, withItems, trialKeySpecs = []) => {
+exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
   // Initialize the result.
   const data = {};
   const totals = [0, 0, 0, 0];

@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the ID of the datalist element referenced by the list attribute of the element.
     const listID = element.getAttribute('list');

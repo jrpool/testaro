@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the IDs in the aria-describedby attribute of the element.
     const IDs = element.getAttribute('aria-describedby').trim().split(/\s+/).filter(Boolean);

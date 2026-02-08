@@ -20,7 +20,7 @@ const {getSource} = require('../procs/getSource');
 // ########## FUNCTIONS
 
 // Reports failures.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Initialize the data and standard result.
   const data = {total: 0};
   if (withItems) {

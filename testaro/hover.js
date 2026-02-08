@@ -26,7 +26,7 @@ const playwright = require('playwright');
 const getViolationDescription = (change, elapsedTime) =>
   `Hovering over the element changes the related visible element count by ${change} in ${elapsedTime}ms`;
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Initialize the locators and result.
   const candidateLocs = await page.locator([
    '[aria-controls]:visible',

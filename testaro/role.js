@@ -26,7 +26,7 @@ const implicitRoles = new Set(Array.from(elementRoles.values()).flat());
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Get locators for the elements with explicit roles.
   const loc = page.locator('[role]');
   const locs = await loc.all();
