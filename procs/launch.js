@@ -397,43 +397,19 @@ const launchOnce = async opts => {
             && typeof window.computeAccessibleName === 'function';
             return nameIsComputable ? window.computeAccessibleName(element) : '';
           };
-          // Add a window method to return a standard instance.
-          window.getInstance = (
+          // Add a window method to return a standard proto-instance.
+          window.getProtoInstance = (
             element, ruleID, what, count = 1, ordinalSeverity, summaryTagName = ''
           ) => {
             // If an element has been specified:
             if (element) {
               // Get its properties.
-              const boxData = element.getBoundingClientRect();
-              ['x', 'y', 'width', 'height'].forEach(dimension => {
-                boxData[dimension] = Math.round(boxData[dimension]);
-              });
-              const {x, y, width, height} = boxData;
-              const {tagName, id = ''} = element;
-              const rawExcerpt = (element.textContent.trim() || element.outerHTML.trim())
-              .replace(/\s+/g, ' ');
-              const excerpt = rawExcerpt.slice(0, 200);
-              // Return an itemized standard instance.
               return {
                 ruleID,
                 what,
                 count,
                 ordinalSeverity,
-                tagName,
-                id,
-                location: {
-                  doc: 'dom',
-                  type: 'box',
-                  spec: {
-                    x,
-                    y,
-                    width,
-                    height
-                  }
-                },
-                excerpt,
-                boxID: [x, y, width, height].join(':'),
-                pathID: ''
+                pathID: window.getXPath(element)
               };
             }
             // Otherwise, i.e. if no element has been specified, return a summary instance.
@@ -441,17 +417,7 @@ const launchOnce = async opts => {
               ruleID,
               what,
               count,
-              ordinalSeverity,
-              tagName: summaryTagName,
-              id: '',
-              location: {
-                doc: '',
-                type: '',
-                spec: ''
-              },
-              excerpt: '',
-              boxID: '',
-              pathID: ''
+              ordinalSeverity
             };
           };
         });
