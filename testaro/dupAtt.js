@@ -9,7 +9,7 @@
 
 /*
   dupAtt.js
-  This test reports duplicate attributes in the source of a document.
+  This test reports duplicate attributes. The test is performed on the source of the document, because browsers delete additional same-name attributes in the DOM.
 */
 
 // ########## IMPORTS
@@ -19,7 +19,7 @@ const {getSource} = require('../procs/getSource');
 
 // ########## FUNCTIONS
 
-// Reports failures.
+// Runs the test and returns the result.
 exports.reporter = async (page, catalog, withItems) => {
   // Initialize the data and standard result.
   const data = {total: 0};
@@ -88,38 +88,25 @@ exports.reporter = async (page, catalog, withItems) => {
     });
     // If itemization is required and there are any instances:
     if (data.items) {
-      // For each instance:
+      // For each violator:
       data.items.forEach(item => {
-        // Add it.
+        // Add an instance to the standard instances.
         standardInstances.push({
           ruleID: 'dupAtt',
-          what: 'Element has 2 attributes with the same name',
+          what: `${item.tagName} element has 2 attributes named ${item.duplicatedAttribute}`,
           ordinalSeverity: 2,
-          tagName: item.tagName,
-          id: item.id,
-          location: {
-            doc: item.id ? 'source' : '',
-            type: item.id ? 'selector' : '',
-            spec: item.id ? `#${item.id}` : ''
-          },
-          excerpt: item.duplicatedAttribute
+          count: 1
         });
       });
     }
-    // Otherwise, if there are any instances:
+    // Otherwise, if itemization is not required and there are any violations:
     else if (data.total) {
-      // Add a summary instance.
+      // Add a summary instance to the standard instances.
       standardInstances.push({
         ruleID: 'dupAtt',
         what: 'In some elements 2 attributes have the same name',
         ordinalSeverity: 2,
-        count: data.total,
-        location: {
-          doc: '',
-          type: '',
-          spec: ''
-        },
-        excerpt: ''
+        count: data.total
       });
     }
     totals = [0, 0, data.total, 0];

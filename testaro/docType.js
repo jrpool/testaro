@@ -12,13 +12,16 @@
   Derived from the bbc-a11y allDocumentsMustHaveAW3cRecommendedDoctype test.
   This test reports a failure to equip the page document with a W3C-recommended HTML doctype.
 */
+
+// Runs the test and returns the result.
 exports.reporter = async page => {
-  // Identify the visible links without href attributes.
+  // Returns whether the page declares a document type.
   const docHasType = await page.evaluate(() => {
     const docType = document.doctype;
     const docHasType = !! docType && docType.name && docType.name.toLowerCase() === 'html';
     return docHasType;
   });
+  // Return data, totals, and, if no document type is declared, a standard instance.
   return {
     data: {docHasType},
     totals: [0, 0, 0, docHasType ? 0 : 1],
@@ -26,14 +29,7 @@ exports.reporter = async page => {
       ruleID: 'docType',
       what: 'Document has no standard HTML doctype preamble',
       ordinalSeverity: 3,
-      tagName: 'HTML',
-      id: '',
-      location: {
-        doc: 'dom',
-        type: 'selector',
-        spec: 'html'
-      },
-      excerpt: ''
+      count: 1
     }]
   };
 };
