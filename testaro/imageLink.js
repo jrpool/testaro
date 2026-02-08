@@ -33,6 +33,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Links have image files as their destinations';
   return await doTest(
-    page, withItems, 'imageLink', 'a[href]', whats, 0, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'imageLink', 'a[href]', whats, 0, 'A', getBadWhat.toString()
   );
 };

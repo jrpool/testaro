@@ -16,17 +16,18 @@
 // ########## IMPORTS
 
 // Module to get locator data.
-const {getLocatorData} = require('../procs/getLocatorData');
+const {getLocatorData} = require('./getLocatorData');
 // Module to get element IDs.
 const {boxOf, boxToString} = require('./identify');
-// Module to get the XPath of an element.
-const {xPath} = require('playwright-dompath');
+// Module to get XPath catalog index.
+const {getXPathCatalogIndex} = require('./xPath');
 
 // ########## FUNCTIONS
 
-// Performs a standard test.
+// Tests for a testaro rule.
 exports.doTest = async (
   page,
+  catalog,
   withItems,
   ruleID,
   candidateSelector,
@@ -35,8 +36,7 @@ exports.doTest = async (
   summaryTagName,
   getBadWhatString
 ) => {
-  // Return totals and standard instances for the rule.
-  return await page.evaluate(async args => {
+  const ruleData = await page.evaluate(async args => {
     // Get the arguments (summaryTagName must be upper-case or null).
     const [
       withItems,
@@ -47,17 +47,19 @@ exports.doTest = async (
       summaryTagName,
       getBadWhatString
     ] = args;
-    // Get all candidates.
+    // Get all violator candidates.
     const candidates = document.body.querySelectorAll(candidateSelector);
     let violationCount = 0;
-    const standardInstances = [];
-    // Get a function that returns a violation description, if any, for the candidate.
+    // Initialize proto-instances.
+    const protoInstances = [];
+    // Parse the supplied string to get the classifier.
     const getBadWhat = eval(`(${getBadWhatString})`);
+    // Initialize data on the rule.
     let data = {};
     const totals = [0, 0, 0, 0];
     // For each candidate:
     for (const candidate of candidates) {
-      // Get the violation description, if any.
+      // Classify it as and get a violation description if a violator or undefined if not.
       const violationWhat = await getBadWhat(candidate);
       // If the candidate violates the rule:
       if (violationWhat) {
@@ -65,7 +67,7 @@ exports.doTest = async (
         violationCount++;
         let ruleWhat;
         const violationType = typeof violationWhat;
-        // If data on the violation were provided:
+        // If data on the violation were provided (unusual):
         if (violationType === 'object') {
           // Get the description and add the data to the rule data.
           ruleWhat = violationWhat.description;
@@ -76,42 +78,32 @@ exports.doTest = async (
           // Get it.
           ruleWhat = violationWhat;
         }
+        const ruleWhatStart = ruleWhat.slice(0, 2);
+        let ordinalSeverity = severity;
+        // If this violation has a custom severity:
+        if (/[0-3]:/.test(ruleWhatStart)) {
+          // Get it.
+          ordinalSeverity = Number(ruleWhat[0]);
+          // Remove it from the violation description.
+          ruleWhat = ruleWhat.slice(2);
+        }
+        // Increment the applicable rule-violation total.
+        totals[ordinalSeverity]++;
         // If itemization is required:
         if (withItems) {
-          const ruleWhatStart = ruleWhat.slice(0, 2);
-          let instanceSeverity = severity;
-          // If this violation has a custom severity:
-          if (/[0-3]:/.test(ruleWhatStart)) {
-            // Get it.
-            instanceSeverity = Number(ruleWhat[0]);
-            // Remove it from the violation description.
-            ruleWhat = ruleWhat.slice(2);
-          }
-          // Increment the violation totals.
-          totals[instanceSeverity]++;
-          // Add an instance to the instances.
-          standardInstances.push(
-            window.getInstance(candidate, ruleID, ruleWhat, 1, instanceSeverity)
-          );
-        }
-        // Otherwise, i.e. if itemization is not required:
-        else {
-          // Increment the violation totals.
-          totals[severity]++;
+          // Add a proto-instance to the proto-instances.
+          protoInstances.push({
+            what: ruleWhat,
+            ordinalSeverity,
+            pathID: window.getXPath(candidate)
+          });
         }
       }
-    }
-    // If there are any violations and itemization is not required:
-    if (violationCount && ! withItems) {
-      // Add a summary instance to the instances.
-      standardInstances.push(
-        window.getInstance(null, ruleID, whats, violationCount, severity, summaryTagName)
-      );
     }
     return {
       data,
       totals,
-      standardInstances
+      protoInstances
     }
   }, [
       withItems,
@@ -123,6 +115,62 @@ exports.doTest = async (
       getBadWhatString
     ]
   );
+  // Initialize the standard instances.
+  let standardInstances = [];
+  // If itemization is required:
+  if (withItems) {
+    // For each proto-instance:
+    ruleData.protoInstances.forEach(protoInstance => {
+      const {what, ordinalSeverity, pathID} = protoInstance;
+      // Initialize a standard instance.
+      const standardInstance = {
+        ruleID,
+        what,
+        ordinalSeverity,
+        count: 1
+      };
+      // If the proto-instance includes an XPath:
+      if (pathID) {
+        // Use it to get the catalog index of the element.
+        const catalogIndex = getXPathCatalogIndex(catalog, pathID);
+        // If the acquisition succeeded:
+        if (catalogIndex) {
+          // Add the catalog index to the standard instance.
+          standardInstance.catalogIndex = catalogIndex;
+        }
+        // Otherwise, i.e. if the acquisition failed:
+        else {
+          // Add the XPath to the standard instance as its path ID.
+          standardInstance.pathID = pathID;
+        }
+      }
+      // Add the standard instance to the standard instances.
+      standardInstances.push(standardInstance);
+    });
+  }
+  // Otherwise, i.e. if itemization is not required:
+  else {
+    const {totals} = ruleData;
+    // For each ordinal severity:
+    for (const index in totals) {
+      // If there were any violations at that severity:
+      if (totals[index]) {
+        // Add a summary standard instance to the standard instances.
+        standardInstances.push({
+          ruleID,
+          what: whats,
+          ordinalSeverity: index,
+          count: totals[index]
+        });
+      }
+    }
+  }
+  // Return the data, totals, and standard instances.
+  return {
+    data,
+    totals,
+    standardInstances
+  };
 };
 // Returns a result from a basic test.
 exports.getBasicResult = async (

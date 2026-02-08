@@ -52,6 +52,6 @@ exports.reporter = async (page, withItems) => {
   const selector = 'body *:not(style, script, svg)';
   const whats = 'Elements have all-capital text';
   return await doTest(
-    page, withItems, 'allCaps', selector, whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'allCaps', selector, whats, 0, null, getBadWhat.toString()
   );
 };
