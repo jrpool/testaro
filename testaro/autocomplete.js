@@ -13,6 +13,10 @@
   This test reports failures to equip name and email inputs with correct autocomplete attributes.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
 // FUNCTIONS
 
 // Runs the test and returns the result.
