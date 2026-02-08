@@ -20,383 +20,388 @@ const {launch} = require('../procs/launch');
 
 // CONSTANTS
 
-// Metadata of all rules in default execution order.
+/*
+  Metadata of all rules in default execution order.
+  launchRoles:
+    sharer: rules that can run in parallel with other rules
+    owner: rules that must run alone
+*/
 const allRules = [
   {
     id: 'shoot0',
     what: 'first page screenshot',
-    launchRole: 'owner',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'adbID',
     what: 'elements with ambiguous or missing referenced descriptions',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allCaps',
     what: 'leaf elements with entirely upper-case text longer than 7 characters',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allHidden',
     what: 'page that is entirely or mostly hidden',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allSlanted',
     what: 'leaf elements with entirely italic or oblique text longer than 39 characters',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'altScheme',
     what: 'img elements with alt attributes having URLs as their entire values',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'attVal',
     what: 'elements with attributes having illicit values',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: false
   },
   {
     id: 'dupAtt',
     what: 'duplicate attribute values',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'autocomplete',
     what: 'name and email inputs without autocomplete attributes',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'bulk',
     what: 'large count of visible elements',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'captionLoc',
     what: 'caption elements that are not first children of table elements',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'datalistRef',
     what: 'elements with ambiguous or missing referenced datalist elements',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'distortion',
     what: 'distorted text',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'docType',
     what: 'document without a doctype property',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'dupAtt',
     what: 'elements with duplicate attributes',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'embAc',
     what: 'active elements embedded in links or buttons',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'headEl',
     what: 'invalid elements within the head',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'headingAmb',
     what: 'same-level sibling headings with identical texts',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'hr',
     what: 'hr element instead of styles used for vertical segmentation',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'imageLink',
     what: 'links with image files as their destinations',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'labClash',
     what: 'labeling inconsistencies',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'legendLoc',
     what: 'legend elements that are not first children of fieldset elements',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'lineHeight',
     what: 'text with a line height less than 1.5 times its font size',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkAmb',
     what: 'links with identical texts but different destinations',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 20,
     defaultOn: true
   },
   {
     id: 'linkExt',
     what: 'links that automatically open new windows',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkOldAtt',
     what: 'links with deprecated attributes',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkTo',
     what: 'links without destinations',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkUl',
     what: 'missing underlines on inline links',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'miniText',
     what: 'text smaller than 11 pixels',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'nonTable',
     what: 'table elements used for layout',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'optRoleSel',
     what: 'Non-option elements with option roles that have no aria-selected attributes',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'phOnly',
     what: 'input elements with placeholders but no accessible names',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'pseudoP',
     what: 'adjacent br elements suspected of nonsemantically simulating p elements',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'radioSet',
     what: 'radio buttons not grouped into standard field sets',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'role',
     what: 'native-replacing explicit roles',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 20,
     defaultOn: true
   },
   {
     id: 'secHeading',
     what: 'headings that violate the logical level order in their sectioning containers',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'styleDiff',
     what: 'style inconsistencies',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'targetSmall',
     what: 'labels, buttons, inputs, and links too near each other',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'textSem',
     what: 'semantically vague elements i, b, and/or small',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'title',
     what: 'page title',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: false
   },
   {
     id: 'titledEl',
     what: 'title attributes on inappropriate elements',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'zIndex',
     what: 'non-default Z indexes',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'shoot1',
     what: 'second page screenshot',
-    launchRole: 'owner',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'motion',
     what: 'motion without user request, measured across tests',
-    launchRole: 'sharer',
+    launchSharer: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'buttonMenu',
     what: 'nonstandard keyboard navigation between items of button-controlled menus',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 15,
     defaultOn: true
   },
   {
     id: 'elements',
     what: 'data on specified elements',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: false
   },
   {
     id: 'focAll',
     what: 'discrepancies between focusable and Tab-focused elements',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'focAndOp',
     what: 'Tab-focusable elements that are not operable or vice versa',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'focInd',
     what: 'missing and nonstandard focus indicators',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'focVis',
     what: 'links that are not entirely visible when focused',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'hover',
     what: 'hover-caused content changes',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 20,
     defaultOn: true
   },
   {
     id: 'hovInd',
     what: 'hover indication nonstandard',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'tabNav',
     what: 'nonstandard keyboard navigation between elements with the tab role',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'textNodes',
     what: 'data on specified text nodes',
-    launchRole: 'waster',
+    launchSharer: false,
     timeOut: 10,
     defaultOn: false
   }
@@ -440,12 +445,15 @@ exports.reporter = async (page, report, actIndex) => {
     ruleData: {}
   };
   const result = {
+    nativeResult: {},
     standardResult: {
       prevented: false,
       totals: [0, 0, 0, 0],
       instances: []
     }
   };
+  const {standardResult} = result;
+  const {totals, instances} = standardResult;
   const allRuleIDs = allRules.map(rule => rule.id);
   // If the rule specification is invalid:
   if (! (
@@ -454,6 +462,7 @@ exports.reporter = async (page, report, actIndex) => {
     && ruleSpec.slice(1).every(ruleID => allRuleIDs.includes(ruleID))
   )) {
     // Report this and stop testing.
+    standardResult.prevented = true;
     data.prevented = true;
     data.error = 'ERROR: Testaro rule specification invalid';
     console.log('ERROR: Testaro rule specification invalid');
@@ -479,10 +488,7 @@ exports.reporter = async (page, report, actIndex) => {
     // Make the browser emulate headedness in all cases, because performance does not suffer.
     const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'high';
     // Get whether it needs a new browser launched.
-    const needsLaunch = ruleIndex
-    && jobRules[ruleIndex - 1].launchRole !== 'sharer'
-    && rule.launchRole !== 'owner'
-    || ! ruleIndex;
+    const needsLaunch = ! (ruleIndex && jobRules[ruleIndex - 1].launchSharer);
     const pageClosed = page && page.isClosed();
     // If it does, or if the page has closed:
     if (needsLaunch || pageClosed) {
@@ -499,8 +505,6 @@ exports.reporter = async (page, report, actIndex) => {
         tempURL: url
       });
     }
-    // Get the current browser.
-    const browser = page.context().browser();
     // Report crashes and disconnections during this test.
     let crashHandler;
     let disconnectHandler;
@@ -510,6 +514,7 @@ exports.reporter = async (page, report, actIndex) => {
       };
       page.on('crash', crashHandler);
     }
+    const browser = page.context().browser();
     if (browser) {
       disconnectHandler = () => {
         console.log(`ERROR: Browser disconnected during ${rule} test`);
@@ -550,9 +555,9 @@ exports.reporter = async (page, report, actIndex) => {
             resolve({timedOut: true});
           }, timeLimit);
         });
-        // Perform the test, subject to the time limit.
+        // Try to perform the test and get a rule report.
         const ruleReport = require(`../testaro/${ruleID}`).reporter(... ruleArgs);
-        // Get the rule report or a timeout report.
+        // Get the rule report, if completed, or a timeout report.
         const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
         // If the test timed out:
         if (ruleOrTimeoutReport.timedOut) {
@@ -567,7 +572,7 @@ exports.reporter = async (page, report, actIndex) => {
           const endTime = Date.now();
           // Add the elapsed time of this test to the tool test times.
           testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
-          // Add data from the rule report to the tool result.
+          // Add the rule report properties (usually data, totals, standardInstances)to the tool result.
           Object.keys(ruleOrTimeoutReport).forEach(key => {
             ruleResult[key] = ruleOrTimeoutReport[key];
           });
