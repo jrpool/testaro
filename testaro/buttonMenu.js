@@ -213,21 +213,12 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
                     ordinalSeverity: 2,
                     count: 1
                   };
-                  // Add a catalog index or XPath to it.
+                  // Add a catalog index or XPath to it if possible.
                   addCatalogIndex(protoInstance, mbLoc, catalog);
-                  // Add an instance to the result.
+                  // Add the proto-instance to the standard instances.
                   standardInstances.push(protoInstance);
-                  // Add an instance to the result.
-                  standardInstances.push({
-                    ruleID: 'buttonMenu',
-                    what: `Menu responds nonstandardly to the ${key} key`,
-                    ordinalSeverity: 2,
-                    tagName: elData.tagName,
-                    id: elData.id,
-                    location: elData.location,
-                    excerpt: elData.excerpt
-                  });
                 }
+                // Stop testing the menu button.
                 break;
               }
             }
@@ -251,18 +242,17 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
       totals[2]++;
       // If itemization is required:
       if (withItems) {
-        // Get data on the menu button.
-        const mbData = await getLocatorData(mbLoc);
-        // Add an instance to the result.
-        standardInstances.push({
+        // Create a proto-instance.
+        const protoInstance = {
           ruleID: 'buttonMenu',
-          what: `Menu button does not control exactly 1 menu`,
+          what: 'Menu button does not control exactly 1 menu',
           ordinalSeverity: 2,
-          tagName: 'BUTTON',
-          id: await mbData.id,
-          location: mbData.location,
-          excerpt: mbData.excerpt
-        });
+          count: 1
+        };
+        // Add a catalog index or XPath to it if possible.
+        addCatalogIndex(protoInstance, mbLoc, catalog);
+        // Add the proto-instance to the standard instances.
+        standardInstances.push(protoInstance);
       }
     }
   }
@@ -274,14 +264,6 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
       what: 'Menu buttons and menus behave nonstandardly',
       count: totals[2],
       ordinalSeverity: 2,
-      tagName: '',
-      id: '',
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: ''
     });
   }
   return {
