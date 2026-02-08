@@ -41,6 +41,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Links that are not list items are not underlined';
   return await doTest(
-    page, withItems, 'linkUl', 'a', whats, 1, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'linkUl', 'a', whats, 1, 'A', getBadWhat.toString()
   );
 };

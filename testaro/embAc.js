@@ -30,5 +30,5 @@ exports.reporter = async (page, withItems) => {
   .map(tag => `a ${tag}, button ${tag}`)
   .join(', ');
   const whats = 'interactive elements are embedded in links or buttons';
-  return await doTest(page, withItems, 'embAc', selector, whats, 2, null, getBadWhat.toString());
+  return await doTest(page, catalog, withItems, 'embAc', selector, whats, 2, null, getBadWhat.toString());
 };

@@ -32,6 +32,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Links are missing href attributes';
   return await doTest(
-    page, withItems, 'linkTo', 'a:not([href]', whats, 2, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'linkTo', 'a:not([href]', whats, 2, 'A', getBadWhat.toString()
   );
 };

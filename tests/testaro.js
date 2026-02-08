@@ -17,7 +17,6 @@
 
 // Function to launch a browser.
 const {launch} = require('../procs/launch');
-const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -518,7 +517,7 @@ exports.reporter = async (page, report, actIndex) => {
       browser.on('disconnected', disconnectHandler);
     }
     // Initialize an argument array for the reporter.
-    const ruleArgs = [page, withItems];
+    const ruleArgs = [page, report.catalog, withItems];
     // If the rule has extra arguments:
     if (argRules && argRules.includes(ruleID)) {
       // Add them to the argument array.

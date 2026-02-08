@@ -38,6 +38,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Elements distort their texts';
   return await doTest(
-    page, withItems, 'distortion', 'body *', whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'distortion', 'body *', whats, 0, null, getBadWhat.toString()
   );
 };

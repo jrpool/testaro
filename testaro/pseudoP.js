@@ -49,6 +49,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'br elements follow other br elements, possibly constituting pseudo-paragraphs';
   return await doTest(
-    page, withItems, 'pseudoP', 'body br', whats, 0, 'BR', getBadWhat.toString()
+    page, catalog, withItems, 'pseudoP', 'body br', whats, 0, 'BR', getBadWhat.toString()
   );
 };
