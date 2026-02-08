@@ -166,3 +166,22 @@ exports.pruneCatalog = report => {
   // Replace the catalog with the pruned catalog.
   report.catalog = prunedCatalog;
 };
+// Adds a catalog index or, if necessary, an XPath to a proto-instance.
+exports.addCatalogIndex = (protoInstance, locator, catalog) => {
+  // Get the XPath of the element referenced by the locator.
+  const xPath = xpath(locator);
+  // Get the catalog index of the element.
+  const catalogIndex = locator.getAttribute('data-catalog-index');
+  // If the element has a catalog index:
+  if (catalogIndex) {
+    // Add it to the proto-instance.
+    protoInstance.catalogIndex = catalogIndex;
+  }
+  // Otherwise, i.e. if the element does not have a catalog index:
+  else {
+    // Get the XPath of the element.
+    const xpath = locator.evaluateHandle(el => el.getPath());
+    // Add it to the proto-instance.
+    protoInstance.xpath = xpath;
+  }
+};
