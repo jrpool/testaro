@@ -99,8 +99,8 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
   const mbLocAll = page.locator(
     'button[aria-controls][aria-expanded][aria-haspopup=true], button[aria-controls][aria-expanded][aria-haspopup=menu]'
   );
-  // For each menu button:
   const mbLocsAll = await mbLocAll.all();
+  // For each menu button:
   for (const mbLoc of mbLocsAll) {
     // Get a locator for its menu.
     const menuID = await mbLoc.getAttribute('aria-controls');
@@ -206,6 +206,17 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
                 totals[2]++;
                 // If itemization is required:
                 if (withItems) {
+                  // Create a proto-instance.
+                  const protoInstance = {
+                    ruleID: 'buttonMenu',
+                    what: `Menu responds nonstandardly to the ${key} key`,
+                    ordinalSeverity: 2,
+                    count: 1
+                  };
+                  // Add a catalog index or XPath to it.
+                  addCatalogIndex(protoInstance, mbLoc, catalog);
+                  // Add an instance to the result.
+                  standardInstances.push(protoInstance);
                   // Add an instance to the result.
                   standardInstances.push({
                     ruleID: 'buttonMenu',

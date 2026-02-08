@@ -12,32 +12,33 @@
   bulk
   This test reports the count of visible elements. The test assumes that simplicity and compactness, with one page having one purpose, is an accessibility virtue. Users with visual, motor, and cognitive disabilities often have trouble finding what they want or understanding the purpose of a page if the page is cluttered with content.
 */
+
+// Runs the test and returns the result.
 exports.reporter = async page => {
   // Get a count of elements deemed visible by Playwright.
-  const visibleElementCount = await page.locator(':visible').count();
-  // Get totals and an instance.
-  const violationData = await page.evaluate(visibleElementCount => {
-    // Convert the count to a severity level, treating up to 400 as non-reportable.
-    const severity = Math.min(4, Math.round(visibleElementCount / 400)) - 1;
-    const totals = [0, 0, 0, 0];
-    const instances = [];
-    // If the severity is reportable:
-    if (severity > -1) {
-      totals[severity] = 1;
-      const what = `Page contains ${visibleElementCount} visible elements`;
-      // Create an instance reporting it.
-      instances.push(window.getInstance(document.documentElement, 'bulk', what, 1, severity));
-    }
+  const visibleElementCount = await page.locator('body :visible').count();
+  // Convert the count to a severity level, treating up to 400 as non-reportable.
+  const severity = Math.min(4, Math.round(visibleElementCount / 400)) - 1;
+  const totals = [0, 0, 0, 0];
+  // If the severity is reportable:
+  if (severity > -1) {
+    totals[severity] = 1;
+    // Return data, totals, and a summary standard instance.
     return {
+      data: {},
       totals,
-      instances
+      standardInstances: [{
+        ruleID: 'bulk',
+        what: `Page contains ${visibleElementCount} visible elements`,
+        ordinalSeverity: severity,
+        count: 1
+      }]
     };
-  }, visibleElementCount);
-  const {totals, instances} = violationData;
-  // Return the result.
+  }
+  // Otherwise, return data, totals, and an empty array of standard instances.
   return {
     data: {},
     totals,
-    standardInstances: instances
+    standardInstances: []
   };
 };
