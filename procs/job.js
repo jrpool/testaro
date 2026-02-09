@@ -296,7 +296,7 @@ exports.cap = rawString => {
   }
 };
 // Simplifies the spacing of a string.
-exports.tidy = string => string.replace(/\s+/g, ' ');
+exports.tidy = string => string.trim().replace(/\s+/g, ' ');
 // Gets a catalog of a target page.
 exports.getCatalog = async (url, browserID) => {
   // Initialize the catalog.
