@@ -255,16 +255,8 @@ exports.reporter = async (page, catalog, withItems) => {
         standardInstances.push({
           ruleID: 'styleDiff',
           what: `${currentData[1]} have ${elementSubtotals.length} different styles`,
-          count: extraCount,
           ordinalSeverity: severity,
-          tagName: currentData[2],
-          id: '',
-          location: {
-            doc: '',
-            type: '',
-            spec: ''
-          },
-          excerpt: ''
+          count: extraCount
         });
       }
     });

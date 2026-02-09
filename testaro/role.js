@@ -45,5 +45,5 @@ exports.reporter = async (page, catalog, withItems) => {
   }
   // Get and return a result.
   const whats = 'Elements have roles assigned that are also implicit HTML element roles';
-  return await getBasicResult(page, withItems, 'role', 0, null, whats, {}, violations);
+  return await getBasicResult(catalog, withItems, 'role', 0, whats, {}, violations);
 };

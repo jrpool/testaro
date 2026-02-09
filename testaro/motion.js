@@ -81,23 +81,8 @@ exports.reporter = async page => {
         standardInstances.push({
           ruleID: 'motion',
           what: violationWhat,
-          count: 1,
           ordinalSeverity,
-          tagName: 'HTML',
-          id: '',
-          location: {
-            doc: 'dom',
-            type: 'box',
-            spec: {
-              x: 0,
-              y: 0,
-              width,
-              height
-            }
-          },
-          excerpt: '<html>…</html>',
-          boxID: `0:0:${width}:${height}`,
-          pathID: '/html'
+          count: 1
         });
       }
     }
