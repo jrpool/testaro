@@ -20,12 +20,13 @@ const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
+// Make and save the second screenshot.
 exports.reporter = async page => {
   const tempFileNames = await fs.readdir(tmpDir);
   let pngPath = '';
   // If there is a shoot0 file:
   if (tempFileNames.includes('testaro-shoot-0.png')) {
-    // Make and save the second screenshot.
+    // Make and save the screenshot.
     pngPath = await shoot(page, 1);
   }
   // Return whether the screenshot was prevented.

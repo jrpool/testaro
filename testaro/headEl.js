@@ -16,7 +16,7 @@
 
 // ########## FUNCTIONS
 
-// Performs the test.
+// Runs the test and returns the result.
 exports.reporter = async page => {
   // Initialize the data and standard result.
   const data = {

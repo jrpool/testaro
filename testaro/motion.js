@@ -29,7 +29,7 @@ const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
-// Reports motion in a page.
+// Runs the test and returns the result.
 exports.reporter = async page => {
   // Initialize the totals and standard instances.
   const data = {};
