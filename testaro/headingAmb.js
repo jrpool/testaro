@@ -13,101 +13,59 @@
   This test reports adjacent headings with the same levels and text contents.
 */
 
-// ########## IMPORTS
+// IMPORTS
 
-// Module to get locator data.
-const {getLocatorData} = require('../procs/getLocatorData');
+const {doTest} = require('../procs/testaro');
+const {tidy} = require('../procs/job');
 
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
 exports.reporter = async (page, catalog, withItems) => {
-  // Initialize the standard result.
-  const data = {};
-  const totals = [0, 0, 0, 0];
-  const standardInstances = [];
-  // Get locators for all the headings.
-  const headingLevels = [1, 2, 3, 4, 5, 6];
-  const locAll = page.locator(headingLevels.map(level => `body h${level}`).join(', '));
-  const locsAll = await locAll.all();
-  const ambIndexes = await locAll.evaluateAll(headings => {
-    // Initialize the array of indexes of violating headings.
-    const badIndexes = [];
-    // For each heading:
-    headings.forEach((heading, index) => {
-      // Get its level.
-      const level = heading.tagName[1];
-      // Get the prior headings.
-      const priorHeadings = headings.slice(0, index);
-      // Get the non-inferior ones among them.
-      const nonInferiors = priorHeadings.filter(priorHeading => priorHeading.tagName[1] <= level);
-      // If there are any:
-      const nonInferiorCount = nonInferiors.length;
-      if (nonInferiorCount) {
-        // Get the last of them.
-        const prior = nonInferiors[nonInferiorCount - 1];
-        // If they have the same level and text:
-        if (['tagName', 'textContent'].every(property => prior[property] === heading[property])) {
-          // Add the index of the later heading to the index of violating headings.
-          badIndexes.push(index);
+  const getBadWhat = element => {
+    const {tagName} = element;
+    const level = tagName[1];
+    const textContent = tidy(element.textContent);
+    const headingTagNames = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+    // Initialize the inspected element as the previous element sibling of the element.
+    let inspectedElement = element.previousElementSibling;
+    // As long as the inspected element exists:
+    while (inspectedElement) {
+      const inspectedTagName = inspectedElement.tagName;
+      // If it is a heading:
+      if (headingTagNames.includes(inspectedTagName)) {
+        // If it is inferior to the element:
+        if (inspectedTagName[1] > level) {
+          // Stop inspecting it and start inspecting its previous sibling.
+          inspectedElement = inspectedElement.previousElementSibling;
+          continue;
         }
-      }
-    });
-    return badIndexes;
-  });
-  // If there were any instances:
-  if (ambIndexes.length) {
-    // Add to the totals.
-    totals[1] = ambIndexes.length;
-    // If itemization is required:
-    if (withItems) {
-      // For each instance:
-      for (const index of ambIndexes) {
-        // If it exists:
-        const loc = locsAll[index];
-        if (loc) {
-          // Get data on the element.
-          const elData = await getLocatorData(loc);
-          // Add a standard instance.
-          standardInstances.push({
-            ruleID: 'headingAmb',
-            what: 'Heading has the same text as the prior same-level sibling heading',
-            ordinalSeverity: 1,
-            tagName: elData.tagName,
-            id: elData.id,
-            location: elData.location,
-            excerpt: elData.excerpt
-          });
+        // Otherwise, if its level is the same as that of the element:
+        else if (inspectedTagName === tagName) {
+          const inspectedTextContent = tidy(inspectedElement.textContent);
+          // If they have identical text contents:
+          if (inspectedTextContent === textContent) {
+            // Return a violation description.
+            return 'Heading has the same text as the prior same-level sibling heading';
+          }
         }
-        // Otherwise, i.e. if it does not exist:
+        // Otherwise, i.e. if it is superior to the element:
         else {
-          // Report this.
-          console.log('ERROR: Reportedly same-text adjacent sibling heading not found');
+          // Stop inspecting.
+          break;
         }
       }
+      // Otherwise, i.e. if it is not a heading:
+      else {
+        // Inspect its previous sibling.
+        inspectedElement = inspectedElement.previousElementSibling;
+      }
     }
-    // Otherwise, i.e. if itemization is not required:
-    else {
-      // Add a summary instance.
-      standardInstances.push({
-        ruleID: 'headingAmb',
-        what: 'Adjacent sibling same-level headings have the same text',
-        ordinalSeverity: 1,
-        count: totals[1],
-        tagName: '',
-        id: '',
-        location: {
-          doc: '',
-          type: '',
-          spec: ''
-        },
-        excerpt: ''
-      });
-    }
-  }
-  return {
-    data,
-    totals,
-    standardInstances
   };
+  const headingLevels = [1, 2, 3, 4, 5, 6];
+  const selector = headingLevels.map(level => `body h${level}`).join(', ');
+  const whats = 'Adjacent sibling same-level headings have the same text';
+  return await doTest(
+    page, catalog, withItems, 'headingAmb', selector, whats, 1, null, getBadWhat.toString()
+  );
 };
