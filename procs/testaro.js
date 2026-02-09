@@ -15,12 +15,8 @@
 
 // ########## IMPORTS
 
-// Module to get locator data.
-const {getLocatorData} = require('./getLocatorData');
-// Module to get element IDs.
-const {boxOf, boxToString} = require('./identify');
-// Module to get XPath catalog index.
-const {getXPathCatalogIndex} = require('./xPath');
+// Function to add a catalog index to a standard instance.
+const {addCatalogIndex} = require('./catalog');
 
 // ########## FUNCTIONS
 
@@ -40,11 +36,8 @@ exports.doTest = async (
     // Get the arguments (summaryTagName must be upper-case or null).
     const [
       withItems,
-      ruleID,
       candidateSelector,
-      whats,
       severity,
-      summaryTagName,
       getBadWhatString
     ] = args;
     // Get all violator candidates.
@@ -172,9 +165,9 @@ exports.doTest = async (
     standardInstances
   };
 };
-// Returns a result from a basic test.
+// Tests for a doTest-ineligible Testaro rule.
 exports.getBasicResult = async (
-  page, withItems, ruleID, ordinalSeverity, summaryTagName, whats, data, violations
+  catalog, withItems, ruleID, ordinalSeverity, whats, data, violations
 ) => {
   // If the test was prevented:
   if (data.prevented) {
@@ -194,22 +187,17 @@ exports.getBasicResult = async (
     // For each violation:
     for (const violation of violations) {
       const {loc, what} = violation;
-      const elData = await getLocatorData(loc);
-      // Get the bounding box of the element.
-      const {tagName, id, location, excerpt} = elData;
-      const box = location.type === 'box' ? location.spec : await boxOf(loc);
-      // Add a standard instance to the instances.
-      standardInstances.push({
+      // Initialize a standard instance.
+      const protoInstance = {
         ruleID,
         what,
         ordinalSeverity,
-        tagName,
-        id,
-        location,
-        excerpt,
-        boxID: boxToString(box),
-        pathID: tagName === 'HTML' ? '/html' : await xPath(loc)
-      });
+        count: 1
+      };
+      // Add a catalog index or path ID to it.
+      addCatalogIndex(protoInstance, loc, catalog);
+      // Add the standard instance to the standard instances.
+      standardInstances.push(protoInstance);
     }
   }
   // Otherwise, i.e. if itemization is not required:
@@ -219,12 +207,7 @@ exports.getBasicResult = async (
       ruleID,
       what: whats,
       ordinalSeverity,
-      summaryTagName,
-      id: '',
-      location: {},
-      excerpt: '',
-      boxID: '',
-      pathID: ''
+      count: violations.length
     });
   }
   // Return the result.

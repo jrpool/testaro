@@ -103,5 +103,5 @@ exports.reporter = async (page, catalog, withItems) => {
   }
   // Get and return a result.
   const whats = 'Hovering over elements changes the number of related visible elements';
-  return await getBasicResult(page, withItems, 'hover', 0, '', whats, data, violations);
+  return await getBasicResult(catalog, withItems, 'hover', 0, whats, data, violations);
 };
