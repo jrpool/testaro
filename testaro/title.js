@@ -11,6 +11,8 @@
   title
   This test reports the page title.
 */
+
+// Runs the test and returns the result.
 exports.reporter = async page => {
   const title = await page.title();
   return {

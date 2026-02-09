@@ -20,7 +20,7 @@ const {getLocatorData} = require('../procs/getLocatorData');
 
 // ########## FUNCTIONS
 
-// Performs the test.
+// Runs the test and returns the result.
 exports.reporter = async (page, catalog, withItems) => {
   // Initialize the standard result.
   const data = {};
