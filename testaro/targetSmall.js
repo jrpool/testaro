@@ -19,7 +19,7 @@
 // Runs the test and returns the result.
 exports.reporter = async (page, catalog, withItems) => {
   // Return totals and standard instances for the rule.
-  return await page.evaluate(withItems => {
+  const protoResult = await page.evaluate(withItems => {
     // Get all pointer targets.
     const allPTs = Array.from(document.body.querySelectorAll('label, button, input, a'));
     // Get the visible ones.
@@ -41,7 +41,7 @@ exports.reporter = async (page, catalog, withItems) => {
     });
     // Initialize the counts of minor and major violations.
     let violationCounts = [0, 0];
-    const instances = [];
+    const protoInstances = [];
     // For each visible pointer target:
     visiblePTs.forEach((element, index) => {
       const [centerX, centerY] = ptsData[index];
@@ -71,8 +71,14 @@ exports.reporter = async (page, catalog, withItems) => {
           // If itemization is required:
           if (withItems) {
             const what = `Pointer-target centerpoint is only ${Math.round(minPlanarDistance)}px from another one`;
-            // Add an instance to the instances.
-            instances.push(window.getInstance(element, 'targetSmall', what, 1, ordinalSeverity));
+            // Add a proto-instance to the proto-instances.
+            protoInstances.push({
+              ruleID: 'targetSmall',
+              what,
+              ordinalSeverity,
+              count: 1,
+              xPath: window.getXPath(element)
+            });
           }
         }
       }
@@ -81,21 +87,31 @@ exports.reporter = async (page, catalog, withItems) => {
     if (! withItems) {
       // If there were any major violations:
       if (violationCounts[1]) {
-        const what = 'Pointer-target centerpoints are less than 24px from others';
-        // Add a summary instance to the instances.
-        instances.push(window.getInstance(null, 'targetSmall', what, violationCounts[1], 1));
+        // Add a summary instance to the proto-instances.
+        protoInstances.push({
+          ruleID: 'targetSmall',
+          what: 'Pointer-target centerpoints are less than 24px from others',
+          ordinalSeverity: 1,
+          count: violationCounts[1]
+        });
       }
       // If there were any minor violations:
       if (violationCounts[0]) {
-        const what = 'Pointer-target centerpoints are less than 44px from others';
-        // Add a summary instance to the instances.
-        instances.push(window.getInstance(null, 'targetSmall', what, violationCounts[0], 0));
+        // Add a summary instance to the proto-instances.
+        protoInstances.push({
+          ruleID: 'targetSmall',
+          what: 'Pointer-target centerpoints are less than 44px from others',
+          ordinalSeverity: 0,
+          count: violationCounts[0]
+        });
       }
     }
     return {
       data: {},
       totals: [...violationCounts, 0, 0],
-      standardInstances: instances
+      standardInstances: protoInstances
     };
   }, withItems);
+  // Return the result.
+  return protoResult;
 };
