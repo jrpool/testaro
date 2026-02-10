@@ -13,88 +13,17 @@
   This test reports nonstandard keyboard navigation among tab elements in visible tab lists. Standards are based on https://www.w3.org/TR/wai-aria-practices-1.1/#tabpanel.
 */
 
+// IMPORTS
+
+import {addCatalogIndex} from '../procs/catalog';
+import {getXPathCatalogIndex} from '../procs/xPath';
+
 // CONSTANTS
 
 const data = {};
 
 // FUNCTIONS
 
-// Returns the text associated with an element.
-const allText = async (page, elementHandle) => await page.evaluate(element => {
-  // Identify the element, if specified, or else the focused element.
-  const el = element || document.activeElement;
-  // Initialize an array of its texts.
-  const texts = [];
-  // FUNCTION DEFINITION START
-  // Removes excess spacing from a string.
-  const debloat = text => text.trim().replace(/\s+/g, ' ');
-  // FUNCTION DEFINITION END
-  // Add any attribute label to the array.
-  const ariaLabel = el.getAttribute('aria-label');
-  if (ariaLabel) {
-    const trimmedLabel = debloat(ariaLabel);
-    if (trimmedLabel) {
-      texts.push(trimmedLabel);
-    }
-  }
-  // Add any explicit and implicit labels to the array.
-  const labelNodeList = el.labels;
-  if (labelNodeList && labelNodeList.length) {
-    const labels = Array.from(labelNodeList);
-    const labelTexts = labels
-    .map(label => label.textContent && debloat(label.textContent))
-    .filter(text => text);
-    if (labelTexts.length) {
-      texts.push(...labelTexts);
-    }
-  }
-  // Add any referenced labels to the array.
-  if (el.hasAttribute('aria-labelledby')) {
-    const labelerIDs = el.getAttribute('aria-labelledby').split(/\s+/);
-    labelerIDs.forEach(id => {
-      const labeler = document.getElementById(id);
-      if (labeler) {
-        const labelerText = debloat(labeler.textContent);
-        if (labelerText) {
-          texts.push(labelerText);
-        }
-      }
-    });
-  }
-  // Add any image text alternatives to the array.
-  const altTexts = Array
-  .from(element.querySelectorAll('img[alt]:not([alt=""])'))
-  .map(img => debloat(img.alt))
-  .join('; ');
-  if (altTexts.length) {
-    texts.push(altTexts);
-  }
-  // Add the first 100 characters of any text content of the element to the array.
-  const ownText = element.textContent;
-  if (ownText) {
-    const minText = debloat(ownText);
-    if (minText) {
-      texts.push(minText.slice(0, 100));
-    }
-  }
-  // Add any ID of the element to the array.
-  const id = element.id;
-  if (id) {
-    texts.push(`#${id}`);
-  }
-  // Identify a concatenation of the texts.
-  let textChain = texts.join('; ');
-  // If it is empty:
-  if (! textChain) {
-    // Substitute the HTML of the element.
-    textChain = `{${debloat(element.outerHTML)}}`;
-    if (textChain === '{}') {
-      textChain = '';
-    }
-  }
-  // Return a concatenation of the texts in the array.
-  return textChain;
-}, elementHandle);
 // Returns the index of the focused tab in an array of tabs.
 const focusedTab = async (tabs, page) => await page.evaluate(tabs => {
   const focus = document.activeElement;
@@ -104,7 +33,7 @@ const focusedTab = async (tabs, page) => await page.evaluate(tabs => {
   console.log(`ERROR: could not find focused tab (${error.message})`);
   return -1;
 });
-// Tests a navigation on a tab element.
+// Tests a navigation on a focused tab element.
 const testKey = async (
   tabs, tabElement, keyName, keyProp, goodIndex, elementIsCorrect, itemData, withItems, page
 ) => {
@@ -247,9 +176,7 @@ const testTabs = async (tabs, index, listOrientation, listIsCorrect, withItems, 
         return 'ERROR: not found';
       });
       if (found) {
-        itemData.tagName = moreItemData.tagName;
-        itemData.id = moreItemData.id;
-        itemData.text = await allText(page, currentTab);
+        itemData.xPath = await page.evaluate(element => window.getXPath(element));
         itemData.navigationErrors = [];
       }
     }
@@ -453,38 +380,37 @@ exports.reporter = async (page, catalog, withItems) => {
   if (withItems) {
     // For each bad tab:
     data.tabElements.incorrect.forEach(item => {
-      // Create a standard instance.
-      standardInstances.push({
+      // Create a proto-instance.
+      const protoInstance = {
         ruleID: 'tabNav',
         what: `Tab responds nonstandardly to ${item.navigationErrors.join(', ')}`,
         ordinalSeverity: 1,
-        tagName: item.tagName,
-        id: item.id,
-        location: {
-          doc: '',
-          type: '',
-          spec: ''
-        },
-        excerpt: item.text
-      });
+        count: 1
+      };
+      // Try to get a catalog index from the xPath of the tab.
+      const catalogIndex = getXPathCatalogIndex(catalog, item.xPath);
+      // If the acquisition succeeded:
+      if (catalogIndex) {
+        // Add the catalog index to the proto-instance.
+        protoInstance.catalogIndex = catalogIndex;
+      }
+      // Otherwise, i.e. if the acquisition failed:
+      else {
+        // Add the XPath to the proto-instance as a path ID.
+        protoInstance.pathID = item.xPath;
+      }
+      // Add the proto-instance to the standard instances.
+      standardInstances.push(protoInstance);
     });
   }
-  // Otherwise, if navigation is not required and any navigations are bad:
+  // Otherwise, if navigation is not required and any navigations were bad:
   else if (data.totals.navigations.all.incorrect) {
     // Create a standard instance.
     standardInstances.push({
       ruleID: 'tabNav',
       what: 'Tab lists have nonstandard navigation',
       ordinalSeverity: 1,
-      count: data.totals.navigations.all.incorrect,
-      tagName: '',
-      id: '',
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: ''
+      count: data.totals.navigations.all.incorrect
     });
   }
   // Return the result.
