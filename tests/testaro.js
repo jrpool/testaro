@@ -619,9 +619,16 @@ exports.reporter = async (page, report, actIndex) => {
           const endTime = Date.now();
           // Add the elapsed time of this test to the tool test times.
           testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
-          // Add the rule report properties (usually data, totals, standardInstances)to the tool result.
+          // Add the rule report properties to the tool result.
           Object.keys(ruleOrTimeoutReport).forEach(key => {
             ruleResult[key] = ruleOrTimeoutReport[key];
+            Object.keys(ruleResult.data).forEach(key => {
+              result.data[ruleID] ??= {};
+              result.data[ruleID][key] = ruleResult.data[key];
+            });
+            ruleResult.standardInstances.forEach(instance => {
+              standardResult.instances.push(instance);
+            });
           });
           // If the test was prevented:
           if (ruleResult.data?.prevented && ruleResult.data.error) {
@@ -633,6 +640,10 @@ exports.reporter = async (page, report, actIndex) => {
           if (ruleResult.totals) {
             // Round them.
             ruleResult.totals = ruleResult.totals.map(total => Math.round(total));
+            // Add them to the tool result.
+            standardResult.totals.forEach((total, index) => {
+              standardResult.totals[index] = total + ruleResult.totals[index];
+            });
           }
           const ruleDataMiscKeys = Object
           .keys(ruleResult.data)
