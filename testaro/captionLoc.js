@@ -31,6 +31,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'caption elements are not the first children of table elements';
   return await doTest(
-    page, catalog, withItems, 'captionLoc', 'caption', whats, 3, 'CAPTION', getBadWhat.toString()
+    page, catalog, withItems, 'captionLoc', 'caption', whats, 3, getBadWhat.toString()
   );
 };

@@ -27,6 +27,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Links have target=_blank attributes';
   return await doTest(
-    page, catalog, withItems, 'linkExt', 'a[target=_blank]', whats, 0, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'linkExt', 'a[target=_blank]', whats, 0, getBadWhat.toString()
   );
 };

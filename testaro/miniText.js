@@ -48,6 +48,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Visible elements have font sizes smaller than 11 pixels';
   return await doTest(
-    page, catalog, withItems, 'miniText', 'body *:not(script, style)', whats, 2, null, getBadWhat.toString()
+    page, catalog, withItems, 'miniText', 'body *:not(script, style)', whats, 2, getBadWhat.toString()
   );
 };

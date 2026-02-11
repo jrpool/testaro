@@ -72,6 +72,6 @@ exports.reporter = async (
   const selector = 'input[type=text], input[type=email], input:not([type])';
   const whats = 'Inputs are missing required autocomplete attributes';
   return doTest(
-    page, catalog, withItems, 'autocomplete', selector, whats, 2, null, getBadWhat.toString()
+    page, catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhat.toString()
   );
 };

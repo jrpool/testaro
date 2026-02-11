@@ -34,6 +34,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'input elements have placeholders but no accessible names';
   return await doTest(
-    page, catalog, withItems, 'phOnly', 'input[placeholder]', whats, 2, 'INPUT', getBadWhat.toString()
+    page, catalog, withItems, 'phOnly', 'input[placeholder]', whats, 2, getBadWhat.toString()
   );
 };

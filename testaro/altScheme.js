@@ -41,6 +41,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'img elements have alt attributes with URL or filename values';
   return await doTest(
-    page, catalog, withItems, 'altScheme', 'img[alt]', whats, 1, 'IMG', getBadWhat.toString()
+    page, catalog, withItems, 'altScheme', 'img[alt]', whats, 1, getBadWhat.toString()
   );
 };
