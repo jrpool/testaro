@@ -171,7 +171,7 @@ const convert = (toolName, data, result, standardResult) => {
   }
   // Otherwise, if the act was not prevented and the tool is self-standardizing:
   else if (
-    ! ['testaro', 'wave', 'wax'].includes(toolName)
+    ! ['wave', 'wax'].includes(toolName)
     && result.standardResult
   ) {
     // Move the results to standard locations.
@@ -187,43 +187,6 @@ const convert = (toolName, data, result, standardResult) => {
   // nuVnu
   else if (toolName === 'nuVnu' && result) {
     doNuVnu(data.withSource, result, standardResult);
-  }
-  // testaro
-  else if (toolName === 'testaro') {
-    // Initialize a record of instance totals by rule and severity.
-    data.ruleTotals = {};
-    // For each violated rule:
-    const rules = result ? Object.keys(result) : [];
-    rules.forEach(rule => {
-      // Copy its instances to the standard result.
-      const ruleResult = result[rule];
-      ruleResult.standardInstances ??= [];
-      standardResult.instances.push(... ruleResult.standardInstances);
-      // Initialize a record of its sample-ratio-weighted totals.
-      data.ruleTotals[rule] = [0, 0, 0, 0];
-      // Add those totals to the record and to the standard result.
-      ruleResult.totals ??= [0, 0, 0, 0];
-      for (const index in ruleResult.totals) {
-        const ruleTotal = ruleResult.totals[index];
-        data.ruleTotals[rule][index] += ruleTotal;
-        standardResult.totals[index] += ruleTotal;
-      }
-    });
-    const preventionCount = result.preventions && result.preventions.length;
-    if (preventionCount) {
-      standardResult.instances.push({
-        ruleID: 'testPrevention',
-        what: 'Page prevented tests from being performed',
-        ordinalSeverity: 3,
-        count: preventionCount,
-        tagName: '',
-        id: '',
-        location: '',
-        excerpt: '',
-        boxID: '',
-        pathID: ''
-      });
-    }
   }
   // wave
   else if (
