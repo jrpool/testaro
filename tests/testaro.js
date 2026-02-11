@@ -22,386 +22,430 @@ const {launch} = require('../procs/launch');
 
 /*
   Metadata of all rules in default execution order.
-  launchRoles:
-    sharer: rules that can run in parallel with other rules
-    owner: rules that must run alone
+  Property needsLaunch is true if the rule is first or the previous one contaminates the page.
 */
 const allRules = [
   {
     id: 'shoot0',
     what: 'first page screenshot',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'adbID',
     what: 'elements with ambiguous or missing referenced descriptions',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allCaps',
     what: 'leaf elements with entirely upper-case text longer than 7 characters',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allHidden',
     what: 'page that is entirely or mostly hidden',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'allSlanted',
     what: 'leaf elements with entirely italic or oblique text longer than 39 characters',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'altScheme',
     what: 'img elements with alt attributes having URLs as their entire values',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'attVal',
     what: 'elements with attributes having illicit values',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: false
   },
   {
-    id: 'dupAtt',
-    what: 'duplicate attribute values',
-    launchSharer: true,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
-    id: 'autocomplete',
-    what: 'name and email inputs without autocomplete attributes',
-    launchSharer: true,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
     id: 'bulk',
     what: 'large count of visible elements',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'captionLoc',
     what: 'caption elements that are not first children of table elements',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'datalistRef',
     what: 'elements with ambiguous or missing referenced datalist elements',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'distortion',
     what: 'distorted text',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'docType',
     what: 'document without a doctype property',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'dupAtt',
-    what: 'elements with duplicate attributes',
-    launchSharer: true,
+    what: 'duplicate attribute values',
+    contaminates: false,
+    needsAccessibleName: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'embAc',
     what: 'active elements embedded in links or buttons',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'headEl',
     what: 'invalid elements within the head',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'headingAmb',
     what: 'same-level sibling headings with identical texts',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'hr',
     what: 'hr element instead of styles used for vertical segmentation',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'imageLink',
     what: 'links with image files as their destinations',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'labClash',
     what: 'labeling inconsistencies',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'legendLoc',
     what: 'legend elements that are not first children of fieldset elements',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'lineHeight',
     what: 'text with a line height less than 1.5 times its font size',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkAmb',
     what: 'links with identical texts but different destinations',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 20,
     defaultOn: true
   },
   {
     id: 'linkExt',
     what: 'links that automatically open new windows',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkOldAtt',
     what: 'links with deprecated attributes',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkTo',
     what: 'links without destinations',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'linkUl',
     what: 'missing underlines on inline links',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'miniText',
     what: 'text smaller than 11 pixels',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'nonTable',
     what: 'table elements used for layout',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'optRoleSel',
     what: 'Non-option elements with option roles that have no aria-selected attributes',
-    launchSharer: true,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
-    id: 'phOnly',
-    what: 'input elements with placeholders but no accessible names',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'pseudoP',
     what: 'adjacent br elements suspected of nonsemantically simulating p elements',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'radioSet',
     what: 'radio buttons not grouped into standard field sets',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'role',
     what: 'native-replacing explicit roles',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 20,
     defaultOn: true
   },
   {
     id: 'secHeading',
     what: 'headings that violate the logical level order in their sectioning containers',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'styleDiff',
     what: 'style inconsistencies',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'targetSmall',
     what: 'labels, buttons, inputs, and links too near each other',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'textSem',
     what: 'semantically vague elements i, b, and/or small',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'title',
     what: 'page title',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: false
   },
   {
     id: 'titledEl',
     what: 'title attributes on inappropriate elements',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'zIndex',
     what: 'non-default Z indexes',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'shoot1',
     what: 'second page screenshot',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'motion',
     what: 'motion without user request, measured across tests',
-    launchSharer: true,
+    contaminates: false,
+    needsAccessibleName: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'autocomplete',
+    what: 'name and email inputs without autocomplete attributes',
+    needsLaunch: true,
+    needsAccessibleName: true,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
+    id: 'phOnly',
+    what: 'input elements with placeholders but no accessible names',
+    contaminates: false,
+    needsAccessibleName: true,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'buttonMenu',
     what: 'nonstandard keyboard navigation between items of button-controlled menus',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 15,
     defaultOn: true
   },
   {
     id: 'elements',
     what: 'data on specified elements',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: false
   },
   {
     id: 'focAll',
     what: 'discrepancies between focusable and Tab-focused elements',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'focAndOp',
     what: 'Tab-focusable elements that are not operable or vice versa',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
   {
     id: 'focInd',
     what: 'missing and nonstandard focus indicators',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'focVis',
     what: 'links that are not entirely visible when focused',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'hover',
     what: 'hover-caused content changes',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 20,
     defaultOn: true
   },
   {
     id: 'hovInd',
     what: 'hover indication nonstandard',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'tabNav',
     what: 'nonstandard keyboard navigation between elements with the tab role',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: true
   },
   {
     id: 'textNodes',
     what: 'data on specified text nodes',
-    launchSharer: false,
+    contaminates: true,
+    needsAccessibleName: false,
     timeOut: 10,
     defaultOn: false
   }
@@ -453,7 +497,6 @@ exports.reporter = async (page, report, actIndex) => {
     }
   };
   const {standardResult} = result;
-  const {totals, instances} = standardResult;
   const allRuleIDs = allRules.map(rule => rule.id);
   // If the rule specification is invalid:
   if (! (
@@ -488,7 +531,9 @@ exports.reporter = async (page, report, actIndex) => {
     // Make the browser emulate headedness in all cases, because performance does not suffer.
     const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'high';
     // Get whether it needs a new browser launched.
-    const needsLaunch = ! (ruleIndex && jobRules[ruleIndex - 1].launchSharer);
+    const needsLaunch = ruleIndex === 0
+    || jobRules[ruleIndex - 1].contaminates
+    || jobRules[ruleIndex].needsAccessibleName && ! jobRules[ruleIndex - 1].needsAccessibleName;
     const pageClosed = page && page.isClosed();
     // If it does, or if the page has closed:
     if (needsLaunch || pageClosed) {
@@ -502,7 +547,9 @@ exports.reporter = async (page, report, actIndex) => {
         report,
         actIndex,
         tempBrowserID: browserID,
-        tempURL: url
+        tempURL: url,
+        xPathNeed: 'script',
+        needsAccessibleName: jobRules[ruleIndex].needsAccessibleName
       });
     }
     // Report crashes and disconnections during this test.
