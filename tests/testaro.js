@@ -126,7 +126,7 @@ const allRules = [
     id: 'dupAtt',
     what: 'duplicate attribute values',
     contaminates: false,
-    needsAccessibleName: true,
+    needsAccessibleName: false,
     timeOut: 5,
     defaultOn: true
   },
@@ -357,7 +357,7 @@ const allRules = [
   {
     id: 'autocomplete',
     what: 'name and email inputs without autocomplete attributes',
-    needsLaunch: true,
+    contaminates: false,
     needsAccessibleName: true,
     timeOut: 5,
     defaultOn: true

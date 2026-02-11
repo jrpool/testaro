@@ -387,13 +387,12 @@ const launchOnce = async opts => {
       // If an accessible-name computation script is needed:
       if (needsAccessibleName) {
         // Add the dom-accessibility-api script to the page to compute an accessible name.
-        await page.addInitScript({path: require.resolve('./dist/nameComputation.js')});
+        await page.addInitScript({path: require.resolve('../dist/nameComputation.js')});
         // Add a script to the page to:
         await page.addInitScript(() => {
           // Add a window method to compute the accessible name of an element.
           window.getAccessibleName = element => {
-            const nameIsComputable = element
-            && element.nodeType === Node.ELEMENT_NODE
+            const nameIsComputable = element?.nodeType === Node.ELEMENT_NODE
             && typeof window.computeAccessibleName === 'function';
             return nameIsComputable ? window.computeAccessibleName(element) : '';
           };
