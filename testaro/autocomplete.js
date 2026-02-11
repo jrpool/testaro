@@ -81,13 +81,9 @@ exports.reporter = async (
   const placeHolders = Object.keys(labels).map(key => `__${key}Labels__`);
   const replacers = Object.values(labels).map(value => JSON.stringify(value));
   // Create a stringified getBadWhat, with placeholders replaced with the specified label arrays.
-  const getBadWhatString = getBadWhat
-  .toString()
-  .replace(placeHolders[0], replacers[0])
-  .replace(placeHolders[1], replacers[1])
-  .replace(placeHolders[2], replacers[2])
-  .replace(placeHolders[3], replacers[3]);
-  return doTest(
-    page, catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString()
-  );
+  let getBadWhatString = getBadWhat.toString();
+  [0, 1, 2, 3].forEach(index => {
+    getBadWhatString = getBadWhatString.replace(placeHolders[index], replacers[index]);
+  });
+  return doTest(page, catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString);
 };
