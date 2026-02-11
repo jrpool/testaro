@@ -15,7 +15,7 @@
 
 // IMPORTS
 
-import {getXPathCatalogIndex} from '../procs/xPath';
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
