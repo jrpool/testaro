@@ -106,10 +106,11 @@ exports.doTest = async (
   );
   // Initialize the standard instances.
   let standardInstances = [];
+  const {data, totals, protoInstances} = ruleData;
   // If itemization is required:
   if (withItems) {
     // For each proto-instance:
-    ruleData.protoInstances.forEach(protoInstance => {
+    protoInstances.forEach(protoInstance => {
       const {what, ordinalSeverity, pathID} = protoInstance;
       // Initialize a standard instance.
       const standardInstance = {
@@ -139,7 +140,6 @@ exports.doTest = async (
   }
   // Otherwise, i.e. if itemization is not required:
   else {
-    const {totals} = ruleData;
     // For each ordinal severity:
     for (const index in totals) {
       // If there were any violations at that severity:
