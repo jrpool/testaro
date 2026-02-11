@@ -15,7 +15,6 @@
 
 // IMPORTS
 
-import {addCatalogIndex} from '../procs/catalog';
 import {getXPathCatalogIndex} from '../procs/xPath';
 
 // CONSTANTS
