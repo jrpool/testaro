@@ -36,6 +36,12 @@ exports.reporter = async (
     const accessibleName = window.getAccessibleName(element).toLowerCase();
     const {type} = element;
     let requiredAuto = '';
+    const labels = {
+      name: ['__nameLabels__'],
+      email: ['__emailLabels__'],
+      given: ['__givenLabels__'],
+      family: ['__familyLabels__']
+    };
     // Get its required autocomplete value.
     if (
       type === 'email'
@@ -72,7 +78,16 @@ exports.reporter = async (
   };
   const selector = 'input[type=text], input[type=email], input:not([type])';
   const whats = 'Inputs are missing required autocomplete attributes';
+  const placeHolders = Object.keys(labels).map(key => `__${key}Labels__`);
+  const replacers = Object.values(labels).map(value => JSON.stringify(value));
+  // Create a stringified getBadWhat, with placeholders replaced with the specified label arrays.
+  const getBadWhatString = getBadWhat
+  .toString()
+  .replace(placeHolders[0], replacers[0])
+  .replace(placeHolders[1], replacers[1])
+  .replace(placeHolders[2], replacers[2])
+  .replace(placeHolders[3], replacers[3]);
   return doTest(
-    page, catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhat.toString()
+    page, catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString()
   );
 };
