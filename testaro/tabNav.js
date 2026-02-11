@@ -162,22 +162,9 @@ const testTabs = async (tabs, index, listOrientation, listIsCorrect, withItems, 
     const itemData = {};
     // If itemization is required:
     if (withItems) {
-      let found = true;
       // Initialize a report on the element.
-      const moreItemData = await page.evaluate(element => ({
-        tagName: element.tagName,
-        id: element.id
-      }), currentTab)
-      .catch(error => {
-        console.log(`ERROR: could not get tag name (${error.message})`);
-        found = false;
-        data.prevented = true;
-        return 'ERROR: not found';
-      });
-      if (found) {
-        itemData.xPath = await page.evaluate(element => window.getXPath(element));
-        itemData.navigationErrors = [];
-      }
+      itemData.xPath = await page.evaluate(element => window.getXPath(element));
+      itemData.navigationErrors = [];
     }
     // Test the element with each navigation key.
     isCorrect = await testKey(
