@@ -17,7 +17,7 @@
 
 // Shared configuration for timeout multiplier.
 const {applyMultiplier} = require('../procs/config');
-import {getXPathCatalogIndex} from '../procs/xPath';
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
