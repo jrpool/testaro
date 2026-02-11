@@ -29,6 +29,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = '[title]:not(iframe, link, style)';
   const whats = 'title attributes are used on elements they are likely ineffective on';
   return await doTest(
-    page, catalog, withItems, 'titledEl', selector, whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'titledEl', selector, whats, 0, getBadWhat.toString()
   );
 };

@@ -39,6 +39,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'i, b, small';
   const whats = 'Semantically vague elements i, b, and/or small are used';
   return await doTest(
-    page, catalog, withItems, 'textSem', selector, whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'textSem', selector, whats, 0, getBadWhat.toString()
   );
 };

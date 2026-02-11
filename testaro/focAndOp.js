@@ -116,6 +116,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements are Tab-focusable but not operable or vice versa';
   return await doTest(
-    page, catalog, withItems, 'focAndOp', 'body *', whats, 2, null, getBadWhat.toString()
+    page, catalog, withItems, 'focAndOp', 'body *', whats, 2, getBadWhat.toString()
   );
 };

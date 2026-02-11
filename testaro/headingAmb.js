@@ -66,6 +66,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = headingLevels.map(level => `body h${level}`).join(', ');
   const whats = 'Adjacent sibling same-level headings have the same text';
   return await doTest(
-    page, catalog, withItems, 'headingAmb', selector, whats, 1, null, getBadWhat.toString()
+    page, catalog, withItems, 'headingAmb', selector, whats, 1, getBadWhat.toString()
   );
 };

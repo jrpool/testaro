@@ -86,6 +86,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements fail to have standard focus indicators';
   return await doTest(
-    page, catalog, withItems, 'focInd', 'body *', whats, 1, null, getBadWhat.toString()
+    page, catalog, withItems, 'focInd', 'body *', whats, 1, getBadWhat.toString()
   );
 };

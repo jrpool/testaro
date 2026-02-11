@@ -33,6 +33,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Legend elements are not the first children of fieldset elements';
   return await doTest(
-    page, catalog, withItems, 'legendLoc', 'legend', whats, 3, 'LEGEND', getBadWhat.toString()
+    page, catalog, withItems, 'legendLoc', 'legend', whats, 3, getBadWhat.toString()
   );
 };

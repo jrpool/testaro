@@ -29,11 +29,10 @@ exports.doTest = async (
   candidateSelector,
   whats,
   severity,
-  summaryTagName,
   getBadWhatString
 ) => {
   const ruleData = await page.evaluate(async args => {
-    // Get the arguments (summaryTagName must be upper-case or null).
+    // Get the arguments.
     const [
       withItems,
       candidateSelector,
@@ -100,11 +99,8 @@ exports.doTest = async (
     }
   }, [
       withItems,
-      ruleID,
       candidateSelector,
-      whats,
       severity,
-      summaryTagName,
       getBadWhatString
     ]
   );
