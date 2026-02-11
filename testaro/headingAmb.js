@@ -16,7 +16,6 @@
 // IMPORTS
 
 const {doTest} = require('../procs/testaro');
-const {tidy} = require('../procs/job');
 
 // ########## FUNCTIONS
 
@@ -25,7 +24,7 @@ exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const {tagName} = element;
     const level = tagName[1];
-    const textContent = tidy(element.textContent);
+    const textContent = element.textContent.trim().replace(/\s+/g, ' ');
     const headingTagNames = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
     // Initialize the inspected element as the previous element sibling of the element.
     let inspectedElement = element.previousElementSibling;
@@ -42,7 +41,7 @@ exports.reporter = async (page, catalog, withItems) => {
         }
         // Otherwise, if its level is the same as that of the element:
         else if (inspectedTagName === tagName) {
-          const inspectedTextContent = tidy(inspectedElement.textContent);
+          const inspectedTextContent = inspectedElement.textContent.trim().replace(/\s+/g, ' ');
           // If they have identical text contents:
           if (inspectedTextContent === textContent) {
             // Return a violation description.

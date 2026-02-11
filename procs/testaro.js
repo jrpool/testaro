@@ -17,6 +17,8 @@
 
 // Function to add a catalog index to a standard instance.
 const {addCatalogIndex} = require('./catalog');
+// Function to get a catalog index from an XPath.
+const {getXPathCatalogIndex} = require('./xPath');
 
 // ########## FUNCTIONS
 

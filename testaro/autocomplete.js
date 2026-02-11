@@ -22,6 +22,7 @@ const {doTest} = require('../procs/testaro');
 // Runs the test and returns the result.
 exports.reporter = async (
   page,
+  catalog,
   withItems,
   labels = {
     name: ['your name', 'full name', 'first and last name'],

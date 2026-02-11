@@ -84,7 +84,7 @@ exports.reporter = async (page, catalog, withItems) => {
     return {
       data: {},
       totals: [0, 0, violationCount, 0],
-      standardInstances: instances
+      standardInstances
     };
   }, withItems);
 };
