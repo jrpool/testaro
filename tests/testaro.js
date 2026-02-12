@@ -523,8 +523,7 @@ exports.reporter = async (page, report, actIndex) => {
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
   // For each rule to be tested for:
-  for (const ruleIndexString in jobRules) {
-    const ruleIndex = Number.parseInt(ruleIndexString);
+  for (const ruleIndex in jobRules) {
     const rule = jobRules[ruleIndex];
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
@@ -571,13 +570,13 @@ exports.reporter = async (page, report, actIndex) => {
     // Initialize an argument array for the reporter.
     const ruleArgs = [page, report.catalog, withItems];
     // If the rule has extra arguments:
-    if (argRules && argRules.includes(ruleID)) {
+    if (argRules?.includes(ruleID)) {
       // Add them to the argument array.
       ruleArgs.push(... args[ruleID]);
     }
     // Initialize the rule result.
     const ruleResult = {
-      what: rule.what ?? ''
+      ruleWhat: rule.what ?? ''
     };
     const startTime = Date.now();
     let timeout;
@@ -596,6 +595,7 @@ exports.reporter = async (page, report, actIndex) => {
             testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
             data.rulePreventions.push(ruleID);
             data.rulePreventionMessages[ruleID] = 'Timeout';
+            delete ruleResult.ruleWhat;
             ruleResult.totals = [0, 0, 0, 0];
             ruleResult.standardInstances = [];
             console.log(`ERROR: Test of testaro rule ${ruleID} timed out`);
@@ -620,15 +620,15 @@ exports.reporter = async (page, report, actIndex) => {
           // Add the elapsed time of this test to the tool test times.
           testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
           // Add the rule report properties to the tool result.
-          Object.keys(ruleOrTimeoutReport).forEach(key => {
-            ruleResult[key] = ruleOrTimeoutReport[key];
-            Object.keys(ruleResult.data).forEach(key => {
-              result.data[ruleID] ??= {};
-              result.data[ruleID][key] = ruleResult.data[key];
-            });
-            ruleResult.standardInstances.forEach(instance => {
-              standardResult.instances.push(instance);
-            });
+          result.data[ruleID] = ruleOrTimeoutReport[key].data;
+          standardResult.totals.forEach((total, index) => {
+            result.totals[index] = total + Math.round(ruleResult.totals[index]);
+          });
+          ruleOrTimeoutReport.standardInstances.forEach(instance => {
+            if (! instance.what) {
+              instance.what = ruleResult.ruleWhat;
+            }
+            standardResult.instances.push(instance);
           });
           // If the test was prevented:
           if (ruleResult.data?.prevented && ruleResult.data.error) {
@@ -636,24 +636,6 @@ exports.reporter = async (page, report, actIndex) => {
             data.rulePreventions.push(ruleID);
             data.rulePreventionMessages[ruleID] = ruleResult.data.error;
           }
-          // If the result includes totals:
-          if (ruleResult.totals) {
-            // Round them.
-            ruleResult.totals = ruleResult.totals.map(total => Math.round(total));
-            // Add them to the tool result.
-            standardResult.totals.forEach((total, index) => {
-              standardResult.totals[index] = total + ruleResult.totals[index];
-            });
-          }
-          const ruleDataMiscKeys = Object
-          .keys(ruleResult.data)
-          .filter(key => ! ['prevented', 'error'].includes(key));
-          // For any other property of the rule report data object:
-          ruleDataMiscKeys.forEach(key => {
-            data.ruleData[ruleID] ??= {};
-            // Add it to the tool data.
-            data.ruleData[ruleID][key] = ruleResult.data[key];
-          });
           // Prevent a retry of the test.
           testSuccess = true;
           // If testing is to stop after a failure and the page failed the test:
