@@ -484,7 +484,7 @@ exports.reporter = async (page, report, actIndex) => {
     error: '',
     rulePreventions: {},
     rulesInvalid: [],
-    ruleTestTimes: {},
+    ruleTestTimes: [],
     ruleData: {}
   };
   // Initialize the act result.
@@ -580,8 +580,8 @@ exports.reporter = async (page, report, actIndex) => {
         // Apply a time limit to the test.
         const timeLimit = 1000 * timeoutMultiplier * rule.timeOut;
         // If the time limit expires during the test:
-        const timer = new Promise(resolve => {
-          timer = setTimeout(() => {
+        timer = new Promise(resolve => {
+          setTimeout(() => {
             // Add data about the timeout to the rule result.
             ruleResult.prevented = true;
             ruleResult.error = 'Timeout';
