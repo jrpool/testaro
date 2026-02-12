@@ -478,16 +478,16 @@ exports.reporter = async (page, report, actIndex) => {
   // Get the specification of rules to be tested for.
   const ruleSpec = act.rules
   || ['y', ... allRules.filter(rule => rule.defaultOn).map(rule => rule.id)];
-  // Initialize the act report.
+  // Initialize the act data.
   const data = {
     prevented: false,
     error: '',
-    rulePreventions: [],
-    rulePreventionMessages: {},
+    rulePreventions: {},
     rulesInvalid: [],
     ruleTestTimes: {},
     ruleData: {}
   };
+  // Initialize the act result.
   const result = {
     nativeResult: {},
     standardResult: {
@@ -523,13 +523,13 @@ exports.reporter = async (page, report, actIndex) => {
   const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
   const testTimes = [];
   // For each rule to be tested for:
-  for (const ruleIndex in jobRules) {
+  for (let ruleIndex = 0; ruleIndex < jobRules.length; ruleIndex++) {
     const rule = jobRules[ruleIndex];
     const ruleID = rule.id;
     console.log(`Starting rule ${ruleID}`);
     // Make the browser emulate headedness in all cases, because performance does not suffer.
     const headEmulation = ruleID.startsWith('shoot') ? 'high' : 'high';
-    // Get whether it needs a new browser launched.
+    // Get whether the rule needs a new browser launched.
     const needsLaunch = ruleIndex === 0
     || jobRules[ruleIndex - 1].contaminates
     || jobRules[ruleIndex].needsAccessibleName && ! jobRules[ruleIndex - 1].needsAccessibleName;
@@ -576,6 +576,10 @@ exports.reporter = async (page, report, actIndex) => {
     }
     // Initialize the rule result.
     const ruleResult = {
+      data: {},
+      totals: [0, 0, 0, 0],
+      standardInstances: [],
+      elapsedTime: 0,
       ruleWhat: rule.what ?? ''
     };
     const startTime = Date.now();
@@ -585,44 +589,42 @@ exports.reporter = async (page, report, actIndex) => {
     // Until all permitted retries are exhausted or the test succeeds:
     while (testRetries > 0 && ! testSuccess) {
       try {
+        console.log('XXX Starting to try');
         // Apply a time limit to the test.
         const timeLimit = 1000 * timeoutMultiplier * rule.timeOut;
         // If the time limit expires during the test:
         const timer = new Promise(resolve => {
           timeout = setTimeout(() => {
-            // Add data about the test, including its prevention, to the tool data and rule result.
+            // Add data about the test, including its prevention, to the rule or tool result.
             const endTime = Date.now();
             testTimes.push([rule, Math.round((endTime - startTime) / 1000)]);
-            data.rulePreventions.push(ruleID);
-            data.rulePreventionMessages[ruleID] = 'Timeout';
+            ruleResult.data.prevented = true;
+            ruleResult.data.error = 'Timeout';
             delete ruleResult.ruleWhat;
-            ruleResult.totals = [0, 0, 0, 0];
-            ruleResult.standardInstances = [];
             console.log(`ERROR: Test of testaro rule ${ruleID} timed out`);
             resolve({timedOut: true});
           }, timeLimit);
         });
-        // Try to perform the test and get a rule report.
-        const ruleReport = require(`../testaro/${ruleID}`).reporter(... ruleArgs);
-        // Get the rule report, if completed, or a timeout report.
-        const ruleOrTimeoutReport = await Promise.race([timer, ruleReport]);
-        // If the test timed out:
-        if (ruleOrTimeoutReport.timedOut) {
-          // Report this.
-          data.rulePreventions.push(ruleID);
-          data.rulePreventionMessages[ruleID] = 'Timeout';
+        // Try to perform the test and get a test report.
+        const testReport = require(`../testaro/${ruleID}`).reporter(... ruleArgs);
+        console.log('XXX Got testReport');
+        // Get a test or timeout report.
+        const ruleReport = await Promise.race([timer, testReport]);
+        // If it was a timeout report:
+        if (ruleReport.timedOut) {
           // Stop retrying the test.
           break;
         }
         // Otherwise, i.e. if the test was completed:
         else {
+          console.log('XXX Test completed');
           const endTime = Date.now();
-          // Add the elapsed time of this test to the tool test times.
-          testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
-          // Add the rule report properties to the tool result.
-          result.data[ruleID] = ruleOrTimeoutReport[key].data;
+          // Add the rule report properties to the rule result.
+          ruleResult.data = ruleReport.data;
+          ruleResult.totals = ruleReport.totals;
+          ruleResult.standardInstances = ruleReport.standardInstances;
           standardResult.totals.forEach((total, index) => {
-            result.totals[index] = total + Math.round(ruleResult.totals[index]);
+            standardResult.totals[index] = total + Math.round(ruleResult.totals[index]);
           });
           ruleOrTimeoutReport.standardInstances.forEach(instance => {
             if (! instance.what) {
@@ -630,12 +632,6 @@ exports.reporter = async (page, report, actIndex) => {
             }
             standardResult.instances.push(instance);
           });
-          // If the test was prevented:
-          if (ruleResult.data?.prevented && ruleResult.data.error) {
-            // Add this to the tool data.
-            data.rulePreventions.push(ruleID);
-            data.rulePreventionMessages[ruleID] = ruleResult.data.error;
-          }
           // Prevent a retry of the test.
           testSuccess = true;
           // If testing is to stop after a failure and the page failed the test:
@@ -643,6 +639,8 @@ exports.reporter = async (page, report, actIndex) => {
             // Stop testing.
             break;
           }
+          // Add the elapsed time of this test to the tool test times.
+          testTimes.push([ruleID, Math.round((endTime - startTime) / 1000)]);
         }
       }
       // If an error is thrown by the test:
