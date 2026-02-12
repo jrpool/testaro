@@ -22,6 +22,7 @@ const https = require('https');
 
 // Conducts and reports the WAVE tests.
 exports.reporter = async (page, report, actIndex) => {
+  // Create a host and a path for a request to the WAVE API.
   const act = report.acts[actIndex];
   const {reportType, url, prescript, postscript, rules} = act;
   const waveKey = process.env.WAVE_KEY;
@@ -47,7 +48,7 @@ exports.reporter = async (page, report, actIndex) => {
   let result = {};
   try {
     result = await new Promise(resolve => {
-      // Get the test results.
+      // Make the request.
       https.get(
         {
           host,
