@@ -578,9 +578,10 @@ exports.reporter = async (page, report, actIndex) => {
       try {
         // Apply a time limit to the test.
         const timeLimit = 1000 * timeoutMultiplier * rule.timeOut;
+        let timeout;
         // If the time limit expires during the test:
         timer = new Promise(resolve => {
-          setTimeout(() => {
+          timeout = setTimeout(() => {
             // Add data about the timeout to the rule result.
             ruleResult.prevented = true;
             ruleResult.error = 'Timeout';
@@ -592,6 +593,7 @@ exports.reporter = async (page, report, actIndex) => {
         const testReport = require(`../testaro/${ruleResult.id}`).reporter(... ruleArgs);
         // Get a test or timeout report.
         const ruleReport = await Promise.race([timer, testReport]);
+        clearTimeout(timeout);
         // If it was a test report:
         if (! ruleReport.timedOut) {
           // Add the rule-report properties to the rule result.
