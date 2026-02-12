@@ -511,7 +511,6 @@ exports.reporter = async (page, report, actIndex) => {
     ? ruleSpec.slice(1)
     : allRules.filter(rule => rule.defaultOn && ! allRuleIDs.includes(rule.id));
     const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
-    const testTimes = [];
     // For each rule to be tested for:
     for (let ruleIndex = 0; ruleIndex < jobRules.length; ruleIndex++) {
       const rule = jobRules[ruleIndex];
@@ -603,10 +602,14 @@ exports.reporter = async (page, report, actIndex) => {
           if (Object.keys(ruleReport.data).length) {
             data.ruleData[ruleResult.id] = ruleResult.data;
           }
-          ruleResult.totals.forEach((total, index) => {
-            result.totals[index] += Math.round(total);
-          });
-          standardResult.instances.push(... ruleResult.instances);
+          if (ruleResult.totals) {
+            ruleResult.totals.forEach((total, index) => {
+              standardResult.totals[index] += Math.round(total);
+            });
+          }
+          if (ruleResult.instances) {
+            standardResult.instances.push(... ruleResult.instances);
+          }
           // If testing is to stop after a failure and the page failed the test:
           if (stopOnFail && ruleReport.totals?.some(total => total)) {
             // Test for no more rules.
@@ -676,6 +679,7 @@ exports.reporter = async (page, report, actIndex) => {
     data.error = message;
     console.log(message);
   }
+  console.log('XXX 3');
   return {
     data,
     result
