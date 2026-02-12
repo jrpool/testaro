@@ -679,7 +679,6 @@ exports.reporter = async (page, report, actIndex) => {
     data.error = message;
     console.log(message);
   }
-  console.log('XXX 3');
   return {
     data,
     result
