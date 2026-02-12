@@ -640,8 +640,6 @@ exports.reporter = async (page, report, actIndex) => {
         }
       }
       finally {
-        // Clear the timer.
-        clearTimeout(timer);
         // Add the elapsed time to the rule result.
         ruleResult.elapsedTime = Math.round((Date.now() - startTime) / 1000);
         // Add the elapsed time to the data.
