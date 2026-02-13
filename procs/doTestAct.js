@@ -18,17 +18,13 @@
 
 // Log uncaught exceptions.
 process.on('uncaughtException', error => {
-  console.error(`File: ${__filename}`);
-  console.error(`Message: ${error.message}`);
-  console.error(`Stack:\n${error.stack}`);
+  console.error(`ERROR:\n${error.stack || 'Uncaught exception'}`);
   process.exit(1);
 });
 
 // Log unhandled rejections.
 process.on('unhandledRejection', reason => {
-  console.error(`File: ${__filename}`);
-  console.error(`Reason: ${reason?.message || reason}`);
-  console.error(`Stack:\n${reason?.stack || 'no stack available'}`);
+  console.error(`ERROR:\n${reason?.stack || 'Unhandled rejection'}`);
   process.exit(1);
 });
 
