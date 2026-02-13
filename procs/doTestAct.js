@@ -33,7 +33,8 @@ const xPathNeeds = {
   ibm: 'attribute',
   nuVal: 'attribute',
   nuVnu: 'attribute',
-  qualWeb: 'attribute'
+  qualWeb: 'attribute',
+  wave: 'script'
 };
 const accessibleNameNeeders = ['testaro'];
 
