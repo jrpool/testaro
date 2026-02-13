@@ -156,7 +156,7 @@ exports.reporter = async (page, report, actIndex) => {
                     // If the path ID of the violator was found:
                     if (pathID) {
                       // Get the catalog index of the violator.
-                      const catalogIndex = getXPathCatalogIndex(pathID);
+                      const catalogIndex = getXPathCatalogIndex(report.catalog, pathID);
                       // If the acquisition succeeded:
                       if (catalogIndex) {
                         // Add the catalog index to the instance.
