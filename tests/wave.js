@@ -59,8 +59,8 @@ exports.reporter = async (page, report, actIndex) => {
       instances: []
     };
   }
-  // Make a request to the WAVE API.
-  https.get(
+  // Get and process a WAVE API report and return the results.
+  return await new Promise(resolve => https.get(
     {
       host,
       path
@@ -92,7 +92,7 @@ exports.reporter = async (page, report, actIndex) => {
           delete categories.structure;
           delete categories.aria;
           // For each WAVE rule category:
-          ['error', 'contrast', 'alert'].forEach(categoryName => {
+          for (const categoryName of ['error', 'contrast', 'alert']) {
             const category = categories[categoryName];
             const ordinalSeverity = categoryName === 'alert' ? 0 : 3;
             // If any violations were reported:
@@ -170,36 +170,25 @@ exports.reporter = async (page, report, actIndex) => {
                 }
               }
             }
-          });
-          // Add important data to the result.
-          if (statistics) {
-            data.pageTitle = statistics.pagetitle || '';
-            data.pageURL = statistics.pageurl || '';
-            data.elapsedSeconds = statistics.time || null;
-            data.creditsRemaining = statistics.creditsremaining || null;
-            data.allItemCount = statistics.allitemcount || null;
-            data.totalElements = statistics.totalelements || null;
-            data.waveURL = statistics.waveurl || '';
           }
-          // Return the result.
-          resolve(actResult);
-            }
-            catch(error) {
-              data.prevented = true;
-              data.error = error.message;
-              resolve(actResult);
-            };
-          });
         }
-      );
-    });
-  }
-  catch (error) {
-    data.prevented = true;
-    data.error = error.message;
-  };
-  return {
-    data,
-    result
-  };
+        const {statistics} = nativeResult;
+        if (statistics) {
+          // Copy important data from the native result to the result.
+          data.pageTitle = statistics.pagetitle || '';
+          data.pageURL = statistics.pageurl || '';
+          data.elapsedSeconds = statistics.time || null;
+          data.creditsRemaining = statistics.creditsremaining || null;
+          data.allItemCount = statistics.allitemcount || null;
+          data.totalElements = statistics.totalelements || null;
+          data.waveURL = statistics.waveurl || '';
+        }
+        // Return the result.
+        resolve({
+          data,
+          result
+        });
+      });
+    }
+  ));
 };
