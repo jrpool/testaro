@@ -105,63 +105,6 @@ const doNuVal = (withSource, result, standardResult) => {
 const doNuVnu = (withSource, result, standardResult) => {
   doNu(withSource, result, standardResult);
 };
-// Converts instances of a wave rule category.
-const doWAVE = (result, standardResult, categoryName) => {
-  // If results for the category are reported:
-  if (result.categories && result.categories[categoryName]) {
-    const category = result.categories[categoryName];
-    const ordinalSeverity = categoryName === 'alert' ? 0 : 3;
-    const {items} = category;
-    // If any violations in the category are reported:
-    if (items) {
-      // For each rule violated:
-      Object.keys(items).forEach(ruleID => {
-        const item = items[ruleID];
-        // For each violation:
-        item.selectors.forEach(violationFacts => {
-          let tagName = '';
-          let id = '';
-          const finalTerm = violationFacts[0].replace(/^.+\s/, '');
-          // If the selector is an element ID:
-          if (finalTerm.includes('#')) {
-            const finalArray = finalTerm.split('#');
-            // Use it to get the element tagname and ID
-            tagName = finalArray[0].replace(/:.*/, '');
-            id = isBadID(finalArray[1]) ? '' : finalArray[1];
-          }
-          // Otherwise, i.e. if the selector is not an element ID:
-          else {
-            // Get the element tagname from it.
-            tagName = finalTerm.replace(/:.*/, '') || 'HTML';
-          }
-          const {wcag} = item;
-          // Get a violation description suffix from the WCAG data of the rule.
-          const wcagSuffix = wcag.length
-            ? ` (${wcag.map(wcagItem => wcagItem.name).join('; ')})`
-            : '';
-          // Get a standard instance.
-          const instance = {
-            ruleID,
-            what: `${item.description}${wcagSuffix}`,
-            ordinalSeverity,
-            tagName,
-            id,
-            location: {
-              doc: 'dom',
-              type: 'selector',
-              spec: violationFacts[0] || 'html'
-            },
-            excerpt: violationFacts[1],
-            boxID: '',
-            pathID: ''
-          };
-          // Add it to the standard result.
-          standardResult.instances.push(instance);
-        });
-      });
-    }
-  }
-};
 // Populates the initialized standard result of an act with the act data and result.
 const convert = (toolName, data, result, standardResult) => {
   // If the act data state that the act was prevented:
@@ -171,7 +114,7 @@ const convert = (toolName, data, result, standardResult) => {
   }
   // Otherwise, if the act was not prevented and the tool is self-standardizing:
   else if (
-    ! ['wave', 'wax'].includes(toolName)
+    ! ['wax'].includes(toolName)
     && result.standardResult
   ) {
     // Move the results to standard locations.
@@ -187,24 +130,6 @@ const convert = (toolName, data, result, standardResult) => {
   // nuVnu
   else if (toolName === 'nuVnu' && result) {
     doNuVnu(data.withSource, result, standardResult);
-  }
-  // wave
-  else if (
-    toolName === 'wave'
-    && result.categories
-    && (
-      result.categories.error
-      || result.categories.contrast
-      || result.categories.alert
-    )
-  ) {
-    const {categories} = result;
-    standardResult.totals = [0, 0, 0, 0];
-    standardResult.totals[0] = categories.alert.count;
-    standardResult.totals[3] = (categories.error.count || 0) + (categories.contrast.count || 0);
-    ['error', 'contrast', 'alert'].forEach(categoryName => {
-      doWAVE(result, standardResult, categoryName);
-    });
   }
   // wax
   else if (toolName === 'wax' && result.violations && result.violations.length) {
