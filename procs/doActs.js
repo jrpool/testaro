@@ -369,14 +369,16 @@ exports.doActs = async (report, opts = {}) => {
         // Add it to the act.
         act.startTime = startTime;
         let localReportJSON = JSON.stringify(localReport);
-        // Save a copy of the local report.
+        // Save a copy of the local report, which the child process will read.
         await fs.writeFile(reportPath, localReportJSON);
         let timedOut = false;
         const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
-        // Create a child process to perform the act and add the result to the saved local report.
         const actResult = await new Promise(resolve => {
           let closed = false;
+        // Create a child process to perform the act.
           const child = fork(`${__dirname}/doTestAct`, [reportPath, actIndex]);
+          // Add any logged errors in the parent process, too.
+          child.stderr.pipe(process.stderr);
           let killTimer = null;
           // Start a timeout timer for the child process.
           const timeoutTimer = setTimeout(() => {
@@ -441,7 +443,7 @@ exports.doActs = async (report, opts = {}) => {
         });
         // If the child process sent a message:
         if (actResult.kind === 'message') {
-          // Get the revised local localReport file.
+          // Get the revised localReport file.
           localReportJSON = await fs.readFile(reportPath, 'utf8');
           try {
             // Reassign it to the local report.
