@@ -94,7 +94,7 @@ exports.reporter = async (page, report, actIndex) => {
           for (const categoryName of ['error', 'contrast', 'alert']) {
             const category = categories[categoryName];
             const ordinalSeverity = categoryName === 'alert' ? 0 : 3;
-            // If any violations were reported:
+            // If any violated rules (named items by WAVE) were reported:
             if (
               category?.items
               && Object.keys(category.items).length
@@ -119,25 +119,26 @@ exports.reporter = async (page, report, actIndex) => {
                 const {totals, instances} = standardResult;
                 // Add the category violation count to the standard-result totals.
                 totals[ordinalSeverity] += category.count;
-                const pathIDItems = await page.evaluate(items => {
+                const annotatedItems = await page.evaluate(items => {
                   const ruleIDs = Object.keys(items);
                   // For each rule of the category with any violations:
                   ruleIDs.forEach(ruleID => {
                     const {selectors} = items[ruleID];
                     // For each of those violations:
-                    selectors.forEach(selector => {
-                      // Get the violating element.
-                      const violator = document.querySelector(selector[0]);
-                      // Add its path ID to the violation record.
-                      selector.push(window.getXPath(violator) ?? '');
-                    });
+                    for (const index in selectors) {
+                      const selector = selectors[index];
+                      // Get the violator.
+                      const violator = document.querySelector(selector);
+                      // Concatenate its selector with its XPath in the native result.
+                      selectors[index] = [selector, window.getXPath(violator) ?? ''];
+                    }
                   });
                   return items;
                 }, items);
-                const ruleIDs = Object.keys(pathIDItems);
+                const ruleIDs = Object.keys(annotatedItems);
                 // For each rule of the category with any violations:
                 for (const ruleID of ruleIDs) {
-                  const {description, selectors} = pathIDItems[ruleID];
+                  const {description, selectors} = annotatedItems[ruleID];
                   // For each violation of the rule:
                   for (const violation of selectors) {
                     // Initialize a standard instance.
@@ -147,7 +148,7 @@ exports.reporter = async (page, report, actIndex) => {
                       ordinalSeverity,
                       count: 1
                     };
-                    const pathID = violation[2];
+                    const pathID = violation[1];
                     // If the path ID of the violator was found:
                     if (pathID) {
                       // Get the catalog index of the violator.
