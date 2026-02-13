@@ -14,6 +14,24 @@
   This file is designed to be run as a child process.
 */
 
+// ERROR LOGGING
+
+// Log uncaught exceptions.
+process.on('uncaughtException', error => {
+  console.error(`File: ${__filename}`);
+  console.error(`Message: ${error.message}`);
+  console.error(`Stack:\n${error.stack}`);
+  process.exit(1);
+});
+
+// Log unhandled rejections.
+process.on('unhandledRejection', reason => {
+  console.error(`File: ${__filename}`);
+  console.error(`Reason: ${reason?.message || reason}`);
+  console.error(`Stack:\n${reason?.stack || 'no stack available'}`);
+  process.exit(1);
+});
+
 // IMPORTS
 
 // Module to perform file operations.
@@ -80,8 +98,8 @@ const doTestAct = async (reportPath, actIndex) => {
     if (report.jobData?.aborted) {
       // Close the browser and its context, if they exist.
       await browserClose(page);
-      // Save the revised report.
       const reportJSON = JSON.stringify(report);
+      // Save the revised report.
       await fs.writeFile(reportPath, reportJSON);
       // Report this.
       sendMessage({
