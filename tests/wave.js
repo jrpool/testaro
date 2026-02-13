@@ -72,6 +72,7 @@ exports.reporter = async (page, report, actIndex) => {
       });
       // When the response arrives:
       response.on('end', async () => {
+        const {nativeResult} = result;
         try {
           // Parse it as JSON.
           result.nativeResult = JSON.parse(rawReport);
@@ -85,7 +86,6 @@ exports.reporter = async (page, report, actIndex) => {
         }
         // If the response was parsed:
         if (! data.prevented) {
-          const {nativeResult} = result;
           const {categories} = nativeResult;
           // Delete its unnecessary properties.
           delete categories.feature;
