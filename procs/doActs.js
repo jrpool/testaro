@@ -375,10 +375,8 @@ exports.doActs = async (report, opts = {}) => {
         const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
         const actResult = await new Promise(resolve => {
           let closed = false;
-        // Create a child process to perform the act.
+          // Create a child process to perform the act.
           const child = fork(`${__dirname}/doTestAct`, [reportPath, actIndex]);
-          // Add any logged errors in the parent process, too.
-          child.stderr.pipe(process.stderr);
           let killTimer = null;
           // Start a timeout timer for the child process.
           const timeoutTimer = setTimeout(() => {
