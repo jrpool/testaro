@@ -72,7 +72,6 @@ exports.reporter = async (page, report, actIndex) => {
       });
       // When the response arrives:
       response.on('end', async () => {
-        const {nativeResult} = result;
         try {
           // Parse it as JSON.
           result.nativeResult = JSON.parse(rawReport);
@@ -86,7 +85,7 @@ exports.reporter = async (page, report, actIndex) => {
         }
         // If the response was parsed:
         if (! data.prevented) {
-          const {categories} = nativeResult;
+          const {categories} = result.nativeResult;
           // Delete its unnecessary properties.
           delete categories.feature;
           delete categories.structure;
@@ -172,7 +171,7 @@ exports.reporter = async (page, report, actIndex) => {
             }
           }
         }
-        const {statistics} = nativeResult;
+        const {statistics} = result.nativeResult;
         if (statistics) {
           // Copy important data from the native result to the result.
           data.pageTitle = statistics.pagetitle || '';
