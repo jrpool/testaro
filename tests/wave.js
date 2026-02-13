@@ -14,6 +14,10 @@
   specifies a WAVE report type: 1, 2, 3, or 4.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
 // CONSTANTS
 
 const https = require('https');
