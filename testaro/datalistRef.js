@@ -3,8 +3,7 @@
   © 2025 Juan S. Casado.
   © 2025 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or   https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
