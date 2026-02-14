@@ -18,7 +18,7 @@
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems, detailLevel, text = '') => {
+exports.reporter = async (page, _, _, detailLevel, text = '') => {
   let data = {};
   // Get the data on the text nodes.
   try {
