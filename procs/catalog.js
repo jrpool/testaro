@@ -140,8 +140,8 @@ exports.pruneCatalog = report => {
   // For each act in the report:
   acts.forEach(act => {
     // If it is a test with a standard result:
-    if (act.type === 'test' && act.standardResult) {
-      const {instances} = act.standardResult;
+    if (act.type === 'test' && act.result?.standardResult) {
+      const {instances} = act.result.standardResult;
       // For each instance of the standard result:
       instances.forEach(instance => {
         const {catalogIndex} = instance;
