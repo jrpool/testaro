@@ -122,8 +122,11 @@ const doTestAct = async (reportPath, actIndex) => {
       act.result = actReport.result;
       // If the tool reported that the page prevented testing:
       if (act.data && act.data.prevented) {
-        // Add that to any standard result.
-        act.result.standardResult?.prevented = true;
+        const {standardResult} = act.result;
+        // Add this to any standard result.
+        if (standardResult) {
+          standardResult.prevented = true;
+        }
         // Add prevention data to the job data.
         report.jobData.preventions[which] = act.data.error;
       }

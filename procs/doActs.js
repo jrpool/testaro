@@ -17,9 +17,7 @@
 // Module to handle errors.
 const {abortActs, addError} = require('./error');
 // Function to close a browser and/or its context.
-const {browserClose, getNonce, goTo, launch, wait} = require('./launch');
-// Module to standardize report formats.
-const {standardize} = require('./standardize');
+const {getNonce, goTo, launch, wait} = require('./launch');
 // Constant describing the tools.
 const {tools} = require('./job');
 // Module to create child processes.
