@@ -1218,10 +1218,10 @@ exports.doActs = async (report, opts = {}) => {
           };
           // Populate it.
           standardize(act);
-          // If the original-format result is not to be included in the report:
+          // If the native result is not to be included in the report:
           if (standard === 'only') {
             // Remove it.
-            delete act.result;
+            delete act.result.nativeResult;
           }
         }
       }

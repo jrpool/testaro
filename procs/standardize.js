@@ -15,11 +15,11 @@
 
 // FUNCTIONS
 
-// Populates the initialized standard result of an act with the act data and result.
+// Adds prevention data to a standard result and rounds its totals.
 const convert = (data, result) => {
   // If the act data state that the act was prevented:
   if (data.prevented) {
-    // Add that to the standard result and disregard tool-specific conversions.
+    // Add that to the standard result.
     result.standardResult.prevented = true;
   }
   // Round the totals of the standard result.
