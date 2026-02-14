@@ -15,13 +15,11 @@
 
 // IMPORTS
 
-// Module to handle files.
 const fs = require('fs/promises');
-// Function to normalize an XPath.
-const {getNormalizedXPath} = require('../procs/identify');
 // Shared configuration for timeout multiplier.
 const {applyMultiplier} = require('../procs/config');
 const {getXPathCatalogIndex} = require('../procs/xPath');
+const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
