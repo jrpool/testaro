@@ -2,6 +2,14 @@
 
 Ensemble testing for web accessibility
 
+## Breaking change notice
+
+Version 68.0.0 introduces major breaking changes.
+
+Any application that has successfully relied on version 67.1.0 is likely to fail if it updates this dependency to version 68.0.0 or higher. To prevent such failures, pin this dependency to version 67.1.0 in your `package.json` file.
+
+Revision of this `README` document to reflect version 68.0.0 is in progress but is incomplete.
+
 ## Introduction
 
 Testaro is an application for automated web accessibility testing.
