@@ -83,8 +83,8 @@ exports.reporter = async (page, report, actIndex) => {
             totals[ordinalSeverity]++;
             // Initialize a standard instance.
             const instance = {
-              ruleID,
-              what: violation.description,
+              ruleID: violation.message,
+              what: violation.description || violation.message,
               ordinalSeverity,
               count: 1
             };
