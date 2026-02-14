@@ -1196,8 +1196,7 @@ exports.doActs = async (report, opts = {}) => {
             catalogPercent: null
           };
           const actCatalogData = catalogData.tools[which];
-          const {standardResult} = act;
-          const {instances} = standardResult;
+          const instances = act.result?.standardResult?.instances ?? [];
           // For each standard instance in the act:
           for (const instance of instances) {
             // Increment the instance count.
