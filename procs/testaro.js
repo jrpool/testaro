@@ -254,7 +254,7 @@ exports.getVisibleCountChange = async (
   };
 };
 // Annotates every element on a page with a unique identifier.
-exports.addTestaroIDs = async page => {
+exports.addTestaroIDsXXX = async page => {
   // Wait for the page to be fully loaded.
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => {

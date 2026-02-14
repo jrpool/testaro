@@ -28,12 +28,25 @@ const waxDev = {runWax};
 // Conducts and reports the WAX tests.
 exports.reporter = async (page, report, actIndex) => {
   // Initialize the act report.
-  let data = {};
-  let result = {};
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
   const act = report.acts[actIndex];
   const rules = act.rules || [];
-  // Annotate all elements on the page with unique identifiers.
-  await addTestaroIDs(page);
+  // XXX Annotate all elements on the page with unique identifiers.
+  // await addTestaroIDs(page);
   const pageCode = await page.content();
   const waxOptions = {
     rules,
@@ -60,16 +73,8 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Otherwise, i.e. if it is a successful report:
       else {
-        // Add location data to its reported violations.
-        for (const violation of actReport) {
-          const {element} = violation;
-          const elementLocation = await getElementData(page, element);
-          Object.assign(violation, elementLocation);
-        }
-        // Populate the act report.
-        result = {
-          violations: actReport
-        }
+        // Populate the native result with it.
+        result.nativeResult = actReport;
       }
     }
     // Otherwise, if the report is a non-array object:
@@ -93,32 +98,15 @@ exports.reporter = async (page, report, actIndex) => {
         data.error = 'wax failure';
       }
     }
-    try {
-      JSON.stringify(data);
-    }
-    catch(error) {
-      const message = `ERROR: WAX result cannot be made JSON (${error.message.slice(0, 200)})`;
-      data = {
-        prevented: true,
-        error: message
-      };
-    }
-    // Return the results.
-    return {
-      data,
-      result
-    };
   }
   catch(error) {
     const message = `ERROR running WallyAX (${error.message})`;
-    data = {
-      prevented: true,
-      error: message
-    };
+    data.prevented = true;
+    data.error = message;
     console.log(message);
-    return {
-      data,
-      result
-    };
   }
+  return {
+    data,
+    result
+  };
 };
