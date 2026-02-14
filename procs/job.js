@@ -281,34 +281,3 @@ exports.isValidJob = job => {
     };
   }
 };
-// Limits the length of and unilinearizes a string.
-exports.cap = rawString => {
-  const string = (rawString.trim() || '').replace(/[\s\u2028\u2029]+/g, ' ');
-  if (string && string.length > 1000) {
-    return `${string.slice(0, 500)} … ${string.slice(-500)}`;
-  }
-  else if (string) {
-    return string;
-  }
-  else {
-    return '';
-  }
-};
-// Simplifies the spacing of a string.
-exports.tidy = string => string.trim().replace(/\s+/g, ' ');
-// Gets a catalog of a target page.
-exports.getCatalog = async (url, browserID) => {
-  // Initialize the catalog.
-  const catalog = {
-    tagNames: {},
-    ids: {},
-    outerHTMLs: {},
-    innerTexts: {},
-    boxIDs: {},
-    pathIDs: {}
-  };
-  // Launch a browser and navigate to the target URL.
-  const browser = await playwrightBrowsers[browserID].launch({headless});
-  const page = await browser.newPage();
-  await page.goto(url);
-};

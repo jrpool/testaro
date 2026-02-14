@@ -63,8 +63,6 @@ const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1
 
 // Normalizes spacing characters and cases in a string.
 const debloat = string => string.replace(/\s/g, ' ').trim().replace(/ {2,}/g, ' ').toLowerCase();
-// Returns a string with any final slash removed.
-const deSlash = string => string.endsWith('/') ? string.slice(0, -1) : string;
 // Returns the first line of an error message.
 const errorStart = error => error.message.replace(/\n.+/s, '');
 // Returns a property value and whether it satisfies an expectation.
@@ -1205,37 +1203,6 @@ exports.doActs = async (report, opts = {}) => {
             // Remove it.
             delete act.result;
           }
-          // Notify the observer and log the start of identification.
-          tellServer(localReport, '', 'Starting element identification');
-          // For each of the standard instances of the act:
-          for (const instance of act.standardResult.instances) {
-            let {catalogIndex, boxID, pathID} = instance;
-            // If the instance has no catalogIndex property:
-            if (catalogIndex === undefined) {
-              // If the instance has no valid path ID:
-              if (! pathID || pathID.includes(' ')) {
-                const elementID = await identify(instance, page);
-                // If the element has a valid path ID:
-                if (elementID.pathID && ! elementID.pathID.includes(' ')) {
-                  // Add or replace the path ID of the instance.
-                  instance.pathID = elementID.pathID;
-                }
-                // Otherwise, if the instance has an invalid but uncorrectable path ID:
-                else if (pathID) {
-                  // Delete it.
-                  delete instance.pathID;
-                }
-              }
-              // If the instance has an excerpt that contains an XPath attribute:
-              if (instance.excerpt?.includes(' data-xpath="')) {
-                // Delete the attribute.
-                instance.excerpt = instance
-                .excerpt
-                .replace(/ data-xpath="[^" ]*("|$)/g, '')
-                .replace(/ data-xpath="[^" ]* /g, ' ');
-              }
-            }
-          }
         }
       }
       // Otherwise, i.e. if the launch or navigation failed:
@@ -1245,7 +1212,7 @@ exports.doActs = async (report, opts = {}) => {
       // Close the browser and its context, if they exist.
       await browserClose(page);
     };
-    console.log('Standardization and element identification completed');
+    console.log('Standardization completed');
     // If a catalog was created:
     if (localReport.catalog) {
       let {catalog} = localReport;

@@ -1,5 +1,5 @@
 /*
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
   Licensed under the MIT License. See LICENSE file for details.
 */
 
@@ -14,7 +14,6 @@ const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
 const {PNG} = require('pngjs');
-const {screenShot} = require('./screenShot');
 
 // CONSTANTS
 
@@ -22,6 +21,23 @@ const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
+// Creates and returns a screenshot.
+const screenShot = async (page, exclusion = null) => {
+  const options = {
+    fullPage: true,
+    omitBackground: true,
+    timeout: 4000
+  };
+  if (exclusion) {
+    options.mask = [exclusion];
+  }
+  // Make and return a screenshot as a buffer.
+  return await page.screenshot(options)
+  .catch(error => {
+    console.log(`ERROR: Screenshot failed (${error.message})`);
+    return '';
+  });
+};
 exports.shoot = async (page, index) => {
   // Make and get a screenshot as a buffer.
   let shot = await screenShot(page);

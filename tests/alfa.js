@@ -106,7 +106,7 @@ exports.reporter = async (page, report, actIndex) => {
             // Get the rule ID of the item.
             let ruleID = uri.replace(/^.+-/, '');
             // Get the rule description of the item.
-            let what = tidy(expectations?.[0]?.[1]?.error?.message || '');
+            let what = (expectations?.[0]?.[1]?.error?.message || '').trim().replace(/\s+/g, ' ');
             if (! what) {
               if (requirements && requirements.length && requirements[0].title) {
                 what = requirements[0].title;

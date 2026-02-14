@@ -253,15 +253,3 @@ exports.getVisibleCountChange = async (
     elapsedTime
   };
 };
-// Annotates every element on a page with a unique identifier.
-exports.addTestaroIDsXXX = async page => {
-  // Wait for the page to be fully loaded.
-  await page.waitForLoadState('networkidle');
-  await page.evaluate(() => {
-    let serialID = 0;
-    for (const element of Array.from(document.querySelectorAll('*'))) {
-      const xPath = window.getXPath(element);
-      element.setAttribute('data-testaro-id', `${serialID++}#${xPath}`);
-    }
-  });
-};

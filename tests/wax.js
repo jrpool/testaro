@@ -43,8 +43,6 @@ exports.reporter = async (page, report, actIndex) => {
   }
   const act = report.acts[actIndex];
   const rules = act.rules || [];
-  // XXX Annotate all elements on the page with unique identifiers.
-  // await addTestaroIDs(page);
   const pageCode = await page.content();
   const waxOptions = {
     rules,

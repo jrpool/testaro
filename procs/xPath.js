@@ -60,35 +60,3 @@ exports.getXPathCatalogIndex = (catalog, xPath) => {
   const index = catalog.pathID[xPath]?.[0] ?? '';
   return index;
 };
-// Gets a locator from an XPath. (Normalize this identifier if ever called, or delete.)
-exports.getLocatorFromXPathXXX = async (page, xPath) => {
-  // Get an XPath specifier.
-  const specifier = `xpath=${xPath}`;
-  // Use it to get a Playwright locator.
-  const locators = page.locator(specifier);
-  // Get the count of its referents.
-  const locatorCount = await locators.count();
-  // If the specifier is valid and the count is 1:
-  if (locatorCount === 1) {
-    // Return the locator.
-    return locators;
-  }
-  // Otherwise, i.e. if the specifier is invalid or does not have exactly 1 referent:
-  else {
-    // Return this.
-    return null;
-  }
-};
-// Annotates every element on a page with its XPath.
-exports.addXPathsXXX = async page => {
-  // Wait for the page to be fully loaded.
-  await page.waitForLoadState('networkidle', {timeout: 10000});
-  await page.evaluate(() => {
-    // For each element:
-    for (const element of Array.from(document.querySelectorAll('*'))) {
-      const xPath = window.getXPath(element);
-      // Add its XPath as an attribute to the element.
-      element.setAttribute('data-xpath', xPath);
-    }
-  });
-};
