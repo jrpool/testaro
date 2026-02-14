@@ -46,7 +46,7 @@ const {browserClose, launch} = require('./launch');
 */
 const xPathNeeds = {
   alfa: 'own',
-  aslint: 'none',
+  aslint: 'own',
   axe: 'attribute',
   ed11y: 'script',
   htmlcs: 'attribute',
