@@ -61,6 +61,7 @@ exports.reporter = async (page, report, actIndex) => {
     // Get the evaluations.
     const evaluations = Array.from(await audit.evaluate());
     const {nativeResult, standardResult} = result;
+    const {catalog} = report;
     // For each of them:
     for (const index in evaluations) {
       const evaluation = evaluations[index];
@@ -119,21 +120,31 @@ exports.reporter = async (page, report, actIndex) => {
               what = `cannot test for rule ${ruleID}: ${what}`;
               ordinalSeverity = 0;
             }
-            // Get the pathID of the element or, if none, the document pathID.
-            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, '')) || '/html';
-            const {catalog} = report;
-            // Use it to get the index of the element in the catalog.
-            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
             // Increment the standard total.
             standardResult.totals[ordinalSeverity]++;
-            // Add a standard instance to the standard result.
-            standardResult.instances.push({
+            // Initialize a proto-instance.
+            const protoInstance = {
               ruleID,
               what,
               ordinalSeverity,
-              count: 1,
-              catalogIndex
-            });
+              count: 1
+            };
+            // Get the pathID of the element or, if none, the document pathID.
+            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, '')) || '/html';
+            // Use it to get the index of the element in the catalog.
+            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
+            // If the acquisition succeeded:
+            if (catalogIndex) {
+              // Add the catalog index to the proto-instance.
+              protoInstance.catalogIndex = catalogIndex;
+            }
+            // Otherwise, i.e. if the acquisition failed:
+            else {
+              // Add the pathID to the proto-instance.
+              protoInstance.pathID = pathID;
+            }
+            // Add the proto-instance to the instances of the standard result.
+            standardResult.instances.push(protoInstance);
           }
         }
       }

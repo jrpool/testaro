@@ -1150,89 +1150,17 @@ exports.doActs = async (report, opts = {}) => {
     }
   }
   console.log('Acts completed');
-  // If standardization is required:
+  // If the results were standardized:
   if (['also', 'only'].includes(standard)) {
     // Reassign the element property of the catalog to the catalog, deleting the rest.
     localReport.catalog = localReport.catalog.element;
-    // If granular reporting has been specified:
-    if (localReport.observe) {
-      // If a progress callback has been provided:
-      if (onProgress) {
-        // Notify the observer of the start of standardization.
-        try {
-          onProgress({
-            type: 'standardization',
-            which: 'start'
-          });
-          console.log(`${'Standardization started'} (observer notified)`);
-        }
-        catch (error) {
-          console.log(`${message} (observer notification failed: ${errorStart(error)})`);
-        }
-      }
-      // Otherwise, i.e. if no progress callback has been provided:
-      else {
-        // Notify the observer of the act and log it.
-        tellServer(localReport, messageParams, message);
-      }
-    }
-    // Notify the observer and log the start of standardization.
-    tellServer(localReport, '', 'Starting result standardization');
-    // Initialize a directory of launch types (browser ID/target URL pairs).
-    const launchTypes = {};
-    // For each act:
-    localReport.acts.forEach((act, index) => {
-      // If it is a test act:
-      if (act.type === 'test') {
-        // Classify it by its browser ID and target URL.
-        const browserID = getActBrowserID(localReport, index);
-        const targetURL = getActTargetURL(localReport, index);
-        const specString = `${browserID}>${targetURL}`;
-        launchTypes[specString] ??= [];
-        // Add its index to those with its launch type.
-        launchTypes[specString].push(index);
-      }
-    });
-    // For each browser ID/target URL class:
-    for (const typeName of Object.keys(launchTypes)) {
-      const typeItems = typeName.split('>');
-      const browserID = typeItems[0];
-      const targetURL = typeItems[1];
-      // Launch a browser and navigate to the URL.
-      page = await launch({
-        report: localReport,
-        actIndex: null,
-        tempBrowserID: browserID,
-        tempURL: targetURL,
-        xPathNeed: 'none'
+    // If the native results are not to be included in the report:
+    if (standard === 'only') {
+      // Remove them.
+      localReport.acts.forEach(act => {
+        delete act.result.nativeResult;
       });
-      // If the launch and navigation succeeded:
-      if (page) {
-        // For each test act in the class:
-        for (const typeActIndex of launchTypes[typeName]) {
-          const act = localReport.acts[typeActIndex];
-          // Initialize the standard result.
-          act.standardResult = {
-            totals: [0, 0, 0, 0],
-            instances: []
-          };
-          // Populate it.
-          standardize(act);
-          // If the native result is not to be included in the report:
-          if (standard === 'only') {
-            // Remove it.
-            delete act.result.nativeResult;
-          }
-        }
-      }
-      // Otherwise, i.e. if the launch or navigation failed:
-      else {
-        console.log(`ERROR: Launch or navigation to standardize ${specString} acts failed`);
-      }
-      // Close the browser and its context, if they exist.
-      await browserClose(page);
-    };
-    console.log('Standardization completed');
+    }
     // If a catalog was created:
     if (localReport.catalog) {
       let {catalog} = localReport;

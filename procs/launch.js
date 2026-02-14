@@ -193,15 +193,15 @@ const getNonce = exports.getNonce = async response => {
 };
 // Creates a browser, context, and page; navigates to a URL; and returns the page.
 const launchOnce = async opts => {
-  // Get the arguments. Permitted xPathNeed values are script, attribute, none.
+  // Get the arguments.
   const {
-    waitLimit = 'none',
+    relaxWait = 'no',// no, partly, fully
     report = {},
     actIndex = 0,
     tempBrowserID = '',
     tempURL = '',
-    headEmulation = 'high',
-    xPathNeed = 'script',
+    headEmulation = 'high',// low, high
+    xPathNeed = 'script',// own, script, attribute, none
     needsAccessibleName = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
@@ -421,11 +421,12 @@ const launchOnce = async opts => {
           };
         });
       }
+      // Base the wait on the need of the tool and the retry history.
       let waitUntil = xPathNeed === 'none' ? 'domcontentloaded' : 'networkidle';
-      if (waitLimit === 'mild' && waitUntil === 'networkidle') {
+      if (relaxWait !== 'no' && waitUntil === 'networkidle') {
         waitUntil = 'domcontentloaded';
       }
-      if (waitLimit === 'extreme') {
+      if (relaxWait === 'fully') {
         waitUntil = 'load';
       }
       // Navigate to the specified URL and wait for the stability required by the next action.
@@ -507,6 +508,7 @@ exports.launch = async (opts = {}) => {
     // Try to launch a browser and navigate to the specified URL.
     let launchResult = await launchOnce(
       {
+        relaxWait: 'no',
         priorTries: false,
         report,
         actIndex,
@@ -548,7 +550,7 @@ exports.launch = async (opts = {}) => {
         // Retry the launch and navigation.
         launchResult = await launchOnce(
           {
-            waitLimit: retriesLeft === 0 ? 'extreme' : 'mild',
+            relaxWait: retriesLeft === 0 ? 'fully' : 'partly',
             report,
             actIndex,
             tempBrowserID,

@@ -37,9 +37,15 @@ const {browserClose, launch} = require('./launch');
 
 // CONSTANTS
 
-// Whether each tool needs the window.getXPath script and, if so, also data-xpath attributes.
+/*
+  Tool XPath requirements.
+    none: Needs no script or extra load time.
+    own: Needs extra load time for its own XPath computations.
+    script: Needs the window.getXPath script.
+    attribute: Needs data-xpath attributes made with window.getXPath.
+*/
 const xPathNeeds = {
-  alfa: 'none',
+  alfa: 'own',
   aslint: 'none',
   axe: 'attribute',
   ed11y: 'script',
@@ -116,6 +122,8 @@ const doTestAct = async (reportPath, actIndex) => {
       act.result = actReport.result;
       // If the tool reported that the page prevented testing:
       if (act.data && act.data.prevented) {
+        // Add that to any standard result.
+        act.result.standardResult?.prevented = true;
         // Add prevention data to the job data.
         report.jobData.preventions[which] = act.data.error;
       }
