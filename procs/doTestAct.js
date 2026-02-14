@@ -168,7 +168,6 @@ const doTestAct = async (reportPath, actIndex) => {
     process.exit(1);
   }
 };
-
 process.on('uncaughtException', error => {
   console.log(`ERROR: uncaughtException (${error.message})`);
   sendMessage({
@@ -177,7 +176,6 @@ process.on('uncaughtException', error => {
   });
   process.exit(1);
 });
-
 process.on('unhandledRejection', error => {
   const message = error && error.message ? error.message : String(error);
   console.log(`ERROR: unhandledRejection (${message})`);
@@ -187,7 +185,6 @@ process.on('unhandledRejection', error => {
   });
   process.exit(1);
 });
-
 const args = process.argv;
 // Perform the specified test act.
 doTestAct(args[2], Number.parseInt(args[3]));
