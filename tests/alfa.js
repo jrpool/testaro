@@ -17,9 +17,7 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
-const {tidy} = require('../procs/job');
-const {getNormalizedXPath} = require('../procs/identify');
-const {getXPathCatalogIndex} = require('../procs/xPath');
+const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 const {Playwright} = require('@siteimprove/alfa-playwright');
 
 // FUNCTIONS

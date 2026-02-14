@@ -33,11 +33,10 @@
 
 const axePlaywright = require('axe-playwright');
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
-// Module to simplify strings.
-const {injectAxe} = axePlaywright;
 
 // CONSTANTS
 
+const {injectAxe} = axePlaywright;
 const severityWeights = {
   minor: 0,
   moderate: 0,

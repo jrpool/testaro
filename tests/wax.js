@@ -15,9 +15,7 @@
 
 // IMPORTS
 
-// Module to process XPaths.
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
-// Modules to run WAX.
 const runWax = require('@wally-ax/wax-dev');
 const waxDev = {runWax};
 

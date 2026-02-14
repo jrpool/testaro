@@ -16,15 +16,10 @@
 
 // IMPORTS
 
-// Module to perform file operations.
 const fs = require('fs/promises');
-// Module to define the operating-system temporary-file directory.
 const os = require('os');
-// Module to run tests.
 const {vnu} = require('vnu-jar');
-// Module to get the content.
 const {curate, getContent} = require('../procs/nu');
-// Module to process XPaths.
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS

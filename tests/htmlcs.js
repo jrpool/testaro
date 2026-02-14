@@ -15,9 +15,7 @@
 
 // IMPORTS
 
-// Module to process XPaths.
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
-// Module to handle files.
 const fs = require('fs/promises');
 
 // FUNCTIONS

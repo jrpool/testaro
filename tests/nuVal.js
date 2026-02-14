@@ -16,9 +16,7 @@
 
 // IMPORTS
 
-// Module to get the content.
 const {curate, getContent} = require('../procs/nu');
-// Module to process XPaths.
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // FUNCTIONS

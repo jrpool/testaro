@@ -15,11 +15,8 @@
 
 // IMPORTS
 
-// Module to handle files.
 const fs = require('fs/promises');
-// Function to normalize an XPath.
-const {getNormalizedXPath} = require('../procs/identify');
-const {getXPathCatalogIndex} = require('../procs/xPath');
+const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
