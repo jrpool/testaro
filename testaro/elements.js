@@ -15,8 +15,9 @@
   2. Data on each specified element also include the text content of the parent element.
   3. Data on each specified element also include data on its sibling nodes.
 */
+
 exports.reporter = async (
-  page, withItems, detailLevel = 0, tagName = null, onlyVisible = false, attribute
+  page, _, _, detailLevel = 0, tagName = null, onlyVisible = false, attribute
 ) => {
   // Determine a selector of the specified elements, including any descendants of open shadow roots.
   let selector = `body ${tagName ? tagName.toLowerCase() : '*'}`;

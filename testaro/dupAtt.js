@@ -20,7 +20,7 @@ const {getSource} = require('../procs/getSource');
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, _, withItems) => {
   // Initialize the data and standard result.
   const data = {total: 0};
   if (withItems) {

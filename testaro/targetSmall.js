@@ -16,7 +16,7 @@
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, _, withItems) => {
   // Return totals and standard instances for the rule.
   const protoResult = await page.evaluate(withItems => {
     // Get all pointer targets.
