@@ -16,28 +16,20 @@
 // FUNCTIONS
 
 // Populates the initialized standard result of an act with the act data and result.
-const convert = (data, result, standardResult) => {
+const convert = (data, result) => {
   // If the act data state that the act was prevented:
   if (data.prevented) {
     // Add that to the standard result and disregard tool-specific conversions.
-    standardResult.prevented = true;
-  }
-  // Otherwise, if the act was not prevented and the tool is self-standardizing:
-  else if (result.standardResult) {
-    // Move the results to standard locations.
-    Object.assign(result, result.nativeResult);
-    Object.assign(standardResult, result.standardResult);
-    delete result.nativeResult;
-    delete result.standardResult;
+    result.standardResult.prevented = true;
   }
   // Round the totals of the standard result.
-  standardResult.totals = standardResult.totals.map(total => Math.round(total));
+  result.standardResult.totals = result.standardResult.totals.map(total => Math.round(total));
 };
 // Populates the initialized standard result of an act.
 exports.standardize = act => {
-  const {which, data, result, standardResult} = act;
-  if (which && result && standardResult) {
-    convert(data, result, standardResult);
+  const {which, data, result} = act;
+  if (which && result?.standardResult) {
+    convert(data, result);
   }
   else {
     console.log(`ERROR: Result of incomplete ${which || 'unknown'} act cannot be standardized`);

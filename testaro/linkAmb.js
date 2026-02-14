@@ -17,7 +17,7 @@
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, _, withItems) => {
   return await page.evaluate(withItems => {
     // Get all links.
     const allLinks = Array.from(document.body.getElementsByTagName('a'));

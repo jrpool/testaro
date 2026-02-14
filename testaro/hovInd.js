@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, _, withItems) => {
   const getBadWhat = element => {
     const violationTypes = [];
     const isVisible = element.checkVisibility({

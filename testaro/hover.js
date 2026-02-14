@@ -15,12 +15,51 @@
 // IMPORTS
 
 // Module to perform common operations.
-const {getBasicResult, getVisibleCountChange} = require('../procs/testaro');
+const {getBasicResult} = require('../procs/testaro');
 // Module to perform Playwright operations.
 const playwright = require('playwright');
 
 // FUNCTIONS
 
+// Returns an awaited change in a visible element count.
+const getVisibleCountChange = async (
+  rootLoc, elementCount0, timeLimit = 400, settleInterval = 75
+) => {
+  const startTime = Date.now();
+  let timeout;
+  let settleChecker;
+  let elementCount1 = elementCount0;
+  // Set a time limit on the change.
+  const timeoutPromise = new Promise(resolve => {
+    timeout = setTimeout(() => {
+      clearInterval(settleChecker);
+      resolve();
+    }, timeLimit);
+  });
+  // Until the time limit expires, periodically:
+  const settlePromise = new Promise(resolve => {
+    settleChecker = setInterval(async () => {
+      const visiblesLoc = await rootLoc.locator('*:visible');
+      // Get the count.
+      elementCount1 = await visiblesLoc.count();
+      // If the count has changed:
+      if (elementCount1 !== elementCount0) {
+        // Stop.
+        clearTimeout(timeout);
+        clearInterval(settleChecker);
+        resolve();
+      }
+    }, settleInterval);
+  });
+  // When a change occurs or the time limit expires:
+  await Promise.race([timeoutPromise, settlePromise]);
+  const elapsedTime = Math.round(Date.now() - startTime);
+  // Return the change.
+  return {
+    change: elementCount1 - elementCount0,
+    elapsedTime
+  };
+};
 // Gets a violation description.
 const getViolationDescription = (change, elapsedTime) =>
   `Hovering over the element changes the related visible element count by ${change} in ${elapsedTime}ms`;

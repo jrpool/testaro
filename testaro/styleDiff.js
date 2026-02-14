@@ -77,7 +77,7 @@ const linksByType = async page => await page.evaluateHandle(() => {
   };
 });
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, _, withItems) => {
   // Get an object with arrays of list links and adjacent links as properties.
   const linkTypes = await linksByType(page);
   return await page.evaluate(args => {

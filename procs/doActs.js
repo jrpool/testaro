@@ -20,10 +20,6 @@ const {abortActs, addError} = require('./error');
 const {browserClose, getNonce, goTo, launch, wait} = require('./launch');
 // Module to standardize report formats.
 const {standardize} = require('./standardize');
-// Module to identify element bounding boxes.
-const {identify} = require('./identify');
-// Module to send a notice to an observer.
-const {tellServer} = require('./tellServer');
 // Constant describing the tools.
 const {tools} = require('./job');
 // Module to create child processes.
@@ -33,6 +29,9 @@ const os = require('os');
 const {pruneCatalog} = require('./catalog');
 // Module to handle file system operations.
 const fs = require('fs/promises');
+const httpClient = require('http');
+const httpsClient = require('https');
+const agent = process.env.AGENT;
 
 // CONSTANTS
 
@@ -61,6 +60,27 @@ const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1
 
 // FUNCTIONS
 
+// Sends a notice to an observer.
+const tellServer = (report, messageParams, logMessage) => {
+  const {serverID} = report.sources;
+  const observerURL = typeof serverID === 'number'
+    ? process.env[`NETWATCH_URL_${serverID}_OBSERVE`]
+    : '';
+  if (observerURL) {
+    const whoParams = `agent=${agent}&jobID=${report.id || ''}`;
+    const wholeURL = `${observerURL}?${whoParams}&${messageParams}`;
+    const client = wholeURL.startsWith('https://') ? httpsClient : httpClient;
+    client.request(wholeURL)
+    // If the notification threw an error:
+    .on('error', error => {
+      // Report the error.
+      const errorMessage = 'ERROR notifying the server';
+      console.log(`${errorMessage} (${error.message})`);
+    })
+    .end();
+    console.log(`${logMessage} (server notified)`);
+  }
+};
 // Normalizes spacing characters and cases in a string.
 const debloat = string => string.replace(/\s/g, ' ').trim().replace(/ {2,}/g, ' ').toLowerCase();
 // Returns the first line of an error message.
