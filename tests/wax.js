@@ -15,6 +15,8 @@
 
 // IMPORTS
 
+// Module to process XPaths.
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 // Modules to run WAX.
 const runWax = require('@wally-ax/wax-dev');
 const waxDev = {runWax};
@@ -71,6 +73,43 @@ exports.reporter = async (page, report, actIndex) => {
       else {
         // Populate the native result with it.
         result.nativeResult = actReport;
+        // If standard results are to be reported:
+        if (standard) {
+          const {standardResult} = result;
+          const {instances, totals} = standardResult;
+          actReport.forEach(violation => {
+            const ordinalSeverity = ['Minor', 'Moderate', '', 'Severe'].indexOf(violation.severity);
+            // Increment the applicable total of the standard result.
+            totals[ordinalSeverity]++;
+            // Initialize a standard instance.
+            const instance = {
+              ruleID,
+              what: violation.description,
+              ordinalSeverity,
+              count: 1
+            };
+            const {element} = violation;
+            // Get the path ID of the element from its data-xpath attribute.
+            const pathID = getAttributeXPath(element);
+            // If the acquisition succeeded:
+            if (pathID) {
+              // Get the catalog index of the element.
+              const catalogIndex = getXPathCatalogIndex(report.catalog, pathID);
+              // If the acquisition succeeded:
+              if (catalogIndex) {
+                // Add the catalog index to the standard instance.
+                instance.catalogIndex = catalogIndex;
+              }
+              // Otherwise, i.e. if the acquisition failed:
+              else {
+                // Add the path ID to the standard instance.
+                instance.pathID = pathID;
+              }
+              // Add the standard instance to the standard result.
+              instances.push(instance);
+            }
+          });
+        }
       }
     }
     // Otherwise, if the report is a non-array object:
