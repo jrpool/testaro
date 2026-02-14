@@ -14,9 +14,7 @@
 
 // IMPORTS
 
-// Module to perform common operations.
 const {getBasicResult} = require('../procs/testaro');
-// Module to perform Playwright operations.
 const playwright = require('playwright');
 
 // FUNCTIONS
