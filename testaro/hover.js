@@ -14,9 +14,7 @@
 
 // IMPORTS
 
-// Module to perform common operations.
 const {getBasicResult} = require('../procs/testaro');
-// Module to perform Playwright operations.
 const playwright = require('playwright');
 // Shared configuration for timeout multiplier.
 const {applyMultiplier} = require('../procs/config');
