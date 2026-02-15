@@ -6,48 +6,35 @@ Ensemble testing for web accessibility
 
 Version 68.0.0 introduces major breaking changes.
 
-Any application that has successfully relied on version 67.1.0 is likely to fail if it updates this dependency to version 68.0.0 or higher. To prevent such failures, pin this dependency to version 67.1.0 in your `package.json` file.
+Any application that has successfully relied on version 67.1.0 is likely to fail if it updates the `testaro` dependency to version 68.0.0 or later. To prevent such failures, pin `testaro` to version 67.1.0 in your `package.json` file.
 
 Revision of this `README` document to reflect version 68.0.0 is in progress but is incomplete.
 
-## Introduction
+## Purposes
 
-Testaro is an application for automated web accessibility testing.
+Testaro is an application that performs ensemble testing of web pages, primarily for accessibility.
 
 The purposes of Testaro are to:
 
-- provide programmatic access to accessibility tests defined by several tools
-- facilitate the integration of the reports of the tools into a unified report
+- provide programmatic access to tests defined by multiple tools
+- standardize and integrate the reports of the tools
+
+The need for ensemble testing of web accessibility, and the obstacles to it, are discussed in [Accessibility Metatesting: Comparing Nine Testing Tools](https://arxiv.org/abs/2304.07591).
 
 Testaro is described in two papers:
 
 - [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3)
 - [Testaro: Efficient Ensemble Testing for Web Accessibility](https://arxiv.org/abs/2309.10167)
 
-The need for multi-tool integration, and its costs, are discussed in [Accessibility Metatesting: Comparing Nine Testing Tools](https://arxiv.org/abs/2304.07591).
+## Functionality
 
-Testaro launches and controls web browsers, performing operations, conducting tests, and recording results.
+Testaro performs tasks defined by a _job_. Typically, a job identifies the URL of a web page and asks Testaro to call an ensemble of 11 tools to test the page. Testaro adds the results of the testing to the job, thereby converting the job into a _report_.
 
-Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating system.
+Testaro can be given a job to perform, in which case it performs the job, delivers the report, and quits.
 
-Testaro accepts _jobs_, performs them, and returns _reports_.
+Alternatively, testaro can run as a daemon, listening for jobs and performing them when they appear.
 
-Other software, located on the same or a different host, can make use of Testaro, performing functions such as:
-
-- Job preparation
-- Converting user specifications into jobs
-- Job scheduling
-- Monitoring of the health of Testaro
-- Management of clusters of workstations sharing workloads
-- Allocation of responsibilities among workstations
-- Receiving and fulfilling user requests for jobs
-- Allocating testing responsibilities to human testers
-- Combining reports from workstations and human testers
-- Analyzing and summarizing (e.g., computing scores on the basis of) test results
-- Sending notifications
-- Revising, combining, and publishing reports
-
-One software product that performs some such functions is [Testilo](https://www.npmjs.com/package/testilo).
+A practical application that leverages Testaro will use other software to prepare jobs, schedule them, post-process the reports as needed, and manage the report files. Some utilities for such purposes can be found in the [Testilo project](https://www.npmjs.com/package/testilo). One application that leverages Testaro is [Kilotest](https://github.com/jrpool/kilotest).
 
 ## Dependencies
 
@@ -58,7 +45,7 @@ Testaro uses:
 - [playwright-dompath](https://www.npmjs.com/package/playwright-dompath) to retrieve XPaths of elements
 - [BlazeDiff](https://blazediff.dev/) to measure motion
 
-Testaro performs tests of these _tools_:
+Testaro can perform tests of these _tools_:
 
 - [Accessibility Checker](https://www.npmjs.com/package/accessibility-checker) (IBM)
 - [Alfa](https://alfa.siteimprove.com/) (Siteimprove)
@@ -72,66 +59,44 @@ Testaro performs tests of these _tools_:
 - [WallyAX](https://www.npmjs.com/package/@wally-ax/wax-dev) (Wally Solutions)
 - [WAVE](https://wave.webaim.org/api/) (WebAIM)
 
-Some of the tests of Testaro are designed to act as approximate alternatives to tests of vulnerable, restricted, or no longer available tools. In all such cases the Testaro rules are independently designed and implemented, without reference to the code of the tests that inspired them.
+For the tools that are open-source, the identified organizations are their principal or original sponsors.
 
-## Rules
+As shown, Testaro is not only an integrator but also one of the 11 integrated tools. That is because it provides about 50 tests of its own, mostly to complement tests provided by the other 10 tools. Some of those Testaro tests are designed to act as approximate alternatives to tests of vulnerable, restricted, or no longer available tools. In all such cases the Testaro tests are independently designed and implemented, without reference to the code of the tests that inspired them.
 
-Each tool accessed with Testaro defines _rules_ and tests _targets_ for compliance with its rules. Testilo has classified the rules into _issues_ and deprecated some rules as poorly implemented. If the deprecated rules are excluded, the counts are:
+## Concepts and terms
 
-```text
-Accessibility Checker: 93
-Alfa: 64
-ASLint: 129
-Axe: 79
-Editoria11y: 23
-HTML CodeSniffer: 110
-Nu Html Checker: 260
-QualWeb: 115
-Testaro: 57
-WallyAX: 27
-WAVE: 60
-total: 1017
-```
+The main concepts of Testaro are:
 
-This tabulation may not be exact, because some of the tools are under active development.
-
-## Code organization
-
-The main directories containing code files are:
-
-- package root: main code files
-- `tests`: files containing the code defining particular tests
-- `procs`: shared procedures
-- `validation`: code and artifacts for the validation of the Testaro tool
+- `job`: a document that tells Testaro what to do.
+- `report`: a job that Testaro has added results to.
+- `tool`: one of the (currently 11) testing applications in the ensemble that Testaro has created.
+- `rule`: a success or failure criterion defined by a tool (currently about a thousand across all tools).
+- `test`: the software that a tool uses to apply a rule.
+- `target`: a web page that a job tells Testaro to test.
+- `result`: the information that Testaro adds to a job to describe the test outcomes.
+- `native result`: the test outcomes of a tool in the native form of that tool.
+- `standard result`: the test outcomes of a tool in a uniform Testaro-defined form.
+- `catalog`: a collection of data on the HTML elements that fail one or more tests.
 
 ## System requirements
 
-The latest long-term-support version of [Node.js](https://nodejs.org/en/).
+Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating system.
 
-## Installation
+Testaro is tested with the latest long-term-support version of [Node.js](https://nodejs.org/en/).
 
-### As an application
+## Installation options
 
-You can clone the [Testaro repository](https://github.com/jrpool/testaro) to install Testaro as an application:
+If you want to install Testaro as an independent application, you can clone the [Testaro repository](https://github.com/jrpool/testaro). To ensure that the binary browsers of its Playwright dependency get installed, execute `(p)npx playwright install` after executing `(p)npm install`.
 
-```bash
-cd path/to/what/will/be/the/parent/directory/of/testaro
-git clone https://github.com/jrpool/testaro.git
-cd testaro
-npm install
-npx playwright install
-```
-
-After that, you can update Testaro after any version change:
+To update Testaro when it is an independent application, you can use:
 
 ```bash
-cd testaro
 git checkout package-lock.json
 git pull
-npm run deps
+(p)npm run deps
 ```
 
-Once it is installed as an application, you can use its features with a terminal interface by executing the “By a user” statements below.
+You can make `testaro` a dependency in another application. As noted at the beginning of this file, the entry in `package.json` should be `"testaro": "67.1.0"` if your application has not been designed to work with version 68.0.0 or later.
 
 ### As a dependency
 
