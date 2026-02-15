@@ -44,6 +44,7 @@ Testaro uses:
 - [playwright-extra](https://www.npmjs.com/package/playwright-extra) and [puppeteer-extra-plugin-stealth](https://www.npmjs.com/package/puppeteer-extra-plugin-stealth) to make a Playwright-controlled browser more indistinguishable from a human-operated browser and thus make their requests more likely to succeed
 - [playwright-dompath](https://www.npmjs.com/package/playwright-dompath) to retrieve XPaths of elements
 - [BlazeDiff](https://blazediff.dev/) to measure motion
+- [dotenv](https://www.npmjs.com/package/dotenv) to load environment variables
 
 Testaro can perform tests of these _tools_:
 
@@ -68,6 +69,7 @@ As shown, Testaro is not only an integrator but also one of the 11 integrated to
 The main concepts of Testaro are:
 
 - `job`: a document that tells Testaro what to do.
+- `act`: one step in a job
 - `report`: a job that Testaro has added results to.
 - `tool`: one of the (currently 11) testing applications in the ensemble that Testaro has created.
 - `rule`: a success or failure criterion defined by a tool (currently about a thousand across all tools).
@@ -84,11 +86,15 @@ Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating sys
 
 Testaro is tested with the latest long-term-support version of [Node.js](https://nodejs.org/en/).
 
-## Installation options
+Testaro is configured so that, when Playwright or Puppeteer (a dependency of Playwright and of some tools) launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright and Puppeteer, and Testaro does not override that default. The host must therefore permit sandboxed browsers. Documentation on how to configure an Ubuntu Linux host for this purpose is available in the [`SERVICE.md` file of the Kilotest repository](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges). If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
 
-If you want to install Testaro as an independent application, you can clone the [Testaro repository](https://github.com/jrpool/testaro). To ensure that the binary browsers of its Playwright dependency get installed, execute `(p)npx playwright install` after executing `(p)npm install`.
+## Installation
 
-To update Testaro when it is an independent application, you can use:
+### Independent application
+
+To install Testaro as an independent application, clone the [Testaro repository](https://github.com/jrpool/testaro). To ensure that the binary browsers of its Playwright dependency get installed, execute `(p)npx playwright install` after executing `(p)npm install`.
+
+To update Testaro when it is an independent application, execute:
 
 ```bash
 git checkout package-lock.json
@@ -96,27 +102,54 @@ git pull
 (p)npm run deps
 ```
 
+### Dependency
+
 You can make `testaro` a dependency in another application. As noted at the beginning of this file, the entry in `package.json` should be `"testaro": "67.1.0"` if your application has not been designed to work with version 68.0.0 or later.
 
-### As a dependency
+## Configuration
 
-You can make Testaro a dependency of another application by installing it as you would install any `npm` package, such as by executing `npm install-save testaro` or including `testaro` among the dependencies in a `package.json` file.
+### Environment
 
-Once it is installed as a dependency, your application can use Testaro features by executing the “By a module” statements below.
+The `.env` file stores your decisions about the environment in which Testaro runs. The variables that can be defined there are:
 
-### Prerequisites
+```conf
+# Whether the browsers launched by Testaro should have visible windows.
+HEADED_BROWSER=false
+# Whether console logging in launched browsers should be mirrored to the Testaro console.
+DEBUG=false
+# Whether to disable Puppeteer log warnings of a future headless-mode deprecation.
+PUPPETEER_DISABLE_HEADLESS_WARNING=true
+# How much time, in milliseconds, to insert between Playwright operations for debugging.
+WAITS=0
+# API key to enable the WAVE tool.
+WAVE_KEY=yourwavekey (get it from [WebAim](https://wave.webaim.org/api/)).
+# `proTestKit` API key to enable the `npm Package` of the WallyAX tool.
+WAX_KEY=yourwaxkey (get it from [WallyAX](https://account.wallyax.com/?ref_app=Developer&app_type=npm)).
+#----------------------------
+# When Testaro listens for new jobs in a directory:
+# Directory where it listens for them.
+JOBDIR=../testing/jobs
+# Directory into which Testaro saves the reports of those jobs.
+REPORTDIR=../testing/reports
+# Name of this Testaro instance when it listens for jobs and sends reports to requesting hosts.
+AGENT=agentabc
+#----------------------------
+# When Testaro polls network hosts to ask for new jobs, data on those hosts.
+# URL of host 0 to poll.
+NETWATCH_URL_0_JOB=http://localhost:3000/api/assignJob/agentabc
+# URL of host 0 to which to send progress reports during jobs.
+NETWATCH_URL_0_OBSERVE=http://localhost:3000/api/granular/agentabc
+# URL of host 0 to which to send completed job reports.
+NETWATCH_URL_0_REPORT=http://localhost:3000/api/takeReport/agentabc
+# Password to give to host 0 to authenticate this instance.
+NETWATCH_URL_0_AUTH=abcxyz
+# Which network hosts to poll for jobs (comma-separated list of indices).
+NETWATCH_URLS=0
+```
 
-The host on which Testaro runs should have the latest long-term-support version of [Node.js](https://nodejs.org/en/).
+### Jobs
 
-Testaro is configured so that, when Playwright or Puppeteer launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright and Puppeteer, and Testaro does not override that default.Any host running Testaro must therefore permit sandboxed browsers. Documentation on how to configure an Ubuntu Linux host for this purpose is available in the [`SERVICE.md` file of the Kilotest repository](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges). If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
-
-To make the Testaro features work, you will also need to provide the environment variables described below under “Environment variables”.
-
-All of the tests that Testaro can perform are free of cost, except those performed by the WallyAX and WAVE tools. The owners of those tools issue API keys. A free initial allowance of usage may be granted to you with a new API key. Before using Testaro to perform their tests, get your API keys for [WallyAX](mailto:technology@wallyax.com) and [WAVE](https://wave.webaim.org/api/). Then use those API keys to define environment variables, as described below under “Environment variables”.
-
-## Jobs
-
-A _job_ is an object that specifies what Testaro is to do, and how. As Testaro performs a job, Testaro reports results by adding data to the job and making that enhanced object available as a _report_.
+Every job that you submit to Testaro configures the performance of that job. Here is a sample job, showing properties that you can set:
 
 ### Example of a job
 
@@ -124,12 +157,12 @@ Here is an example of a job:
 
 ```javaScript
 {
-  id: '250110T1200-7f-4',
+  id: 'healthcheck2611',
   what: 'monthly health check',
-  strict: true,
-  standard: 'also',
-  observe: false,
-  device: {
+  strict: true, // Whether to reject redirections from the target URL
+  standard: 'also', // or 'only' or 'no' (whether to report a standard result)
+  observe: false, // Whether to send progress notices to requesting hosts
+  device: { // Device to emulate
     id: 'iPhone 8',
     windowOptions: {
       reducedMotion: 'no-preference',
@@ -144,35 +177,35 @@ Here is an example of a job:
       defaultBrowserType: 'webkit'
     }
   },
-  browserID: 'webkit',
-  creationTimeStamp: '241229T0537',
-  executionTimeStamp: '250110T1200',
+  browserID: 'chromium', // or 'webkit' or 'firefox'
+  creationTimeStamp: '241229T0537', // When job was created
+  executionTimeStamp: '250110T1200', // When job will be ready to be performed
   target: {
     what: 'Real Estate Management',
-    url: 'https://abccorp.com/mgmt/realproperty.html'
+    url: 'https://abccorp.com/mgmt/realproperty'
   },
-  sources: {
+  sources: { // Any data the requester chooses to add
     script: 'ts99',
     batch: 'departments',
     mergeID: '7f',
     requester: 'malavu@abccorp.com'
   },
-  acts: [
+  acts: [ // Steps in this job
     {
-      type: 'test',
-      launch: {},
-      which: 'axe',
-      detailLevel: 2,
-      rules: ['landmark-complementary-is-top-level'],
+      type: 'test', // Perform tests of a tool
+      launch: {}, // Act-specific overrides for the browserID and/or target
+      which: 'axe', // ID of the tool
+      detailLevel: 2, // An argument required by this tool
+      rules: ['landmark-complementary-is-top-level'], // Which rules of the tool to test for
       what: 'Axe'
     },
     {
       type: 'test',
       launch: {
-        browserID: 'chromium',
+        browserID: 'webkit',
         target: {
-          what: 'Real Estate Management',
-          url: 'https://abccorp.com/mgmt/realproperty.html'
+          what: 'Real Estate Management contact',
+          url: 'https://abccorp.com/mgmt/realproperty/contactus'
         }
       },
       which: 'qualWeb',
@@ -184,109 +217,11 @@ Here is an example of a job:
 }
 ```
 
-This job tells Testaro to perform two _acts_. One performs one test of the Axe tool wih reporting at detail level 2, and the other performs two tests of the QualWeb tool.
+The `device` property lets you choose among [about 125 devices recognized by Playwright](https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/server/deviceDescriptorsSource.json).
 
-Each act includes a `launch` object property. In the first act it is an empty object, so the browser ID and target URL specified by the job are used. In the second act it overrides the job values with per-act values.
+There are 18 act types. They and their configurations are documented in the `etc` property of the [actSpecs.js](actSpecs.js) object. Acts of type `test` may have additional configuration properties depending on which tool they employ. Those additional properties are documented in the `test` property of the same object.
 
-Job properties:
-
-- `id`: a string uniquely identifying the job.
-- `what`: a description of the job.
-- `strict`: `true` or `false`, indicating whether _substantive redirections_ should be treated as failures. These are redirections that do more than add or subtract a final slash.
-- `standard`: whether standardized versions of tool reports are to accompany the original versions (`'also'`), replace the original versions (`'only'`), or not be produced (`'no'`).
-- `observe`: `true` or `false`, indicating whether tool and Testaro-rule invocations are to be reported to the server as they occur, so that the server can update a waiting client.
-- `device`: the ID of a device and the properties of each new browser context (window) that will be set for conformity to that device, unless overridden by an act. It must be `'default'` or the ID of one of [about 125 devices recognized by Playwright](https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/server/deviceDescriptorsSource.json).
-- `browserID`: the ID of the browser to be used, unless overridden by an act. It must be `'chromium'`, `'firefox'`, or `'webkit`'.
-- `creationTimeStamp`: a string in `yymmddThhMM` format, describing when the job was created.
-- `executionTimeStamp`: a string in `yymmddThhMM` format, specifying a date and time before which the job is not to be performed.
-- `target`: data about the target of the job, or `{}` if the job involves multiple targets.
-- `sources`: data optionally inserted into the job by the job creator for use by the job creator.
-- `acts`: an array of the acts to be performed (documented below).
-
-## Acts
-
-As shown above, `acts` is a property of a job and has an array value. Each item in the array is an object that specifies an _act_.
-
-### Introduction to acts
-
-Each act object has a `type` property and optionally has a `name` property (used in branching, described below). It must or may have other properties, depending on the value of `type`.
-
-### Act types
-
-The acts can tell Testaro to perform any of:
-
-- _navigations_ (browser launches, visits to URLs, waits for page conditions, etc.)
-- _moves_ (clicks, text inputs, hovers, etc.)
-- _alterations_ (changes to the page)
-- _tests_ (one or more of the tests defined by a tool)
-- _branching_ (continuing from an act other than the next one)
-
-#### Navigations
-
-An example of a **navigation** is:
-
-```json
-{
-  "type": "wait",
-  "which": "travel",
-  "what": "title"
-}
-```
-
-In this case, Testaro waits until the page title contains the string “travel” (case-insensitively).
-
-There is also a `launch` act. You need it in any job before other acts can be performed, unless the acts are all `test` acts and they include `launch` properties, as in the job example above. That `launch` property is a compact alternative to a `launch` act.
-
-#### Moves
-
-An example of a **move** is:
-
-```json
-{
-  "type": "radio",
-  "which": "No",
-  "index": 2,
-  "what": "No, I am not a smoker"
-}
-```
-
-In this case, Testaro checks the third radio button whose text includes the string “No” (case-insensitively).
-
-In identifying the target element for a move, Testaro matches the `which` property with the texts of the elements of the applicable type (such as radio buttons). It defines the text of an `input` element as the concatenated texts of its implicit label or explicit labels, if any, plus, for the first input in a `fieldset` element, the text content of the `legend` element of that `fieldset` element. For any other element, Testaro defines the text as the text content of the element.
-
-When the texts of multiple elements of the same type will contain the same `which` value, you can include an `index` property to specify the index of the target element, among all those that will match.
-
-#### Alterations
-
-An example of an **alteration** is:
-
-```json
-{
-  "type": "reveal",
-  "what": "make everything visible"
-}
-```
-
-This act causes Testaro to alter the `display` and `visibility` style properties of all elements, where necessary, so those properties do not make any element invisible.
-
-#### Branching
-
-An example of a **branching** act is:
-
-```json
-{
-  "type": "next",
-  "if": ["totals.invalid", ">", 0],
-  "jump": -4,
-  "what": "redo search if any invalid elements"
-}
-```
-
-This act checks the result of the previous act to determine whether its `result.totals.invalid` property has a positive value. If so, it changes the next act to be performed, specifying the act 4 acts before this one.
-
-A `next` act can use a `next` property instead of a `jump` property. The value of the `next` property is an act name. It tells Testaro to continue performing acts starting with the act having that value as the value of its `name` property.
-
-#### Tools
+## Tools
 
 ##### Introduction to tools
 
@@ -876,35 +811,6 @@ node call netWatch true 300 true
 ```
 
 The arguments and behaviors described above for execution by a module apply here, too. If the first argument is `true`, you can terminate the process by entering `CTRL-c`.
-
-## Environment variables
-
-In addition to their uses described above, environment variables can be used by acts of type `test`, as documented in the `actSpecs.js` file.
-
-Before making Testaro run a job, you can optionally also set `HEADED_BROWSER`, `DEBUG`, and/or `WAITS`. The effects of these variables are:
-
-- `HEADED_BROWSER`: whether to run the browser in headed mode instead of the default headless mode
-- `DEBUG`: whether to make logging verbose
-- `WAITS`: the number of milliseconds to wait between actions
-
-You may store environment variables in an untracked `.env` file if you wish, and Testaro will recognize them. Here is a template for a `.env` file:
-
-```conf
-AGENT=agentabc
-HEADED_BROWSER=false
-DEBUG=false
-JOBDIR=../testing/jobs
-NETWATCH_URL_0_JOB=http://localhost:3000/api/assignJob/agentabc
-NETWATCH_URL_0_OBSERVE=http://localhost:3000/api/granular/agentabc
-NETWATCH_URL_0_REPORT=http://localhost:3000/api/takeReport/agentabc
-NETWATCH_URL_0_AUTH=abcxyz
-NETWATCH_URLS=0
-PUPPETEER_DISABLE_HEADLESS_WARNING=true
-REPORTDIR=../testing/reports
-WAITS=0
-WAVE_KEY=yourwavekey
-WAX_KEY=yourwaxkey
-```
 
 ## Validation
 
