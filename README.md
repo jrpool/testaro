@@ -232,16 +232,29 @@ Testaro inserts the `jobData` property into every job, but inserts the `catalog`
 
 #### Catalogs
 
-The `catalog` property has an object value. Each property of a catalog has a strinfified integer as its key (the index of an HTML element in the page document) and an object as its value. That object documents the HTML element. When first created, the catalog documents every element in the DOM. At the end of a job, Testaro deletes all properties of the catalog except those that document elements that failed at least one test of at least one tool. The element-documenting object has these properties:
+Whenever a job requires any testing and requires the production of standard results, Testaro inserts a _catalog_ into the report. The catalog is an inventory of all HTML elements in the DOM of the target. The catalog is a critical mechanism for the integration of the tools. Most rule violations that tools report are blamed on particular HTML elements. A tool typically reports that an element violated a rule by having some defect in its configuration or behavior. But tools describe elements differently, so Testaro needs to be able to determine whether violations reported by different tools are ascribed to the same element. If they are, then an application that uses Testaro can tell you, for any particular HTML element, which tools ascribed violations of which rules to that element.
 
-- `tagName`: the upper-case
-"id": "",
-"startTag": "<a class=\"skip-link screen-reader-text\" href=\"#content\" title=\"Skip to content\">",
-"textLinkable": true,
-"text": "Skip to content",
-"boxID": "-1:-1:1:1",
-"pathID": "/html/body/a[1]"
+To make the catalog work, Testaro tries to discover, when a tool reports an element violating a rule, the location in the catalog of the record about that violating element.
 
+The `catalog` property has an object value. Each property of a catalog has a stringified integer as its key (the index of an HTML element in the page document) and an object as its value. That object documents the HTML element. When first created, the catalog documents every element in the DOM. At the end of a job, Testaro deletes all properties of the catalog except those that document elements that failed at least one test of at least one tool. The element-documenting object has these properties:
+
+- `tagName`: The upper-case tag name of the element
+- `id`: The value of the `id` prooperty of the element, if any
+- `startTag`: The HTML of the opening or complete tag of the element
+- `text`: The starting and (if any) ending inner text fragments of the element
+- `textLinkable`: Whether the `text` property is non-empty and, if it is, whether it is unique on the page
+- `boxID`: The x, y, width, and height of the client bounding rectangle of the element, in `'20:46:203:49'` format
+- `pathID`: The XPath of the element, in a Testaro-uniform format
+
+Together, these properties of any reportedly violating HTML element help any application that uses Testaro to show you, in various ways, which element a tool blames for any violation. The application could use a screenshot or a text-fragment link or could ask you to paste the XPath into your browser developer tool, for example.
+
+The discovery process involves ensuring that every violation report that a tool ascribes to an HTML element contains the XPath of that element. Testaro can then use that XPath to find the aapplicable catalog entry.
+
+In some cases no catalog entry can be found. The reasons may include:
+
+- The element was dynamically created after the catalog was created.
+- The element is inside a `noscript` element and therefore not considerd an element in the DOM.
+- The violation is not ascribed to a single element.
 
 ### Act insertions
 
