@@ -90,7 +90,7 @@ Testaro is configured so that, when Playwright or Puppeteer (a dependency of Pla
 
 ## Installation
 
-### Independent application
+### As an independent application
 
 To install Testaro as an independent application, clone the [Testaro repository](https://github.com/jrpool/testaro). To ensure that the binary browsers of its Playwright dependency get installed, execute `(p)npx playwright install` after executing `(p)npm install`.
 
@@ -102,13 +102,11 @@ git pull
 (p)npm run deps
 ```
 
-### Dependency
+### As a dependency
 
 You can make `testaro` a dependency in another application. As noted at the beginning of this file, the entry in `package.json` should be `"testaro": "67.1.0"` if your application has not been designed to work with version 68.0.0 or later.
 
-## Configuration
-
-### Environment
+## Environment configuration
 
 The `.env` file stores your decisions about the environment in which Testaro runs. The variables that can be defined there are:
 
@@ -147,7 +145,7 @@ NETWATCH_URL_0_AUTH=abcxyz
 NETWATCH_URLS=0
 ```
 
-### Jobs
+## Jobs
 
 Jobs tell Testaro what and how to test. Here is a sample job, showing properties that you can set:
 
@@ -232,7 +230,7 @@ Testaro inserts the `jobData` property into every job, but inserts the `catalog`
 
 #### Catalogs
 
-Whenever a job requires any testing and requires the production of standard results, Testaro inserts a _catalog_ into the report. The catalog is an inventory of all HTML elements in the DOM of the target. The catalog is a critical mechanism for the integration of the tools. Most rule violations that tools report are blamed on particular HTML elements. A tool typically reports that an element violated a rule by having some defect in its configuration or behavior. But tools describe elements differently, so Testaro needs to be able to determine whether violations reported by different tools are ascribed to the same element. If they are, then an application that uses Testaro can tell you, for any particular HTML element, which tools ascribed violations of which rules to that element.
+Whenever a job requires any testing and requires the production of standard results, Testaro inserts a _catalog_ into the report before calling any of the testing tools. The catalog is an inventory of all HTML elements in the DOM of the target. The catalog is a critical mechanism for the integration of the tools. Most rule violations that tools report are blamed on particular HTML elements. A tool typically reports that an element violated a rule by having some defect in its configuration or behavior. But tools describe elements differently, so Testaro needs to be able to determine whether violations reported by different tools are ascribed to the same element. If they are, then an application that uses Testaro can tell you, for any particular HTML element, which tools ascribed violations of which rules to that element.
 
 To make the catalog work, Testaro tries to discover, when a tool reports an element violating a rule, the location in the catalog of the record about that violating element.
 
@@ -246,9 +244,9 @@ The `catalog` property has an object value. Each property of a catalog has a str
 - `boxID`: The x, y, width, and height of the client bounding rectangle of the element, in `'20:46:203:49'` format
 - `pathID`: The XPath of the element, in a Testaro-uniform format
 
-Together, these properties of any reportedly violating HTML element help any application that uses Testaro to show you, in various ways, which element a tool blames for any violation. The application could use a screenshot or a text-fragment link or could ask you to paste the XPath into your browser developer tool, for example.
+Together, these properties of any reportedly violating HTML element help any application that uses Testaro to show users, in various ways, which element a tool blames for any violation. The application could use a screenshot or a text-fragment link or could ask you to paste the XPath into your browser developer tool, for example.
 
-The discovery process involves ensuring that every violation report that a tool ascribes to an HTML element contains the XPath of that element. Testaro can then use that XPath to find the aapplicable catalog entry.
+The discovery process involves ensuring that every violation report that a tool ascribes to an HTML element contains the XPath of that element. Testaro can then use that XPath to find the applicable catalog entry.
 
 In some cases no catalog entry can be found. The reasons may include:
 
