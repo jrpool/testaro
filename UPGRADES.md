@@ -3259,3 +3259,7 @@ That will help you see whether future failures cluster around late DOM injection
 ## Status
 Your fix is a sensible incremental change; keep it for now, and if you see new mismatches, the next step is adding a DOM-stability heuristic or an overlay-handling step rather than abandoning the approach.
 ```
+
+### Automated accessibility testing at Slack
+
+[Automated accessibility testing at Slack](https://slack.engineering/automated-accessibility-testing-at-slack/) is based on Playwright, with Axe as a single tool.
