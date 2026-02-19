@@ -20,10 +20,7 @@ const {launch} = require('../procs/launch');
 
 // CONSTANTS
 
-/*
-  Metadata of all rules in default execution order.
-  Property needsLaunch is true if the rule is first or the previous one contaminates the page.
-*/
+// Metadata of all rules in default execution order.
 const allRules = [
   {
     id: 'shoot0',
