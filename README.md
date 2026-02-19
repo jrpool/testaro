@@ -329,7 +329,15 @@ The segments of `boxID` are `x`, `y`, `width`, and `height`.
 
 The catalog is a mechanism for the integration of the tools. Most rule violations that tools report are blamed on particular HTML elements. A tool typically reports that an element violated a rule by having some defect in its configuration or behavior. But tools describe elements differently. Testaro makes the tools identify the XPaths of the elements they report as violators. Testaro then finds, for each XPath, the correct catalog entry.
 
-By attaching a catalog entry to each reported element, Testaro allows an application that uses Testaro to tell users, for any particular HTML element, which tools ascribed violations of which rules to that element. The application could, for example, use a screenshot or a text-fragment link or could ask the user to paste the XPath into a browser developer tool.
+Testaro uses the following techniques to make the tools calculate XPaths:
+
+- `alfa` and `aslint`: They report XPaths, so Testaro needs only to normalize them.
+- `ed11y`: Testaro adds it and a `window.getXPath` method to the page; when the tool reports an element, Testaro computes its XPath.
+- `wave`: It reports a selector for each element; Testaro finds each element in the page via its selector and executes `window.getXPath` on the element.
+- `axe`, `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`, `wax`: Testaro adds `data-xpath` attributes to all elements; the tools include code excerpts, with the `data-expath` attributes, in the reported violations.
+- `testaro`: Testaro designs each of its own tests to report element XPaths.
+
+By attaching a catalog entry to each reported element, Testaro allows an application that uses Testaro to tell users, for any particular HTML element, which tools ascribed violations of which rules to that element. An application could, for example, use a screenshot or a text-fragment link or could ask the user to paste the XPath into a browser developer tool.
 
 In some cases no catalog entry can be found. The reasons may include:
 
