@@ -129,7 +129,7 @@ exports.reporter = async (page, report, actIndex) => {
       // If standard results are to be reported:
       if (standard) {
         const instance = {
-          ruleID: parts[1],
+          ruleID: `${parts[0][0]}-${parts[1]}`,
           what: parts[4],
           ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
           count: 1
