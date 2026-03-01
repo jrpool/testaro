@@ -56,12 +56,14 @@ exports.reporter = async (page, report, actIndex) => {
       body: testTarget
     };
     const nuURL = 'https://validator.w3.org/nu/?parser=html&out=json';
-    let nuData;
+    let nuData = {};
+    let nuResponse = new Response();
     try {
       // Get a Nu Html Checker report from the W3C validator service.
       nuResponse = await fetch(nuURL, fetchOptions);
+      const {ok, status, statusText} = nuResponse;
       // If the acquisition succeeded:
-      if (nuResponse.ok) {
+      if (ok) {
         // Get the response body as an object.
         nuData = await nuResponse.json();
       }
@@ -71,13 +73,13 @@ exports.reporter = async (page, report, actIndex) => {
         const nuResponseText = await nuResponse.text();
         // Add a failure report to the data.
         data.prevented = true;
-        data.error = `HTTP ${nuResponse.status}: ${nuResponse.statusText} (${nuResponseText.slice(0, 200)})`;
+        data.error = `HTTP ${status}: ${statusText} (${nuResponseText?.slice(0, 200)})`;
       }
     }
     // If an error occurred:
     catch (error) {
       // Report it.
-      const message = `ERROR getting results (${error.message}; status ${nuResult?.status || 'none'} (${JSON.stringify(nuData?.body || 'no body', null, 2)})`;
+      const message = `ERROR getting results (${error.message}; status ${nuResponse.status || 'none'} (${JSON.stringify(nuData?.body || 'no body', null, 2)})`;
       console.log(message);
       data.prevented = true;
       data.error = message;
