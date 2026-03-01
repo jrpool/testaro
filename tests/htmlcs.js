@@ -126,8 +126,8 @@ exports.reporter = async (page, report, actIndex) => {
         // Increment the warning total.
         nativeResult.totals.cantTell++;
       }
-      // If standard results are to be reported:
-      if (standard) {
+      // If standard results are to be reported and the message reports an error or warning:
+      if (standard && ['Error', 'Warning'].includes(parts[0])) {
         const instance = {
           ruleID: `${parts[0][0]}-${parts[1]}`,
           what: parts[4],
