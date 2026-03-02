@@ -110,8 +110,11 @@ exports.getCatalog = async report => {
           ) {
             // For each element that has it:
             textElementIndexes.forEach(index => {
-              // If it is not in the head:
-              if (! cat.element[index].pathID.includes('/head[1]')) {
+              // If it is not in the head, a script, a style, or a noscript element:
+              if (
+                ! ['/head[1]', '/script[', '/style[', '/noscript[']
+                .some(excluder => cat.element[index].pathID.includes(excluder))
+              ) {
                 // Mark it as linkable in the element data in the catalog.
                 cat.element[index].textLinkable = true;
               }
