@@ -524,8 +524,11 @@ exports.reporter = async (page, report, actIndex) => {
       console.log(`Starting rule ${ruleResult.id}`);
       // Make the browser emulate headedness in all cases, because performance does not suffer.
       const headEmulation = ruleResult.id.startsWith('shoot') ? 'high' : 'high';
+      const isAfterPrevention = ruleIndex > 0
+      && !! data.rulePreventions[jobRules[ruleIndex - 1].id];
       // Get whether the rule needs a new browser launched.
       const needsLaunch = ruleIndex === 0
+      || isAfterPrevention
       || jobRules[ruleIndex - 1].contaminates
       || jobRules[ruleIndex].needsAccessibleName && ! jobRules[ruleIndex - 1].needsAccessibleName;
       const pageClosed = page && page.isClosed();
