@@ -508,6 +508,7 @@ exports.reporter = async (page, report, actIndex) => {
     ? ruleSpec.slice(1)
     : allRules.filter(rule => rule.defaultOn && ! allRuleIDs.includes(rule.id));
     const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
+    let justPrevented = false;
     // For each rule to be tested for:
     for (let ruleIndex = 0; ruleIndex < jobRules.length; ruleIndex++) {
       const rule = jobRules[ruleIndex];
@@ -524,11 +525,9 @@ exports.reporter = async (page, report, actIndex) => {
       console.log(`Starting rule ${ruleResult.id}`);
       // Make the browser emulate headedness in all cases, because performance does not suffer.
       const headEmulation = ruleResult.id.startsWith('shoot') ? 'high' : 'high';
-      const isAfterPrevention = ruleIndex > 0
-      && !! data.rulePreventions[jobRules[ruleIndex - 1].id];
       // Get whether the rule needs a new browser launched.
       const needsLaunch = ruleIndex === 0
-      || isAfterPrevention
+      || justPrevented
       || jobRules[ruleIndex - 1].contaminates
       || jobRules[ruleIndex].needsAccessibleName && ! jobRules[ruleIndex - 1].needsAccessibleName;
       const pageClosed = page && page.isClosed();
@@ -584,6 +583,7 @@ exports.reporter = async (page, report, actIndex) => {
         timer = new Promise(resolve => {
           timeout = setTimeout(() => {
             // Add data about the timeout to the rule result.
+            justPrevented = true;
             ruleResult.prevented = true;
             ruleResult.error = 'Timeout';
             console.log(`ERROR: Test of testaro rule ${ruleResult.id} timed out`);
@@ -613,6 +613,7 @@ exports.reporter = async (page, report, actIndex) => {
           if (ruleResult.instances) {
             standardResult.instances.push(... ruleResult.instances);
           }
+          justPrevented = false;
           // If testing is to stop after a failure and the page failed the test:
           if (stopOnFail && ruleReport.totals?.some(total => total)) {
             // Test for no more rules.
@@ -622,6 +623,8 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // If an error is thrown by the test:
       catch(error) {
+        ruleResult.prevented = true;
+        justPrevented = true;
         const isPageClosed = ['closed', 'Protocol error', 'Target page'].some(phrase =>
           error.message.includes(phrase)
         );
@@ -633,7 +636,6 @@ exports.reporter = async (page, report, actIndex) => {
         // Otherwise, i.e. if the page is open:
         else {
           // Add this to the rule result.
-          ruleResult.prevented = true;
           ruleResult.error = error.message;
           console.log(
             `ERROR: Test of testaro rule ${ruleResult.id} prevented (${error.message})`
