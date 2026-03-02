@@ -119,14 +119,6 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'dupAtt',
-    what: 'duplicate attribute values',
-    contaminates: false,
-    needsAccessibleName: false,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
     id: 'embAc',
     what: 'active elements embedded in links or buttons',
     contaminates: false,
@@ -351,6 +343,14 @@ const allRules = [
     defaultOn: true
   },
   {
+    id: 'dupAtt',
+    what: 'duplicate attribute values',
+    contaminates: false,
+    needsAccessibleName: false,
+    timeOut: 5,
+    defaultOn: true
+  },
+  {
     id: 'autocomplete',
     what: 'name and email inputs without autocomplete attributes',
     contaminates: false,
@@ -542,6 +542,7 @@ exports.reporter = async (page, report, actIndex) => {
           actIndex,
           tempBrowserID: browserID,
           tempURL: url,
+          headEmulation,
           xPathNeed: 'script',
           needsAccessibleName: jobRules[ruleIndex].needsAccessibleName,
           retries: 2
