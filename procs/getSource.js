@@ -39,17 +39,12 @@ exports.getSource = async page => {
   // Otherwise, i.e. if the page is not a local file:
   else {
     try {
-      console.log(`XXX About to get pageRequest of ${url}`);
-      const pageRequest = page.request;
-      console.log(`XXX Got pageRequest`);
-      const pageResponse = await pageRequest.get(url);
-      console.log('XXX got pageResponse');
-      const rawPage = await pageResponse.text();
-      console.log('Got rawPage');
+      const response = await page.goto(url);
+      const rawPage = await response.text();
       data.source = rawPage;
     }
     catch(error) {
-      console.log(`ERROR (${error.message}) getting source of ${url} because ${error.cause}`);
+      console.log(`ERROR (${error.message}) getting source of ${url}; cause: ${error.cause}`);
       data.prevented = true;
       data.error = `ERROR getting source of ${url}`;
     }
