@@ -47,6 +47,11 @@ exports.reporter = async (page, catalog, withItems) => {
             // Return a violation description.
             return 'Heading has the same text as the prior same-level sibling heading';
           }
+          // Otherwise, i.e. if they do not have identical text contents:
+          else {
+            // Stop inspecting.
+            break;
+          }
         }
         // Otherwise, i.e. if it is superior to the element:
         else {
