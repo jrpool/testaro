@@ -70,9 +70,10 @@ exports.getCatalog = async report => {
             element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? ''
           );
           const isTextable = element.closest('body')
-          && ! ['SCRIPT', 'STYLE'].includes(element.tagName);
+          && ! element.closest('svg')
+          && ! ['SCRIPT', 'STYLE', 'svg'].includes(element.tagName);
           const innerText = isTextable
-          ? element.innerText.trim() || (element.parentElement?.innerText.trim() ?? '')
+          ? element.innerText.trim() || (element.parentElement?.innerText?.trim() ?? '')
           : '';
           const segments = innerText?.split('\n') ?? [];
           const tidySegments = segments.map(segment => segment.trim().replace(/\s+/g, ' '));
