@@ -69,9 +69,13 @@ exports.getCatalog = async report => {
             'startTag',
             element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? ''
           );
-          const innerText = element.closest('head') ? '' : element.innerText;
-          const segments = innerText?.trim().split('\n');
-          const tidySegments = segments?.map(segment => segment.trim().replace(/\s+/g, ' ')) ?? [];
+          const isTextable = element.closest('body')
+          && ! ['SCRIPT', 'STYLE'].includes(element.tagName);
+          const innerText = isTextable
+          ? element.innerText.trim() || (element.parentElement?.innerText.trim() ?? '')
+          : '';
+          const segments = innerText?.split('\n') ?? [];
+          const tidySegments = segments.map(segment => segment.trim().replace(/\s+/g, ' '));
           const neededSegments = tidySegments.filter(segment => segment.length);
           neededSegments.splice(1, neededSegments.length - 2);
           const text = addToCatalog(index, cat, 'text', neededSegments.join('\n'));
