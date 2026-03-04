@@ -9,6 +9,15 @@
 /*
   catalog
   Creates and returns a catalog of a target.
+
+  A catalog is an object with one property per element in the target. Each property has the element index as its key and has an object as its value, with 7 properties:
+  - tagName
+  - id
+  - startTag
+  - text
+  - textLinkable
+  - boxID
+  - pathID
 */
 
 // IMPORTS
@@ -34,41 +43,21 @@ exports.getCatalog = async report => {
     });
     // If the launch and navigation succeeded:
     if (page) {
-      // Create a catalog of the elements in the page.
+      // Get a catalog of the elements in the page.
       const catalog = await page.evaluate(() => {
-        // Adds an element property to a catalog and returns its value.
-        const addToCatalog = (elementIndex, catalog, propertyName, value) => {
-          if (value) {
-            catalog[propertyName] ??= {};
-            catalog[propertyName][value] ??= [];
-            catalog[propertyName][value].push(elementIndex);
-            return value;
-          }
-          return '';
-        };
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
-        const cat = {
-          element: {},
-          tagName: {},
-          id: {},
-          startTag: {},
-          text: {},
-          boxID: {},
-          pathID: {}
-        };
+        const cat = [];
+        // Initialize a directory of text fragments.
+        const texts = {};
         // For each element in the page:
         for (const index in elements) {
           const element = elements[index];
-          // Index it by its properties in the catalog.
-          const tagName = addToCatalog(index, cat, 'tagName', element.tagName || '');
-          const id = addToCatalog(index, cat, 'id', element.id || '');
-          const startTag = addToCatalog(
-            index,
-            cat,
-            'startTag',
-            element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? ''
-          );
+          // Get its ID and tag name.
+          const {id, tagName} = element;
+          // Get its start tag.
+          const startTag = element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? '';
+          // Get whether it is eligible for text-fragment acquisition.
           const isTextable = element.closest('body')
           && ! element.closest('svg')
           && ! ['SCRIPT', 'STYLE', 'svg'].includes(element.tagName);
@@ -79,21 +68,22 @@ exports.getCatalog = async report => {
           const tidySegments = segments.map(segment => segment.trim().replace(/\s+/g, ' '));
           const neededSegments = tidySegments.filter(segment => segment.length);
           neededSegments.splice(1, neededSegments.length - 2);
-          const text = addToCatalog(index, cat, 'text', neededSegments.join('\n'));
+          // Get its text fragments, if eligible.
+          const text = neededSegments.join('\n');
+          // Add its index to the directory of text fragments.
+          texts[text] ??= [];
+          texts[text].push(index);
           const domRect = element.getBoundingClientRect();
-          const boxID = addToCatalog(
-            index,
-            cat,
-            'boxID',
-            domRect
-            ? ['x', 'y', 'width', 'height'].map(key => Math.round(domRect[key])).join(':')
-            : ''
-          );
-          const pathID = addToCatalog(index, cat, 'pathID', window.getXPath(element));
-          // Add an entry for it to the element data in the catalog.
-          cat.element[index] = {
+          // Get its box ID.
+          const boxID = domRect
+          ? ['x', 'y', 'width', 'height'].map(key => Math.round(domRect[key])).join(':')
+          : '';
+          // Get its path ID.
+          const pathID = window.getXPath(element);
+          // Add an entry for it to the catalog.
+          cat[index] = {
             tagName,
-            id,
+            id: id || '',
             startTag,
             text,
             textLinkable: false,
@@ -102,9 +92,9 @@ exports.getCatalog = async report => {
           };
         }
         // For each text in the catalog:
-        Object.keys(cat.text).forEach(text => {
-          const textElementIndexes = cat.text[text];
-          // If every element that has it is in the same subtree, so is page-unique:
+        Object.keys(texts).forEach(text => {
+          const textElementIndexes = texts[text].sort((a, b) => Number(a) - Number(b));
+          // If every element that has it is in the same subtree, so the text is page-unique:
           if (
             textElementIndexes.slice(0, -1).every(
               (elementIndex, index) => cat
@@ -141,7 +131,7 @@ exports.getCatalog = async report => {
   console.log('ERROR: Job omits browser ID or target URL, preventing catalog creation');
   return {};
 };
-// Prunes an elements-only catalog.
+// Prunes a catalog.
 exports.pruneCatalog = report => {
   const {acts} = report;
   const citedElementIndexes = new Set();
@@ -161,18 +151,15 @@ exports.pruneCatalog = report => {
       });
     }
   });
-  const prunedCatalog = {};
-  // For each element in the catalog:
   const {catalog} = report;
+  // For each element in the catalog:
   Object.keys(catalog).forEach(elementIndex => {
-    // If it is cited by at least 1 instance:
-    if (citedElementIndexes.has(elementIndex)) {
-      // Add it to the pruned catalog.
-      prunedCatalog[elementIndex] = catalog[elementIndex];
+    // If it is not cited by any instance:
+    if (! citedElementIndexes.has(elementIndex)) {
+      // Delete it in the catalog.
+      delete catalog[elementIndex];
     }
   });
-  // Replace the catalog with the pruned catalog.
-  report.catalog = prunedCatalog;
 };
 // Adds a catalog index or, if necessary, an XPath to a proto-instance.
 exports.addCatalogIndex = async (protoInstance, locator, catalog) => {
