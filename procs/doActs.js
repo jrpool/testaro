@@ -1154,7 +1154,9 @@ exports.doActs = async (report, opts = {}) => {
     if (standard === 'only') {
       // Remove them.
       localReport.acts.forEach(act => {
-        delete act.result.nativeResult;
+        if (act.result?.nativeResult) {
+          delete act.result.nativeResult;
+        }
       });
     }
     // If a catalog was created:
