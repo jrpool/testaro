@@ -57,6 +57,6 @@ exports.getAttributeXPath = html => {
 };
 // Gets a catalog index as a string from an XPath.
 exports.getXPathCatalogIndex = (catalog, xPath) => {
-  const index = catalog.pathID[xPath]?.[0] ?? '';
+  const index = catalog.pathID[xPath] ?? '';
   return index;
 };
