@@ -151,6 +151,8 @@ exports.reporter = async (page, report, actIndex) => {
                 // Get the ordinal severity of the suspicion.
                 const ordinalSeverity = severityWeights[node.impact]
                 + (certainty === 'violations' ? 2 : 0);
+                // Increment the standard total.
+                standardResult.totals[ordinalSeverity]++;
                 // Get the XPath of the suspected element from its data-xpath attribute.
                 const xPath = getAttributeXPath(node.html);
                 // Get the catalog index of the suspected element from its XPath.
