@@ -148,7 +148,6 @@ exports.getCatalog = async report => {
       // Close the browser and its context.
       await browserClose(page);
       // Return the catalog.
-      console.log(`XXX About to return catalog:\n${JSON.stringify(catalog, null, 2)}`);
       return catalog;
     }
     // Otherwise, i.e. if the launch or navigation failed, report and return this.
