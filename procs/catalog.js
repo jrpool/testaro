@@ -18,6 +18,7 @@
   - textLinkable
   - boxID
   - pathID
+  - headingIndex
 */
 
 // IMPORTS
@@ -47,7 +48,7 @@ exports.getCatalog = async report => {
       const catalog = await page.evaluate(() => {
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
-        const cat = [];
+        const cat = {};
         // Initialize a directory of text fragments.
         const texts = {};
         // Initialize the index of the current heading.
@@ -57,11 +58,6 @@ exports.getCatalog = async report => {
           const element = elements[index];
           // Get its ID and tag name.
           const {id, tagName} = element;
-          // If the element is a heading:
-          if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(tagName)) {
-            // Modify the current heading index.
-            headingIndex = index;
-          }
           // Get its start tag.
           const startTag = element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? '';
           // Get whether it is eligible for text-fragment acquisition.
@@ -71,15 +67,19 @@ exports.getCatalog = async report => {
           const innerText = isTextable
           ? element.innerText.trim() || (element.parentElement?.innerText?.trim() ?? '')
           : '';
-          const segments = innerText?.split('\n') ?? [];
-          const tidySegments = segments.map(segment => segment.trim().replace(/\s+/g, ' '));
-          const neededSegments = tidySegments.filter(segment => segment.length);
-          neededSegments.splice(1, neededSegments.length - 2);
-          // Get its text fragments, if eligible.
-          const text = neededSegments.join('\n');
-          // Add its index to the directory of text fragments.
-          texts[text] ??= [];
-          texts[text].push(index);
+          let text = '';
+          // If it is eligible and has an inner text:
+          if (innerText) {
+            const segments = innerText?.split('\n') ?? [];
+            const tidySegments = segments.map(segment => segment.trim().replace(/\s+/g, ' '));
+            const neededSegments = tidySegments.filter(segment => segment.length);
+            neededSegments.splice(1, neededSegments.length - 2);
+            // Get its text fragments.
+            text = neededSegments.join('\n');
+            // Add its index to the directory of text fragments.
+            texts[text] ??= [];
+            texts[text].push(index);
+          }
           const domRect = element.getBoundingClientRect();
           // Get its box ID.
           const boxID = domRect
@@ -87,6 +87,15 @@ exports.getCatalog = async report => {
           : '';
           // Get its path ID.
           const pathID = window.getXPath(element);
+          // If it is a heading that nullifies an existing current heading index:
+          if (
+            headingIndex
+            && ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(tagName)
+            && cat[headingIndex].tagName >= tagName
+          ) {
+            // Nullify the current heading index.
+            headingIndex = '';
+          }
           // Add an entry for it to the catalog.
           cat[index] = {
             tagName,
@@ -98,6 +107,11 @@ exports.getCatalog = async report => {
             pathID,
             headingIndex
           };
+          // If the element is a heading:
+          if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(tagName)) {
+            // Assign its index to the current heading index.
+            headingIndex = index;
+          }
         }
         // For each text in the catalog:
         Object.keys(texts).forEach(text => {
@@ -105,10 +119,9 @@ exports.getCatalog = async report => {
           // If every element that has it is in the same subtree, so the text is page-unique:
           if (
             textElementIndexes.slice(0, -1).every(
-              (elementIndex, index) => cat
-              .element[textElementIndexes[index + 1]]
+              (elementIndex, index) => cat[textElementIndexes[index + 1]]
               .pathID
-              .startsWith(cat.element[elementIndex].pathID)
+              .startsWith(cat[elementIndex].pathID)
             )
           ) {
             // For each element that has it:
@@ -116,10 +129,10 @@ exports.getCatalog = async report => {
               // If it is not in the head, a script, a style, or a noscript element:
               if (
                 ! ['/head[1]', '/script[', '/style[', '/noscript[']
-                .some(excluder => cat.element[index].pathID.includes(excluder))
+                .some(excluder => cat[index].pathID.includes(excluder))
               ) {
                 // Mark it as linkable in the element data in the catalog.
-                cat.element[index].textLinkable = true;
+                cat[index].textLinkable = true;
               }
             });
           }
@@ -129,6 +142,7 @@ exports.getCatalog = async report => {
       // Close the browser and its context.
       await browserClose(page);
       // Return the catalog.
+      console.log(`XXX About to return catalog:\n${JSON.stringify(catalog, null, 2)}`);
       return catalog;
     }
     // Otherwise, i.e. if the launch or navigation failed, report and return this.
