@@ -161,7 +161,7 @@ exports.getCatalog = async report => {
 };
 // Prunes a catalog.
 exports.pruneCatalog = report => {
-  const {acts} = report;
+  const {acts, catalog} = report;
   const citedElementIndexes = new Set();
   // For each act in the report:
   acts.forEach(act => {
@@ -185,7 +185,6 @@ exports.pruneCatalog = report => {
       });
     }
   });
-  const {catalog} = report;
   // Delete the temporary path ID directory.
   delete catalog.pathID;
   // For each element in the catalog:
