@@ -50,11 +50,18 @@ exports.getCatalog = async report => {
         const cat = [];
         // Initialize a directory of text fragments.
         const texts = {};
+        // Initialize the index of the current heading.
+        let headingIndex = '';
         // For each element in the page:
         for (const index in elements) {
           const element = elements[index];
           // Get its ID and tag name.
           const {id, tagName} = element;
+          // If the element is a heading:
+          if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(tagName)) {
+            // Modify the current heading index.
+            headingIndex = index;
+          }
           // Get its start tag.
           const startTag = element.outerHTML?.replace(/^.*?</s, '<').replace(/>.*$/s, '>') ?? '';
           // Get whether it is eligible for text-fragment acquisition.
@@ -88,7 +95,8 @@ exports.getCatalog = async report => {
             text,
             textLinkable: false,
             boxID,
-            pathID
+            pathID,
+            headingIndex
           };
         }
         // For each text in the catalog:
@@ -147,6 +155,12 @@ exports.pruneCatalog = report => {
         if (catalogIndex) {
           // Ensure the index is classified as cited.
           citedElementIndexes.add(catalogIndex);
+          const {headingIndex} = catalog[catalogIndex];
+          // If the catalog item has a heading index:
+          if (headingIndex) {
+            // Ensure it, too, is classified as cited.
+            citedElementIndexes.add(headingIndex);
+          }
         }
       });
     }
@@ -154,7 +168,7 @@ exports.pruneCatalog = report => {
   const {catalog} = report;
   // For each element in the catalog:
   Object.keys(catalog).forEach(elementIndex => {
-    // If it is not cited by any instance:
+    // If it is not cited by any instance or by any cited element:
     if (! citedElementIndexes.has(elementIndex)) {
       // Delete it in the catalog.
       delete catalog[elementIndex];
