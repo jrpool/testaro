@@ -112,6 +112,12 @@ exports.getCatalog = async report => {
             // Assign its index to the current heading index.
             headingIndex = index;
           }
+          // If the element has a path ID:
+          if (pathID) {
+            // Add it to the temporary path ID directory in the catalog.
+            cat.pathID ??= {};
+            cat.pathID[pathID] = index;
+          }
         }
         // For each text in the catalog:
         Object.keys(texts).forEach(text => {
@@ -180,6 +186,8 @@ exports.pruneCatalog = report => {
     }
   });
   const {catalog} = report;
+  // Delete the temporary path ID directory.
+  delete catalog.pathID;
   // For each element in the catalog:
   Object.keys(catalog).forEach(elementIndex => {
     // If it is not cited by any instance or by any cited element:

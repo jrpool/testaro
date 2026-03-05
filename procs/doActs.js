@@ -1150,8 +1150,6 @@ exports.doActs = async (report, opts = {}) => {
   console.log('Acts completed');
   // If the results were standardized:
   if (['also', 'only'].includes(standard)) {
-    // Reassign the element property of the catalog to the catalog, deleting the rest.
-    localReport.catalog = localReport.catalog.element;
     // If the native results are not to be included in the report:
     if (standard === 'only') {
       // Remove them.
