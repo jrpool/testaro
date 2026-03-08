@@ -33,15 +33,15 @@ const bpModule = new BestPractices({});
 const ordinalSeverities = {
   'act-rules': {
     'warning': 1,
-    'failure': 3
+    'failed': 3
   },
   'wcag-techniques': {
     'warning': 0,
-    'failure': 2
+    'failed': 2
   },
   'best-practices': {
     'warning': 0,
-    'failure': 1
+    'failed': 1
   }
 }
 
