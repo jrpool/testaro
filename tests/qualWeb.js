@@ -186,15 +186,15 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
         result
       };
     }
-    // Otherwise, i.e. if the evaluation succeeded, get the report.
+    // Add the report to the result.
     result.nativeResult = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
     const {nativeResult, standardResult} = result;
-    // If it contains a copy of the DOM:
+    // If the report contains, as it should, a copy of the DOM:
     if (nativeResult?.system?.page?.dom) {
-      // Delete the copy.
+      // Delete the copy for parsimony.
       delete nativeResult.system.page.dom;
       const {modules} = nativeResult;
-      // If the report contains a modules property:
+      // If the report contains, as it should, a modules property:
       if (modules) {
         // For each test section in it:
         for (const section of ['act-rules', 'wcag-techniques', 'best-practices']) {
@@ -229,6 +229,9 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                           }
                           // If standard results are to be reported:
                           if (standard) {
+                            const ordinalSeverity = ordinalSeverities[section][verdict];
+                            // Increment the applicable total.
+                            standardResult.totals[ordinalSeverity]++;
                             // Initialize a standard instance.
                             const what = `[${verdict}] ${raResult.description}`;
                             const instance = {
@@ -266,24 +269,32 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                   }
                 };
               }
+              // Otherwise, i.e. if it contains no assertions:
               else {
+                // Report this.
                 data.prevented = true;
                 data.error = 'No assertions';
               }
             }
+            // Otherwise, i.e. if the section is missing:
             else {
+              // Report this.
               data.prevented = true;
               data.error = `No ${section} section`;
             }
           }
         }
       }
+      // Otherwise, i.e. if the report does not contain a modules property:
       else {
+        // Report this.
         data.prevented = true;
         data.error = 'No modules';
       }
     }
+    // Otherwise, i.e. if the report does not contain a copy of the DOM:
     else {
+      // Report this.
       data.prevented = true;
       data.error = 'No DOM';
     }
@@ -300,7 +311,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   }
   catch(error) {
     data.prevented = true;
-    data.error = `qualWeb evaluation failed (${error.message})`;
+    data.error = `QualWeb failed (${error.message})`;
   }
   return {
     data,
