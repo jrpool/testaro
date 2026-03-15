@@ -165,7 +165,7 @@ const testTabs = async (tabs, index, listOrientation, listIsCorrect, withItems, 
     // If itemization is required:
     if (withItems) {
       // Initialize a report on the element.
-      itemData.xPath = await page.evaluate(element => window.getXPath(element));
+      itemData.xPath = await page.evaluate(element => window.getXPath(element), currentTab);
       itemData.navigationErrors = [];
     }
     // Test the element with each navigation key.
