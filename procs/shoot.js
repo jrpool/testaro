@@ -10,6 +10,8 @@
 
 // IMPORTS
 
+// Shared configuration for timeout multiplier.
+const {applyMultiplier} = require('./config');
 const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
@@ -26,7 +28,7 @@ const screenShot = async (page, exclusion = null) => {
   const options = {
     fullPage: true,
     omitBackground: true,
-    timeout: 4000
+    timeout: applyMultiplier(4000)
   };
   if (exclusion) {
     options.mask = [exclusion];

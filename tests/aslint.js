@@ -16,6 +16,8 @@
 // IMPORTS
 
 const fs = require('fs/promises');
+// Shared configuration for timeout multiplier.
+const {applyMultiplier} = require('../procs/config');
 const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
@@ -184,7 +186,7 @@ exports.reporter = async (page, report, actIndex) => {
       // Wait for the test results to be attached to the page.
       const waitOptions = {
         state: 'attached',
-        timeout: 20000
+        timeout: applyMultiplier(20000)
       };
       await reportLoc.waitFor(waitOptions);
     }

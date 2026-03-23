@@ -19,6 +19,7 @@ let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
 const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 const {Playwright} = require('@siteimprove/alfa-playwright');
+const {applyMultiplier} = require('../procs/config');
 
 // FUNCTIONS
 
@@ -54,6 +55,8 @@ exports.reporter = async (page, report, actIndex) => {
     };
   }
   try {
+    // Wait for a stable page to make the page and its alfa version consistent.
+    await page.waitForLoadState('networkidle', {timeout: applyMultiplier(6000)});
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     // Test the page content with the specified rules.
