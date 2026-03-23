@@ -29,10 +29,11 @@ const {nowString} = require('./procs/dateTime');
 
 // CONSTANTS
 
-const netWatchURLIDs = process.env.NETWATCH_URLS.split(/,/);
-const jobURLs = netWatchURLIDs.map(id => process.env[`NETWATCH_URL_${id}_JOB`]);
-const reportURLs = netWatchURLIDs.map(id => process.env[`NETWATCH_URL_${id}_REPORT`]);
-const auths = netWatchURLIDs.map(id => process.env[`NETWATCH_URL_${id}_AUTH`]);
+const jobURL = new URL(process.env.NETWATCH_URL_JOB);
+const jobHost = jobURL.host;
+const reportURL = new URL(process.env.NETWATCH_URL_REPORT);
+const reportHost = reportURL.host;
+const agentPW = process.env.NETWATCH_URL_AUTH;
 
 // FUNCTIONS
 
@@ -44,39 +45,22 @@ const wait = ms => {
     }, ms);
   });
 };
-// Serves an object in JSON format.
-const serveObject = (object, response) => {
+// Ends a response with an object in JSON format.
+const respondWithObject = (object, response) => {
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
   response.end(JSON.stringify(object));
 };
-// Removes the query if any, or otherwise the final segment, from a URL.
-const getURLBase = url => url.replace(/[?/][^?/.]+$/, '');
 /*
   Requests a network job and, when found, performs and reports it.
   Arguments:
   0. whether to continue watching after a job is run.
-  1: interval in seconds from a cycle of no-job checks to the next cycle.
+  1: interval in seconds from a no-job check to the next check.
   2. whether to ignore unknown-certificate errors from watched servers.
 */
 exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) => {
-  // If the job and report URLs exist and are all valid:
-  if (
-    jobURLs
-    && jobURLs.length
-    && reportURLs
-    && reportURLs.length === jobURLs.length
-    && jobURLs.every((jobURL, index) => {
-      const allDefined = [jobURL, reportURLs[index]].every(url => url);
-      const allSchemed = allDefined
-      && [jobURL, reportURLs[index]]
-      .every(url => ['http://', 'https://'].some(prefix => url.startsWith(prefix)));
-      return allSchemed;
-    })
-  ) {
+  // If the job and report URLs exist and are valid:
+  if (jobURL && reportURL) {
     // Configure the watch.
-    const urlCount = jobURLs.length;
-    let cycleIndex = -1;
-    let urlIndex = -1;
     let noJobYet = true;
     let abort = false;
     const certInfo = `Certificate-${isCertTolerant ? '' : 'in'}tolerant`;
@@ -87,122 +71,119 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
     );
     // As long as watching is to continue:
     while ((isForever || noJobYet) && ! abort) {
-      // If the cycle is complete:
-      if (cycleIndex === urlCount - 1) {
-        // Wait for the specified interval.
-        await wait(1000 * intervalInSeconds);
-        // Log the start of a cycle.
-        console.log('--');
-      }
-      // Otherwise, i.e. if the cycle is incomplete:
-      else {
-        // Wait briefly.
-        await wait(1000);
-      }
+      // Log the start of a check.
+      console.log('--');
       // Configure the next check.
-      cycleIndex = ++cycleIndex % urlCount;
-      urlIndex = ++urlIndex % urlCount;
-      const jobURL = jobURLs[urlIndex];
-      const publicURL = auths[urlIndex] ? jobURL : getURLBase(jobURL);
-      const logStart = `Requested job from ${publicURL} and got `;
+      const logStart = `Requested job from ${jobHost} and got `;
       // Perform it.
       await new Promise(resolve => {
         try {
-          const client = jobURL.startsWith('https://') ? httpsClient : httpClient;
+          const client = jobURL.protocol === 'https:' ? httpsClient : httpClient;
           // Request a job.
-          const requestOptions = isCertTolerant ? {rejectUnauthorized: false} : {};
-          if (auths[urlIndex]) {
-            requestOptions.method = 'POST';
-          }
+          const requestOptions = {
+            method: 'POST',
+            host: jobHost,
+            'Content-type': 'application/json'
+          };
           client.request(jobURL, requestOptions, response => {
+            // Initialize a collection of data from the response.
             const chunks = [];
             response
             // If the response throws an error:
             .on('error', async error => {
               // Report it.
               console.log(`${logStart}error message ${error.message}`);
+              // Stop checking.
+              abort = true;
               resolve(true);
             })
+            // If the response delivers data:
             .on('data', chunk => {
+              // Add them to the collection.
               chunks.push(chunk);
             })
-            // When the response arrives:
+            // When the response is completed:
             .on('end', async () => {
               const content = chunks.join('');
-              // It should be JSON. If it is:
               try {
+                // Parse it as a JSON job.
                 let contentObj = JSON.parse(content);
                 const {id, sources} = contentObj;
-                // If it is empty:
+                // If it is a no-job message:
                 if (! Object.keys(contentObj).length) {
                   // Report this.
                   console.log(`${logStart}no job to do`);
+                  // Wait for the specified interval.
+                  await wait(1000 * intervalInSeconds);
                   resolve(true);
                 }
-                // Otherwise, if it is a job:
+                // Otherwise, if a job was received:
                 else if (id) {
                   // Check it for validity.
-                  const jobInvalidity = isValidJob(contentObj);
+                  const jobValidity = isValidJob(contentObj);
                   // If it is invalid:
-                  if (! jobInvalidity.isValid) {
+                  if (! jobValidity.isValid) {
                     // Report this to the server.
-                    serveObject({
+                    respondWithObject({
                       message: `invalidJob`,
-                      error: jobInvalidity.error
+                      error: jobValidity.error
                     }, response);
-                    console.log(`${logStart}invalid job (${jobInvalidity.error})`);
+                    console.log(`${logStart}invalid job (${jobValidity.error})`);
                     resolve(true);
                   }
                   // Otherwise, i.e. if it is valid:
                   else {
-                    // Restart the cycle.
-                    cycleIndex = -1;
                     // Prevent further watching, if unwanted.
                     noJobYet = false;
                     // Add the agent and the server ID to the job.
                     sources.agent = process.env.AGENT || '';
-                    sources.serverID = urlIndex;
                     // Perform the job and create a report.
-                    console.log(`${logStart}job ${id} for server ${urlIndex} (${nowString()})`);
+                    console.log(`${logStart}job ${id} (${nowString()})`);
                     try {
                       const report = await doJob(contentObj);
-                      const responseObj = auths[urlIndex] ? {
-                        agentPW: auths[urlIndex],
+                      const responseObj = {
+                        agentPW,
                         report
-                      } : report;
+                      };
                       let responseJSON = JSON.stringify(responseObj, null, 2);
                       console.log(`Job ${id} finished (${nowString()})`);
-                      const reportURL = reportURLs[urlIndex];
-                      const publicReportURL = auths[urlIndex] ? reportURL : getURLBase(reportURL);
-                      const reportClient = reportURL.startsWith('https://')
-                        ? httpsClient
-                        : httpClient;
                       const reportLogStart = `Submitted report ${id} to ${publicReportURL} and got `;
-                      // Send the report to the server that assigned the job.
-                      reportClient.request(reportURL, {method: 'POST'}, repResponse => {
+                      const requestOptions = {
+                        method: 'POST',
+                        host: reportHost,
+                        'Content-type': 'application/json'
+                      };
+                      // Submit the report.
+                      const client = reportURL.protocol === 'https:' ? httpsClient : httpClient;
+                      client.request(reportURL, requestOptions, repResponse => {
+                        // Initialize a collection of data from the response.
                         const chunks = [];
                         repResponse
                         // If the response to the report threw an error:
                         .on('error', async error => {
                           // Report this.
                           console.log(`${reportLogStart}error message ${error.message}\n`);
+                          // Stop checking.
+                          abort = true;
                           resolve(true);
                         })
+                        // If the response delivers data:
                         .on('data', chunk => {
+                          // Add them to the collection.
                           chunks.push(chunk);
                         })
-                        // When the response to the report arrives:
+                        // When the response to the report is completed:
                         .on('end', async () => {
                           const content = chunks.join('');
-                          // It should be JSON. If it is:
                           try {
+                            // Parse it as a JSON message.
                             const ackObj = JSON.parse(content);
                             // Report it.
                             console.log(
                               `${reportLogStart}response message: ${JSON.stringify(ackObj, null, 2)}\n`
                             );
                           }
-                          // Otherwise, i.e. if it is not JSON:
+                          // If it is not JSON:
                           catch(error) {
                             // Report this.
                             console.log(
@@ -223,6 +204,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                         console.log(
                           `ERROR ${error.code} in report submission: ${reportLogStart}error message ${error.message}\n`
                         );
+                        // Stop checking.
+                        abort = true;
                         resolve(true);
                       })
                       // Finish submitting the report.
@@ -230,6 +213,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                     }
                     catch(error) {
                       console.log(`ERROR performing job ${id} (${error.message})`);
+                      // Stop checking.
+                      abort = true;
                       resolve(true);
                     }
                   }
@@ -245,6 +230,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
               catch(error) {
                 // Report this.
                 console.log(`ERROR: ${logStart}status ${response.statusCode}, error message ${error.message}, and non-JSON response ${content.slice(0, 1000)}\n`);
+                // Stop checking.
+                abort = true;
                 resolve(true);
               };
             });
@@ -255,44 +242,52 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             if (error.code && error.code.includes('ECONNREFUSED')) {
               // Report this.
               console.log(`${logStart}no connection`);
+              // Stop checking.
+              abort = true;
             }
             // Otherwise, if it was a DNS failure:
             else if (error.code && error.code.includes('ENOTFOUND')) {
               // Report this.
               console.log(`${logStart}no domain name resolution`);
+              // Stop checking.
+              abort = true;
             }
             // Otherwise, if it was any other error with a message:
             else if (error.message) {
               // Report this.
               console.log(`ERROR: ${logStart}got error message ${error.message.slice(0, 200)}`);
+              // Stop checking.
+              abort = true;
             }
             // Otherwise, i.e. if it was any other error with no message:
             else {
               // Report this.
               console.log(`ERROR: ${logStart}got an error with no message`);
+              // Stop checking.
+              abort = true;
             }
             resolve(true);
           })
-          // Finish sending the job request, with a password if a POST request.
-          .end(auths[urlIndex] ? JSON.stringify({
-            agentPW: auths[urlIndex]
-          }) : '');
+          // Finish sending the job request.
+          .end(JSON.stringify({
+            agentPW
+          }));
         }
         // If requesting a job throws an error:
         catch(error) {
-          // Abort the watch.
-          abort = true;
           // Report this.
           console.log(`ERROR requesting a network job (${error.message})`);
+          // Stop checking.
+          abort = true;
           resolve(true);
         }
       });
     }
     console.log('Watching complete');
   }
-  // Otherwise, i.e. if the job URLs do not exist or are invalid:
+  // Otherwise, i.e. if the job or report URL does not exist or is invalid:
   else {
     // Report this.
-    console.log('ERROR: List of job URLs invalid');
+    console.log('ERROR: Job or report URL does not exist or is invalid');
   }
 };

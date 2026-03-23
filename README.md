@@ -132,17 +132,15 @@ REPORTDIR=../testing/reports
 # Name of this Testaro instance when it listens for jobs and sends reports to requesting hosts.
 AGENT=agentabc
 #----------------------------
-# When Testaro polls network hosts to ask for new jobs, data on those hosts.
-# URL of host 0 to poll.
-NETWATCH_URL_0_JOB=http://localhost:3000/api/assignJob/agentabc
-# URL of host 0 to which to send progress reports during jobs.
-NETWATCH_URL_0_OBSERVE=http://localhost:3000/api/granular/agentabc
-# URL of host 0 to which to send completed job reports.
-NETWATCH_URL_0_REPORT=http://localhost:3000/api/takeReport/agentabc
-# Password to give to host 0 to authenticate this instance.
-NETWATCH_URL_0_AUTH=abcxyz
-# Which network hosts to poll for jobs (comma-separated list of indices).
-NETWATCH_URLS=0
+# When Testaro polls a network host to ask for new jobs, data on the host.
+# URL to poll.
+NETWATCH_JOB=http://localhost:3000/api/assignJob/agentabc
+# URL to which to send progress reports during jobs.
+NETWATCH_OBSERVE=http://localhost:3000/api/granular/agentabc
+# URL to which to send completed job reports.
+NETWATCH_REPORT=http://localhost:3000/api/takeReport/agentabc
+# Password to give to the host to authenticate this instance.
+NETWATCH_AUTH=abcxyz
 ```
 
 ## Jobs

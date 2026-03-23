@@ -63,12 +63,9 @@ const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1
 
 // FUNCTIONS
 
-// Sends a notice to an observer.
+// Sends a notice to a network observer.
 const tellServer = (report, messageParams, logMessage) => {
-  const {serverID} = report.sources;
-  const observerURL = typeof serverID === 'number'
-    ? process.env[`NETWATCH_URL_${serverID}_OBSERVE`]
-    : '';
+  const observerURL = process.env.NETWATCH_URL_OBSERVE;
   if (observerURL) {
     const whoParams = `agent=${agent}&jobID=${report.id || ''}`;
     const wholeURL = `${observerURL}?${whoParams}&${messageParams}`;
