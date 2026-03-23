@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -21,7 +22,7 @@ const fs = require('fs/promises');
 // Module to perform jobs.
 const {doJob} = require('./run');
 // Module to get dates from time stamps.
-const {dateOf} = require('./procs/dateOf');
+const {dateOf, nowString} = require('./procs/dateTime');
 
 // ########## CONSTANTS
 
@@ -30,8 +31,6 @@ const reportDir = process.env.REPORTDIR;
 
 // ########## FUNCTIONS
 
-// Returns a string representing the date and time.
-const nowString = () => (new Date()).toISOString().slice(2, 16);
 // Writes a directory report.
 const writeDirReport = async report => {
   const jobID = report && report.id;

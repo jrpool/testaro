@@ -1,6 +1,6 @@
 /*
   © 2022–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -24,6 +24,8 @@ const httpClient = require('http');
 const httpsClient = require('https');
 // Module to perform jobs.
 const {doJob} = require('./run');
+// Module to process dates and times.
+const {nowString} = require('./procs/dateTime');
 
 // CONSTANTS
 
@@ -34,8 +36,6 @@ const auths = netWatchURLIDs.map(id => process.env[`NETWATCH_URL_${id}_AUTH`]);
 
 // FUNCTIONS
 
-// Returns a string representing the date and time.
-const nowString = () => (new Date()).toISOString().slice(2, 16);
 // Waits.
 const wait = ms => {
   return new Promise(resolve => {
@@ -144,13 +144,13 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   // Check it for validity.
                   const jobInvalidity = isValidJob(contentObj);
                   // If it is invalid:
-                  if (jobInvalidity) {
+                  if (! jobInvalidity.isValid) {
                     // Report this to the server.
                     serveObject({
                       message: `invalidJob`,
-                      jobInvalidity
+                      error: jobInvalidity.error
                     }, response);
-                    console.log(`${logStart}invalid job (${jobInvalidity})`);
+                    console.log(`${logStart}invalid job (${jobInvalidity.error})`);
                     resolve(true);
                   }
                   // Otherwise, i.e. if it is valid:

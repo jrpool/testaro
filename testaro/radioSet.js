@@ -1,9 +1,8 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or   https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -20,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the name of the element.
     const elName = element.name;
@@ -70,6 +69,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Radio buttons are not validly grouped in fieldsets with legends';
   return await doTest(
-    page, withItems, 'radioSet', 'input[type=radio]', whats, 2, 'INPUT', getBadWhat.toString()
+    page, catalog, withItems, 'radioSet', 'input[type=radio]', whats, 2, getBadWhat.toString()
   );
 };

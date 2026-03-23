@@ -1,6 +1,6 @@
 /*
   © 2022–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -16,14 +16,11 @@
 
 // IMPORTS
 
-// Module to perform file operations.
 const fs = require('fs/promises');
-// Module to define the operating-system temporary-file directory.
 const os = require('os');
-// Module to run tests.
 const {vnu} = require('vnu-jar');
-// Module to get the content.
 const {curate, getContent} = require('../procs/nu');
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -33,6 +30,23 @@ const tmpDir = os.tmpdir();
 
 // Conducts and reports the Nu Html Checker tests.
 exports.reporter = async (page, report, actIndex) => {
+  // Initialize the act report.
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
+  const {standardResult} = result;
   // Get the nuVal act, if it exists.
   const nuValAct = report.acts.find(act => act.type === 'test' && act.which === 'nuVal');
   // If it does not exist or it exists but was prevented:
@@ -40,13 +54,13 @@ exports.reporter = async (page, report, actIndex) => {
     const act = report.acts[actIndex];
     const {rules, withSource} = act;
     // Get the content.
-    const data = await getContent(page, withSource);
-    let result;
-    // If it was obtained:
-    if (data.testTarget) {
+    const content = await getContent(page, withSource);
+    const {testTarget} = content;
+    // If it was obtained and contains a test target:
+    if (testTarget) {
       const pagePath = `${tmpDir}/nuVnu-page-${report.id}.html`;
-      // Save it in a temporary file.
-      await fs.writeFile(pagePath, data.testTarget);
+      // Save the test target in a temporary file.
+      await fs.writeFile(pagePath, testTarget);
       let nuData;
       try {
         // Get Nu Html Checker output on it.
@@ -56,7 +70,7 @@ exports.reporter = async (page, report, actIndex) => {
       catch (error) {
         const errorMessage = error.message;
         try {
-        // Parse it as JSON, i.e. a benign nuVnu result with at least 1 violation.
+          // Parse it as JSON, i.e. a benign nuVnu result with at least 1 violation.
           nuData = JSON.parse(error.message);
         }
         // If parsing it as JSON fails:
@@ -68,14 +82,50 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Delete the temporary file.
       await fs.unlink(pagePath);
-      // Postprocess the result.
-      result = await curate(page, data, nuData, rules);
-      return {
-        data,
-        result
-      };
+      // Postprocess the output and add the postprocessed output to the native result.
+      result.nativeResult = await curate(data, nuData, rules);
+      // If standard results are to be reported:
+      if (standard) {
+        // For each message in the native result:
+        result.nativeResult.messages.forEach(message => {
+          const ordinalSeverity = message.type === 'info' ? 0 : 3;
+          // Increment the applicable standard-result total.
+          standardResult.totals[ordinalSeverity]++;
+          // Initialize a standard instance.
+          const standardInstance = {
+            ruleID: message.message,
+            what: message.message,
+            ordinalSeverity,
+            count: 1,
+          };
+          // Get the XPath of the element from its extract.
+          const xPath = getAttributeXPath(message.extract);
+          // If the acquisition succeeded:
+          if (xPath) {
+            // Get the catalog index of the element from the XPath.
+            const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+            // If the acquisition succeeded:
+            if (catalogIndex) {
+              // Add the catalog index to the standard instance.
+              standardInstance.catalogIndex = catalogIndex;
+            }
+            // Otherwise, i.e. if the acquisition failed:
+            else {
+              // Add the XPath of the standard instance as its pathID.
+              standardInstance.pathID = xPath;
+            }
+          }
+          // Otherwise, i.e. if the acquisition failed:
+          else {
+            // Add the extract of the native instance to the standard instance.
+            standardInstance.excerpt = message.extract ?? '';
+          }
+          // Add the standard instance to the standard result.
+          standardResult.instances.push(standardInstance);
+        });
+      }
     }
-    // Otherwise, i.e. if the content was not obtained:
+    // Otherwise, i.e. if the content was not obtained or contains no test target:
     else {
       // Report this.
       data.prevented = true;
@@ -85,12 +135,12 @@ exports.reporter = async (page, report, actIndex) => {
   // Otherwise, i.e. if the nuVal act exists and succeeded:
   else {
     // Abort this act and report this.
-    return {
-      data: {
-        skipped: true,
-        reason: 'nuVal succeeded'
-      },
-      result: {}
-    };
+    data.skipped = true;
+    data.reason = 'nuVal succeeded';
   }
+  // Return the data and result.
+  return {
+    data,
+    result
+  };
 };

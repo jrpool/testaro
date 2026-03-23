@@ -1,6 +1,6 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -32,13 +32,11 @@
 // IMPORTS
 
 const axePlaywright = require('axe-playwright');
-// Module to simplify strings.
-const {cap} = require('../procs/job');
-const {getIdentifiers} = require('../procs/getElementData');
-const {injectAxe} = axePlaywright;
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
+const {injectAxe} = axePlaywright;
 const severityWeights = {
   minor: 0,
   moderate: 0,
@@ -134,34 +132,37 @@ exports.reporter = async (page, report, actIndex) => {
       irrelevants.forEach(irrelevant => {
         delete axeReport[irrelevant];
       });
-      // If standard results are to be reported and there are any violations:
+      // If standard results are to be reported and there are any suspicions:
       if (standard && (totals.rulesViolated || totals.rulesWarned)) {
+        // For each certainty type:
         ['incomplete', 'violations'].forEach(certainty => {
+          // If there are any suspicions of this type:
           if (nativeResult?.details?.[certainty]) {
+            // For each rule with any suspicions:
             nativeResult.details[certainty].forEach(rule => {
+              // For each element suspected of violating the rule:
               rule.nodes.forEach(node => {
+                // Get descriptions of the rule.
                 const whatSet = new Set([
                   rule.help,
                   ... node.any.map(anyItem => anyItem.message),
                   ... node.all.map(allItem => allItem.message)
                 ]);
+                // Get the ordinal severity of the suspicion.
                 const ordinalSeverity = severityWeights[node.impact]
                 + (certainty === 'violations' ? 2 : 0);
-                const identifiers = getIdentifiers(node.html);
+                // Increment the standard total.
+                standardResult.totals[ordinalSeverity]++;
+                // Get the XPath of the suspected element from its data-xpath attribute.
+                const xPath = getAttributeXPath(node.html);
+                // Get the catalog index of the suspected element from its XPath.
+                const catalogIndex = getXPathCatalogIndex(report.catalog, xPath) ?? '';
                 const instance = {
                   ruleID: rule.id,
                   what: Array.from(whatSet.values()).join('; '),
                   ordinalSeverity,
-                  tagName: identifiers[0],
-                  id: identifiers[1],
-                  location: {
-                    doc: 'dom',
-                    type: 'selector',
-                    spec: node.target && node.target.length ? node.target[0] : ''
-                  },
-                  excerpt: cap(node.html),
-                  boxID: '',
-                  pathID: ''
+                  count: 1,
+                  catalogIndex
                 };
                 standardResult.instances.push(instance);
               });

@@ -1,5 +1,6 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -18,7 +19,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get whether the embedding element is a link or a button.
     const embedder = element.parentElement.closest('a, button');
@@ -30,5 +32,5 @@ exports.reporter = async (page, withItems) => {
   .map(tag => `a ${tag}, button ${tag}`)
   .join(', ');
   const whats = 'interactive elements are embedded in links or buttons';
-  return await doTest(page, withItems, 'embAc', selector, whats, 2, null, getBadWhat.toString());
+  return await doTest(page, catalog, withItems, 'embAc', selector, whats, 2, getBadWhat.toString());
 };

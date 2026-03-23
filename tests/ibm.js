@@ -1,6 +1,6 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -20,7 +20,7 @@
 
 // IMPORTS
 
-// Scanner. Importing and executing 'close' crashed the Node process.
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 const accessibilityChecker = require('accessibility-checker');
 const {getCompliance} = accessibilityChecker;
 
@@ -121,17 +121,33 @@ exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
   const {withItems, withNewContent, rules} = act;
   const contentType = withNewContent ? 'new' : 'existing';
+  // Initialize the act report.
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
   try {
     const typeContent = contentType === 'existing' ? page : page.url();
     // Conduct the tests.
     const runReport = await run(typeContent);
-    const {report} = runReport;
+    const actReport = runReport.report;
     // If there were results:
-    if (report) {
+    if (actReport) {
       // Trim them.
-      const trimmedReport = trimActReport(report, withItems, rules);
-      const {error} = trimmedReport;
-      // If the report was not trimmable:
+      result.nativeResult = trimActReport(actReport, withItems, rules);
+      const {nativeResult, standardResult} = result;
+      const {error, totals} = nativeResult;
+      // If they were not trimmable:
       if (error) {
         // Return an act report with this error.
         return {
@@ -142,10 +158,39 @@ exports.reporter = async (page, report, actIndex) => {
           result: {}
         }
       }
-      // Otherwise, i.e. if the report was trimmable, return it.
+      // Otherwise, i.e. if they were trimmable, and if standard results are to be reported:
+      if (standard) {
+        // Populate the totals of the standard result.
+        standardResult.totals = [totals.recommendation, 0, totals.violation, 0];
+        // For each item of the native result:
+        nativeResult.items.forEach(item => {
+          // Populate a standard instance.
+          const standardItem = {
+            ruleID: item.ruleId,
+            what: item.message,
+            ordinalSeverity: item.level === 'recommendation' ? 0 : 2,
+            count: 1
+          };
+          // Get the XPath from the added attribute, because path.dom is wrong.
+          const xPath = getAttributeXPath(item.snippet);
+          const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+          // If a catalog index was found:
+          if (catalogIndex) {
+            // Add it to the standard instance.
+            standardItem.catalogIndex = catalogIndex;
+          }
+          // Otherwise, if no catalog index was found but the item has an XPath:
+          else if (xPath) {
+            // Add the XPath to the standard instance.
+            standardItem.pathID = xPath;
+          }
+          // Add the standard instance to the standard result.
+          standardResult.instances.push(standardItem);
+        });
+      }
       return {
         data: {},
-        result: trimmedReport
+        result
       };
     }
     // Otherwise, i.e. if there was only an error, return it in an act report.

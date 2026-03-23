@@ -1,6 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -19,8 +19,7 @@ const {QualWeb} = require('@qualweb/core');
 const {ACTRules} = require('@qualweb/act-rules');
 const {WCAGTechniques} = require('@qualweb/wcag-techniques');
 const {BestPractices} = require('@qualweb/best-practices');
-const {addTestaroIDs} = require('../procs/testaro');
-const {getElementData} = require('../procs/getElementData');
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -31,6 +30,20 @@ const qualWeb = new QualWeb({
 const actRulesModule = new ACTRules({});
 const wcagModule = new WCAGTechniques({});
 const bpModule = new BestPractices({});
+const ordinalSeverities = {
+  'act-rules': {
+    'warning': 1,
+    'failed': 3
+  },
+  'wcag-techniques': {
+    'warning': 0,
+    'failed': 2
+  },
+  'best-practices': {
+    'warning': 0,
+    'failed': 1
+  }
+}
 
 // FUNCTIONS
 
@@ -38,15 +51,27 @@ const bpModule = new BestPractices({});
 exports.reporter = async (page, report, actIndex, timeLimit) => {
   const act = report.acts[actIndex];
   const {withNewContent, rules} = act;
-  const data = {};
-  let result = {};
   const clusterOptions = {
     maxConcurrency: 1,
     timeout: timeLimit * 1000,
     monitor: false
   };
-  // Annotate all elements on the page with unique identifiers.
-  await addTestaroIDs(page);
+  // Initialize the act report.
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
   try {
     // Start the QualWeb core engine.
     await qualWeb.start(clusterOptions, {
@@ -161,14 +186,15 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
         result
       };
     }
-    // Otherwise, i.e. if the evaluation succeeded, get the report.
-    result = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
-    // If it contains a copy of the DOM:
-    if (result && result.system && result.system.page && result.system.page.dom) {
-      // Delete the copy.
-      delete result.system.page.dom;
-      const {modules} = result;
-      // If the report contains a modules property:
+    // Add the report to the result.
+    result.nativeResult = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
+    const {nativeResult, standardResult} = result;
+    // If the report contains, as it should, a copy of the DOM:
+    if (nativeResult?.system?.page?.dom) {
+      // Delete the copy for parsimony.
+      delete nativeResult.system.page.dom;
+      const {modules} = nativeResult;
+      // If the report contains, as it should, a modules property:
       if (modules) {
         // For each test section in it:
         for (const section of ['act-rules', 'wcag-techniques', 'best-practices']) {
@@ -184,61 +210,91 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                 for (const ruleID of ruleIDs) {
                   const ruleAssertions = assertions[ruleID];
                   const {metadata} = ruleAssertions;
-                  // If result data exist for the rule:
-                  if (metadata) {
-                    // If there were no warnings or failures:
-                    if (metadata.warning === 0 && metadata.failed === 0) {
-                      // Delete the rule data.
-                      delete assertions[ruleID];
-                    }
-                    // Otherwise, i.e. if there was at least 1 warning or failure:
-                    else {
-                      if (ruleAssertions.results) {
-                        // Delete nonviolations from the results.
-                        ruleAssertions.results = ruleAssertions.results.filter(
-                          raResult => raResult.verdict !== 'passed'
-                        );
+                  // If there were any warnings or failures:
+                  if (metadata?.warning || metadata?.failed) {
+                    // Delete nonviolations from the results.
+                    ruleAssertions.results = ruleAssertions.results.filter(
+                      raResult => raResult.verdict !== 'passed'
+                    );
+                    // For each test result:
+                    for (const raResult of ruleAssertions.results) {
+                      const {elements, verdict} = raResult;
+                      // If any violations are reported:
+                      if (elements?.length) {
+                        // For each violating element:
+                        for (const element of elements) {
+                          // Limit the size of its reported excerpt.
+                          if (element.htmlCode?.length > 2000) {
+                            element.htmlCode = `${element.htmlCode.slice(0, 2000)} …`;
+                          }
+                          // If standard results are to be reported:
+                          if (standard) {
+                            const ordinalSeverity = ordinalSeverities[section][verdict];
+                            // Increment the applicable total.
+                            standardResult.totals[ordinalSeverity]++;
+                            // Initialize a standard instance.
+                            const what = `[${verdict}] ${raResult.description}`;
+                            const instance = {
+                              ruleID,
+                              what,
+                              ordinalSeverity: ordinalSeverities[section][verdict],
+                              count: 1
+                            };
+                            // Get the pathID of the element or, if none, the document pathID.
+                            const pathID = getAttributeXPath(element.htmlCode) || '/html';
+                            const {catalog} = report;
+                            // Use it to get the catalog index.
+                            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
+                            // If the acquisition succeeded:
+                            if (catalogIndex) {
+                              // Add the catalog index to the instance.
+                              instance.catalogIndex = catalogIndex;
+                            }
+                            // Otherwise, i.e. if the acquisition failed:
+                            else {
+                              // Add the XPath to the instance.
+                              instance.pathID = pathID;
+                            }
+                            // Add the instance to the standard result.
+                            standardResult.instances.push(instance);
+                          }
+                        };
                       }
-                    }
+                    };
                   }
-                  // Shorten long HTML codes of elements.
-                  const {results} = ruleAssertions;
-                  // For each test result:
-                  for (const raResult of results) {
-                    const {elements} = raResult;
-                    // If any violations are reported:
-                    if (elements && elements.length) {
-                      // For each violating element:
-                      for (const element of elements) {
-                        // Add location data from its excerpt to the element data.
-                        element.locationData = await getElementData(page, element.htmlCode);
-                        // Limit the size of its reported excerpt.
-                        if (element.htmlCode && element.htmlCode.length > 700) {
-                          element.htmlCode = `${element.htmlCode.slice(0, 700)} …`;
-                        }
-                      };
-                    }
-                  };
+                  // Otherwise, i.e. if there were no warnings or failures:
+                  else {
+                    // Delete the rule.
+                    delete assertions[ruleID];
+                  }
                 };
               }
+              // Otherwise, i.e. if it contains no assertions:
               else {
+                // Report this.
                 data.prevented = true;
                 data.error = 'No assertions';
               }
             }
+            // Otherwise, i.e. if the section is missing:
             else {
+              // Report this.
               data.prevented = true;
               data.error = `No ${section} section`;
             }
           }
         }
       }
+      // Otherwise, i.e. if the report does not contain a modules property:
       else {
+        // Report this.
         data.prevented = true;
         data.error = 'No modules';
       }
     }
+    // Otherwise, i.e. if the report does not contain a copy of the DOM:
     else {
+      // Report this.
       data.prevented = true;
       data.error = 'No DOM';
     }
@@ -255,7 +311,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
   }
   catch(error) {
     data.prevented = true;
-    data.error = `qualWeb evaluation failed (${error.message})`;
+    data.error = `QualWeb failed (${error.message})`;
   }
   return {
     data,

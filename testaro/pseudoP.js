@@ -1,9 +1,8 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -18,7 +17,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the node before the element node.
     const previousNode = element.previousSibling;
@@ -49,6 +49,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'br elements follow other br elements, possibly constituting pseudo-paragraphs';
   return await doTest(
-    page, withItems, 'pseudoP', 'body br', whats, 0, 'BR', getBadWhat.toString()
+    page, catalog, withItems, 'pseudoP', 'body br', whats, 0, getBadWhat.toString()
   );
 };

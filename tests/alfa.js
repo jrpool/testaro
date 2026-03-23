@@ -1,6 +1,6 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -17,10 +17,9 @@
 
 let alfaRules = require('@siteimprove/alfa-rules').default;
 const {Audit} = require('@siteimprove/alfa-act');
-const {cap, tidy} = require('../procs/job');
-const {getIdentifiers} = require('../procs/standardize');
-const {getNormalizedXPath} = require('../procs/identify');
+const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 const {Playwright} = require('@siteimprove/alfa-playwright');
+const {applyMultiplier} = require('../procs/config');
 
 // FUNCTIONS
 
@@ -57,7 +56,7 @@ exports.reporter = async (page, report, actIndex) => {
   }
   try {
     // Wait for a stable page to make the page and its alfa version consistent.
-    await page.waitForLoadState('networkidle', {timeout: 6000});
+    await page.waitForLoadState('networkidle', {timeout: applyMultiplier(6000)});
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     // Test the page content with the specified rules.
@@ -65,13 +64,14 @@ exports.reporter = async (page, report, actIndex) => {
     // Get the evaluations.
     const evaluations = Array.from(await audit.evaluate());
     const {nativeResult, standardResult} = result;
+    const {catalog} = report;
     // For each of them:
     for (const index in evaluations) {
       const evaluation = evaluations[index];
       const targetClass = evaluation.target;
       // If it has a non-collection violator:
       if (targetClass && ! targetClass._members) {
-        // Convert the evaluation to an item.
+        // Convert the evaluation to an element-specific item.
         const item = evaluation.toJSON();
         const {diagnostic, expectations, outcome, rule, target} = item;
         // If the outcome of the item is a failure or warning:
@@ -105,44 +105,16 @@ exports.reporter = async (page, report, actIndex) => {
           // If standard results are to be reported:
           if (standard) {
             const {requirements, uri} = rule;
-            // Get properties required for a standard instance.
-            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, ''));
-            const {name} = target;
-            let tagName = name?.toUpperCase();
-            if (pathID && tagName?.startsWith('TEXT') || ! tagName) {
-              tagName = pathID.split('/').pop().replace(/\[.+/, '').toUpperCase() || '';
-            }
-            let boxID = '';
-            const targetLoc = page.locator(`xpath=${pathID}`);
-            try {
-              const box = await targetLoc.boundingBox({timeout: 50});
-              if (box) {
-                boxID = Object.values(box).join(':');
-              }
-            }
-            catch(error) {}
-            const text = [];
-            try {
-              const textRaw = await targetLoc.innerText({timeout: 50});
-              const segments = textRaw?.trim().split(/[\t\n]+/).filter(segment => segment.length);
-              if (segments?.length) {
-                if (segments.length > 1) {
-                  text.push(segments[0], segments[segments.length - 1]);
-                }
-                else {
-                  text.push(segments[0]);
-                }
-              }
-            }
-            catch(error) {}
-            // Get rule-specific properties of a standard instance.
+            // Get the rule ID of the item.
             let ruleID = uri.replace(/^.+-/, '');
-            let what = tidy(expectations?.[0]?.[1]?.error?.message || '');
+            // Get the rule description of the item.
+            let what = (expectations?.[0]?.[1]?.error?.message || '').trim().replace(/\s+/g, ' ');
             if (! what) {
               if (requirements && requirements.length && requirements[0].title) {
                 what = requirements[0].title;
               }
             }
+            // Get the ordinal severity of the item.
             let ordinalSeverity = 2;
             // If the outcome is untestability:
             if (outcome === 'cantTell') {
@@ -153,24 +125,29 @@ exports.reporter = async (page, report, actIndex) => {
             }
             // Increment the standard total.
             standardResult.totals[ordinalSeverity]++;
-            // Add a standard instance to the standard result.
-            standardResult.instances.push({
+            // Initialize a proto-instance.
+            const protoInstance = {
               ruleID,
               what,
               ordinalSeverity,
-              count: 1,
-              tagName,
-              id: getIdentifiers(code)[1],
-              location: {
-                doc: 'dom',
-                type: 'xpath',
-                spec: pathID
-              },
-              excerpt: cap(tidy(item.code)),
-              text,
-              boxID,
-              pathID
-            });
+              count: 1
+            };
+            // Get the pathID of the element or, if none, the document pathID.
+            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, '')) || '/html';
+            // Use it to get the index of the element in the catalog.
+            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
+            // If the acquisition succeeded:
+            if (catalogIndex) {
+              // Add the catalog index to the proto-instance.
+              protoInstance.catalogIndex = catalogIndex;
+            }
+            // Otherwise, i.e. if the acquisition failed:
+            else {
+              // Add the pathID to the proto-instance.
+              protoInstance.pathID = pathID;
+            }
+            // Add the proto-instance to the instances of the standard result.
+            standardResult.instances.push(protoInstance);
           }
         }
       }

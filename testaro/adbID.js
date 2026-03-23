@@ -1,7 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the IDs in the aria-describedby attribute of the element.
     const IDs = element.getAttribute('aria-describedby').trim().split(/\s+/).filter(Boolean);
@@ -57,6 +57,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Elements have aria-describedby attributes with missing or invalid id values';
   return await doTest(
-    page, withItems, 'adbID', '[aria-describedby]', whats, 3, null, getBadWhat.toString()
+    page, catalog, withItems, 'adbID', '[aria-describedby]', whats, 3, getBadWhat.toString()
   );
 };

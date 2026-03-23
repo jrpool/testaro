@@ -1,10 +1,9 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or   https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -20,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the ID of the datalist element referenced by the list attribute of the element.
     const listID = element.getAttribute('list');
@@ -47,6 +46,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'list attributes of input elements are empty or IDs of no or non-datalist elements';
   return await doTest(
-    page, withItems, 'datalistRef', 'input[list]', whats, 3, 'INPUT', getBadWhat.toString()
+    page, catalog, withItems, 'datalistRef', 'input[list]', whats, 3, getBadWhat.toString()
   );
 };

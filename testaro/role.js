@@ -1,9 +1,8 @@
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -26,7 +25,7 @@ const implicitRoles = new Set(Array.from(elementRoles.values()).flat());
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Get locators for the elements with explicit roles.
   const loc = page.locator('[role]');
   const locs = await loc.all();
@@ -45,5 +44,5 @@ exports.reporter = async (page, withItems) => {
   }
   // Get and return a result.
   const whats = 'Elements have roles assigned that are also implicit HTML element roles';
-  return await getBasicResult(page, withItems, 'role', 0, null, whats, {}, violations);
+  return await getBasicResult(catalog, withItems, 'role', 0, whats, {}, violations);
 };

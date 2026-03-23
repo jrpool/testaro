@@ -1,9 +1,8 @@
 /*
   © 2023–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -19,7 +18,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, _, withItems) => {
   const getBadWhat = element => {
     const violationTypes = [];
     const isVisible = element.checkVisibility({
@@ -140,5 +140,5 @@ exports.reporter = async (page, withItems) => {
   };
   const selector = 'a, button, input, [onmouseenter], [onmouseover]';
   const whats = 'elements have confusing hover indicators';
-  return await doTest(page, withItems, 'hovInd', selector, whats, 1, null, getBadWhat.toString());
+  return await doTest(page, withItems, 'hovInd', selector, whats, 1, getBadWhat.toString());
 };

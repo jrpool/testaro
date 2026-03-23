@@ -1,9 +1,8 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or   https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -20,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const isVisible = element.checkVisibility({
       contentVisibilityAuto: true,
@@ -39,6 +38,6 @@ exports.reporter = async (page, withItems) => {
   const selector = 'i, b, small';
   const whats = 'Semantically vague elements i, b, and/or small are used';
   return await doTest(
-    page, withItems, 'textSem', selector, whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'textSem', selector, whats, 0, getBadWhat.toString()
   );
 };
