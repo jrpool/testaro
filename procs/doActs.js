@@ -49,8 +49,13 @@ const waits = Number.parseInt(process.env.WAITS) || 0;
 // Time limits in seconds on tools, accounting for page reloads by 6 Testaro tests.
 const timeLimits = {
   alfa: 30,
+  aslint: 45,
   ed11y: 30,
+  htmlcs: 30,
   ibm: 30,
+  nuVal: 30,
+  nuVnu: 20,
+  qualWeb: 45,
   testaro: 150 + Math.round(6 * waits / 1000)
 };
 // Timeout multiplier.
