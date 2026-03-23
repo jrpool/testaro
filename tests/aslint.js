@@ -18,7 +18,6 @@
 const fs = require('fs/promises');
 // Shared configuration for timeout multiplier.
 const {applyMultiplier} = require('../procs/config');
-const {getXPathCatalogIndex} = require('../procs/xPath');
 const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
