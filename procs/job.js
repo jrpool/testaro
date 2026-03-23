@@ -1,8 +1,8 @@
 /*
   © 2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -19,20 +19,20 @@ const {actSpecs} = require('../actSpecs');
 // Data on devices.
 const {devices} = require('playwright');
 // Module to get dates from time stamps.
-const {dateOf} = require('./dateOf');
+const {dateOf} = require('./dateTime');
 
 // CONSTANTS
 
 // Names and descriptions of tools.
-const tools = exports.tools ={
+const tools = exports.tools = {
   alfa: 'Alfa',
   aslint: 'ASLint',
   axe: 'Axe',
   ed11y: 'Editoria11y',
-  htmlcs: 'HTML CodeSniffer WCAG 2.1 AA ruleset',
-  ibm: 'IBM Accessibility Checker',
-  nuVal: 'Nu Html Checker API',
-  nuVnu: 'Nu Html Checker',
+  htmlcs: 'HTML CodeSniffer',
+  ibm: 'Accessibility Checker',
+  nuVal: 'Html Checker API',
+  nuVnu: 'Html Checker',
   qualWeb: 'QualWeb',
   testaro: 'Testaro',
   wax: 'WallyAX',
@@ -167,7 +167,7 @@ const isValidAct = exports.isValidAct = act => {
     return false;
   }
 };
-// Returns blank if a job is valid, or an error message.
+// Returns whether a job is valid and, if not, why not.
 exports.isValidJob = job => {
   // If any job was provided:
   if (job) {
@@ -187,38 +187,68 @@ exports.isValidJob = job => {
     } = job;
     // Return an error for the first missing or invalid property.
     if (! id || typeof id !== 'string') {
-      return 'Bad job ID';
+      return {
+        isValid: false,
+        error: 'Bad job ID'
+      };
     }
     if (typeof strict !== 'boolean') {
-      return 'Bad job strict';
+      return {
+        isValid: false,
+        error: 'Bad job strict'
+      };
     }
     if (! ['also', 'only', 'no'].includes(standard)) {
-      return 'Bad job standard';
+      return {
+        isValid: false,
+        error: 'Bad job standard'
+      };
     }
     if (typeof observe !== 'boolean') {
-      return 'Bad job observe';
+      return {
+        isValid: false,
+        error: 'Bad job observe'
+      }
     }
     if (! isDeviceID(device.id)) {
-      return 'Bad job deviceID';
+      return {
+        isValid: false,
+        error: 'Bad job deviceID'
+      };
     }
     if (! isBrowserID(browserID)) {
-      return 'Bad job browserID';
+      return {
+        isValid: false,
+        error: 'Bad job browserID'
+      };
     }
     if (
       ! (creationTimeStamp && typeof creationTimeStamp === 'string' && dateOf(creationTimeStamp))
     ) {
-      return 'bad job creationTimeStamp';
+      return {
+        isValid: false,
+        error: 'Bad job creationTimeStamp'
+      };
     }
     if (
       ! (executionTimeStamp && typeof executionTimeStamp === 'string') && dateOf(executionTimeStamp)
     ) {
-      return 'bad job executionTimeStamp';
+      return {
+        isValid: false,
+        error: 'Bad job executionTimeStamp'
+      };
     }
     if (typeof target !== 'object' || target.url && ! isURL(target.url) || target.what === '') {
-      return 'bad job target';
+      return {
+        isValid: false,
+        error: 'Bad job target'
+      };
     }
     if (sources && typeof sources !== 'object') {
-      return 'Bad job sources';
+      return {
+        isValid: false,
+        error: 'Bad job sources'
+      };
     }
     if (
       ! acts
@@ -226,32 +256,28 @@ exports.isValidJob = job => {
       || ! acts.length
       || ! acts.every(act => act.type && typeof act.type === 'string')
     ) {
-      return 'Bad job acts';
+      return {
+        isValid: false,
+        error: 'Bad job acts'
+      };
     }
     const invalidAct = acts.find(act => ! isValidAct(act));
     if (invalidAct) {
-      return `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`;
+      return {
+        isValid: false,
+        error: `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`
+      };
     }
-    return '';
+    return {
+      isValid: true
+    };
   }
   // Otherwise, i.e. if no job was provided:
   else {
     // Return this.
-    return 'no job';
+    return {
+      isValid: false,
+      error: 'No job'
+    };
   }
 };
-// Limits the length of and unilinearizes a string.
-exports.cap = rawString => {
-  const string = (rawString.trim() || '').replace(/[\s\u2028\u2029]+/g, ' ');
-  if (string && string.length > 1000) {
-    return `${string.slice(0, 500)} … ${string.slice(-500)}`;
-  }
-  else if (string) {
-    return string;
-  }
-  else {
-    return '';
-  }
-};
-// Simplifies the spacing of a string.
-exports.tidy = string => string.replace(/\s+/g, ' ');

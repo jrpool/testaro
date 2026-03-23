@@ -1,7 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const parent = element.parentElement;
     // If the element is not the first child of a table element:
@@ -31,6 +31,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'caption elements are not the first children of table elements';
   return await doTest(
-    page, withItems, 'captionLoc', 'caption', whats, 3, 'CAPTION', getBadWhat.toString()
+    page, catalog, withItems, 'captionLoc', 'caption', whats, 3, getBadWhat.toString()
   );
 };

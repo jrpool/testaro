@@ -1,5 +1,6 @@
 /*
   © 2022–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -15,8 +16,8 @@
 
 // IMPORTS
 
-// Module to get the content.
 const {curate, getContent} = require('../procs/nu');
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // FUNCTIONS
 
@@ -24,27 +25,46 @@ const {curate, getContent} = require('../procs/nu');
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
   const {rules, withSource} = act;
-  // Get the content and add it to the data.
-  const data = await getContent(page, withSource);
-  let result;
-  // If it was obtained:
-  if (data.testTarget) {
-    let nuData;
+  // Initialize the act report.
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
+  const {standardResult} = result;
+  // Get the content.
+  const content = await getContent(page, withSource);
+  const {testTarget} = content;
+  // If it was obtained and contains a test target:
+  if (testTarget) {
     const fetchOptions = {
       method: 'post',
       headers: {
         'User-Agent': 'Mozilla/5.0',
         'Content-Type': 'text/html; charset=utf-8'
-      }
+      },
+      body: testTarget
     };
     const nuURL = 'https://validator.w3.org/nu/?parser=html&out=json';
+    let nuData = {};
+    let nuResponse = new Response();
     try {
-      fetchOptions.body = data.testTarget;
       // Get a Nu Html Checker report from the W3C validator service.
       nuResponse = await fetch(nuURL, fetchOptions);
+      const {ok, status, statusText} = nuResponse;
       // If the acquisition succeeded:
-      if (nuResponse.ok) {
-        // Get the response body as JSON.
+      if (ok) {
+        // Get the response body as an object.
         nuData = await nuResponse.json();
       }
       // Otherwise, i.e. if the request failed:
@@ -53,19 +73,54 @@ exports.reporter = async (page, report, actIndex) => {
         const nuResponseText = await nuResponse.text();
         // Add a failure report to the data.
         data.prevented = true;
-        data.error = `HTTP ${nuResponse.status}: ${nuResponse.statusText} (${nuResponseText.slice(0, 200)})`;
+        data.error = `HTTP ${status}: ${statusText} (${nuResponseText?.slice(0, 200)})`;
       }
     }
     // If an error occurred:
     catch (error) {
       // Report it.
-      const message = `ERROR getting results (${error.message}; status ${nuResult?.status || 'none'} (${JSON.stringify(nuData?.body || 'no body', null, 2)})`;
+      const message = `ERROR getting results (${error.message}; status ${nuResponse.status || 'none'} (${JSON.stringify(nuData?.body || 'no body', null, 2)})`;
       console.log(message);
       data.prevented = true;
       data.error = message;
     };
-    // Postprocess the response data.
-    result = await curate(page, data, nuData, rules);
+    // Postprocess the response data and add the postprocessed data to the native result.
+    result.nativeResult = await curate(data, nuData, rules);
+    // If standard results are to be reported:
+    if (standard) {
+      // For each message in the native result:
+      result.nativeResult.messages.forEach(message => {
+        const ordinalSeverity = message.type === 'info' ? 0 : 3;
+        // Increment the applicable standard-result total.
+        standardResult.totals[ordinalSeverity]++;
+        // Initialize a standard instance.
+        const standardInstance = {
+          ruleID: message.message,
+          what: message.message,
+          ordinalSeverity,
+          count: 1,
+        };
+        // Get the XPath of the element from its extract.
+        const xPath = getAttributeXPath(message.extract);
+        // If the acquisition succeeded:
+        if (xPath) {
+          // Get the catalog index of the element from the XPath.
+          const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+          // If the acquisition succeeded:
+          if (catalogIndex) {
+            // Add the catalog index to the standard instance.
+            standardInstance.catalogIndex = catalogIndex;
+          }
+          // Otherwise, i.e. if the acquisition failed:
+          else {
+            // Add the XPath of the standard instance as its pathID.
+            standardInstance.pathID = xPath;
+          }
+        }
+        // Add the standard instance to the standard result.
+        standardResult.instances.push(standardInstance);
+      })
+    }
   }
   // Otherwise, i.e. if the page content was not obtained:
   else {

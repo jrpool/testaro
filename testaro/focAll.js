@@ -1,9 +1,8 @@
 /*
   © 2021–2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -12,6 +11,8 @@
   focAll
   This test reports discrepancies between focusable and Tab-focused element counts. The test first counts all the visible focusable (i.e. with tabIndex 0) elements (except counting each group of radio buttons as only one focusable element). Then it repeatedly presses the Tab (or Option-Tab in webkit) key until it has reached all the elements it can and counts those elements. If the two counts differ, navigation can be made more difficult. The cause may be surprising changes in content during navigation with the Tab key, or inability to reach every focusable element (or widget, such as one radio button or tab in each group) merely by pressing the Tab key.
 */
+
+// Runs the test and returns the result.
 exports.reporter = async page => {
   // Get locators of visible elements.
   const locAll = await page.locator('body *:visible');
@@ -32,7 +33,7 @@ exports.reporter = async page => {
   */
   let tabFocused = 0;
   let refocused = 0;
-  const keyName = page.browserID === 'webkit' ? 'Alt+Tab' : 'Tab';
+  const keyName = page.context().browser()?.browserType().name() === 'webkit' ? 'Alt+Tab' : 'Tab';
   while (refocused < 100 && tabFocused < 2000) {
     await page.keyboard.press(keyName);
     const isNewFocus = await page.evaluate(() => {
@@ -65,16 +66,8 @@ exports.reporter = async page => {
     standardInstances: count ? [{
       ruleID: 'focAll',
       what: 'Some focusable elements are not Tab-focusable or vice versa',
-      count,
       ordinalSeverity: 2,
-      tagName: '',
-      id: '',
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: ''
+      count
     }] : []
   };
 };

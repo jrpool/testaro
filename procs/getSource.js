@@ -23,23 +23,28 @@ const fs = require('fs/promises');
 exports.getSource = async page => {
   const url = page.url();
   const scheme = url.replace(/:.+/, '');
+  // Initialize the test data.
   const data = {
     prevented: false,
     source: ''
   };
+  // If the page is a local file:
   if (scheme === 'file') {
     const filePath = url.slice(7);
+    // Get the source from it.
     const rawPage = await fs.readFile(filePath, 'utf8');
+    // Add the source to the test data.
     data.source = rawPage;
   }
+  // Otherwise, i.e. if the page is not a local file:
   else {
     try {
-      const rawPageResponse = await fetch(url);
-      const rawPage = await rawPageResponse.text();
+      const response = await page.goto(url);
+      const rawPage = await response.text();
       data.source = rawPage;
     }
     catch(error) {
-      console.log(`ERROR getting source of ${url} (${error.message})`);
+      console.log(`ERROR (${error.message}) getting source of ${url}; cause: ${error.cause}`);
       data.prevented = true;
       data.error = `ERROR getting source of ${url}`;
     }

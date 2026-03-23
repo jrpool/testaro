@@ -1,6 +1,6 @@
 /*
   © 2023–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const elementType = element.tagName.toLowerCase();
     // Return a violation description.
@@ -29,6 +29,6 @@ exports.reporter = async (page, withItems) => {
   const selector = '[title]:not(iframe, link, style)';
   const whats = 'title attributes are used on elements they are likely ineffective on';
   return await doTest(
-    page, withItems, 'titledEl', selector, whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'titledEl', selector, whats, 0, getBadWhat.toString()
   );
 };

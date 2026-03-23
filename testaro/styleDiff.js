@@ -1,8 +1,8 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -76,7 +76,8 @@ const linksByType = async page => await page.evaluateHandle(() => {
     list: listLinks
   };
 });
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, _, withItems) => {
   // Get an object with arrays of list links and adjacent links as properties.
   const linkTypes = await linksByType(page);
   return await page.evaluate(args => {
@@ -254,16 +255,8 @@ exports.reporter = async (page, withItems) => {
         standardInstances.push({
           ruleID: 'styleDiff',
           what: `${currentData[1]} have ${elementSubtotals.length} different styles`,
-          count: extraCount,
           ordinalSeverity: severity,
-          tagName: currentData[2],
-          id: '',
-          location: {
-            doc: '',
-            type: '',
-            spec: ''
-          },
-          excerpt: ''
+          count: extraCount
         });
       }
     });

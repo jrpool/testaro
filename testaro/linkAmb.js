@@ -1,6 +1,6 @@
 /*
   © 2023–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -17,8 +17,7 @@
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
-  // Return totals and standard instances for the rule.
+exports.reporter = async (page, _, withItems) => {
   return await page.evaluate(withItems => {
     // Get all links.
     const allLinks = Array.from(document.body.getElementsByTagName('a'));
@@ -50,33 +49,42 @@ exports.reporter = async (page, withItems) => {
       linkData.hrefs.add(href);
     });
     let violationCount = 0;
-    const instances = [];
-    // For each visible link:
-    visibleLinks.forEach((element, index) => {
-      const text = linksData.elementData[index][0];
-      const {linkCount, hrefs} = linksData.textTotals[text];
-      // If it violates the rule:
-      if (hrefs.size > 1) {
+    const standardInstances = [];
+    // For each link text:
+    for (const [text, {linkCount, hrefs}] of Object.entries(linksData.textTotals)) {
+      const destinationCount = hrefs.size;
+      // If links with it violate the rule:
+      if (destinationCount > 1) {
         // Increment the violation count.
-        violationCount++;
+        violationCount += linkCount;
         // If itemization is required:
         if (withItems) {
-          const what = `${linkCount} links with this text have ${hrefs.size} different destinations`;
-          // Add an instance to the instances.
-          instances.push(window.getInstance(element, 'linkAmb', what, 1, 2));
+          const what = `${linkCount} links with the text “${text}” have ${destinationCount} different destinations`;
+          // Add an instance to the standard instances.
+          standardInstances.push({
+            ruleID: 'linkAmb',
+            what,
+            ordinalSeverity: 2,
+            count: linkCount
+          });
         }
       }
-    });
+    }
     // If there were any violations and itemization is not required:
     if (violationCount && ! withItems) {
       const what = 'Links have the same text but different destinations';
       // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'linkAmb', what, violationCount, 2, 'A'));
+      standardInstances.push({
+        ruleID: 'linkAmb',
+        what,
+        ordinalSeverity: 2,
+        count: violationCount
+      });
     }
     return {
       data: {},
       totals: [0, 0, violationCount, 0],
-      standardInstances: instances
+      standardInstances
     };
   }, withItems);
 };

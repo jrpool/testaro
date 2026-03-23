@@ -1,9 +1,8 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -19,22 +18,24 @@
 exports.reporter = async page => {
   // Get a count of elements deemed visible by Playwright.
   const visibleElementCount = await page.locator('body :visible').count();
-  // Return totals and standard instances for the rule.
-  return await page.evaluate(visibleElementCount => {
-    let violationCount = 0;
-    const instances = [];
-    // If no element is visible:
-    if (! visibleElementCount) {
-      // Increment the violation count.
-      violationCount = 1;
-      const what = `The entire page body is hidden or empty`;
-      // Add a summary instance to the instances.
-      instances.push(window.getInstance(null, 'allHidden', what, 1, 3));
-    }
+  // If no element is visible:
+  if (! visibleElementCount) {
+    // Return data, totals, and a summary standard instance.
     return {
       data: {},
-      totals: [0, 0, 0, violationCount],
-      standardInstances: instances
+      totals: [0, 0, 0, 1],
+      standardInstances: [{
+        ruleID: 'allHidden',
+        what: 'The entire page body is hidden or empty',
+        ordinalSeverity: 3,
+        count: 1
+      }]
     };
-  }, visibleElementCount);
+  }
+  // Otherwise, return data, totals, and an empty array of standard instances.
+  return {
+    data: {},
+    totals: [0, 0, 0, 0],
+    standardInstances: []
+  };
 };

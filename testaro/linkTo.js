@@ -1,6 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -17,7 +17,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const isVisible = element.checkVisibility({
       contentVisibilityAuto: true,
@@ -32,6 +33,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Links are missing href attributes';
   return await doTest(
-    page, withItems, 'linkTo', 'a:not([href]', whats, 2, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'linkTo', 'a:not([href]', whats, 2, getBadWhat.toString()
   );
 };

@@ -1,6 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -15,16 +15,10 @@
 
 // IMPORTS
 
-// Function to add unique identifiers to the elements in the page.
-const {addTestaroIDs} = require('../procs/testaro');
-// Module to simplify strings.
-const {cap, tidy} = require('../procs/job');
-// Module to handle files.
 const fs = require('fs/promises');
-// Function to get location data with a Testaro identifier.
-const {getElementData} = require('../procs/getElementData');
-// Function to normalize an XPath.
-const {getNormalizedXPath} = require('../procs/identify');
+// Shared configuration for timeout multiplier.
+const {applyMultiplier} = require('../procs/config');
+const {getNormalizedXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
@@ -130,8 +124,6 @@ const aslintData = {
 
 // Conducts and reports the ASLint tests.
 exports.reporter = async (page, report, actIndex) => {
-  // Add unique Testaro identifiers to the elements in the page.
-  await addTestaroIDs(page);
   // Initialize the act report.
   let data = {};
   const result = {
@@ -194,7 +186,7 @@ exports.reporter = async (page, report, actIndex) => {
       // Wait for the test results to be attached to the page.
       const waitOptions = {
         state: 'attached',
-        timeout: 20000
+        timeout: applyMultiplier(20000)
       };
       await reportLoc.waitFor(waitOptions);
     }
@@ -232,6 +224,7 @@ exports.reporter = async (page, report, actIndex) => {
         }
         // If standard results are to be reported:
         if (standard) {
+          const {catalog} = report;
           const ruleIDs = Object.keys(rules);
           // For each violated rule:
           for (let ruleID of ruleIDs) {
@@ -240,57 +233,33 @@ exports.reporter = async (page, report, actIndex) => {
             // For each violation:
             for (const result of results) {
               const {message, element} = result;
+              // Get a description of the violated rule.
               const what = message?.actual?.description ?? '';
-              // Get the values of the properties required for a standard result.
-              if (ruleID) {
-                const changer = aslintData[ruleID]?.find(
-                  specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
-                );
-                if (changer) {
-                  ruleID = changer[changer.length - 1];
-                }
+              const changer = aslintData[ruleID]?.find(
+                specs => specs.slice(0, -1).every(matcher => what.includes(matcher))
+              );
+              // If the rule ID is differentiatable:
+              if (changer) {
+                // Differentiate it.
+                ruleID = changer[changer.length - 1];
               }
+              // Get the ordinal severity of the violation.
               const ordinalSeverity = issueType === 'warning' ? 1 : 2;
-              const {html, xpath} = element;
-              const excerpt = html?.replace(/\s+/g, ' ') ?? '';
-              let tagName = '';
-              let id = '';
-              let text = [];
-              let notInDOM = false;
-              let boxID = '';
-              let pathID = '';
-              if (excerpt) {
-                const elementData = await getElementData(page, excerpt);
-                ({tagName, id, text, notInDOM, boxID, pathID, originalExcerpt} = elementData);
-              }
-              if (! pathID) {
-                pathID = getNormalizedXPath(xpath);
-              }
-              if (pathID && ! tagName) {
-                tagName = pathID?.replace(/[^-\w].*$/, '').toUpperCase() ?? '';
-              }
-              if (ruleID.endsWith('_svg') && ! tagName) {
-                tagName = 'SVG';
-              }
+              // Get the pathID of the element.
+              const {xpath} = element;
+              const pathID = getNormalizedXPath(xpath);
+              // Use it to get the index of the element in the catalog.
+              const catalogIndex = getXPathCatalogIndex(catalog, pathID);
               // Add an instance to the standard result.
               standardResult.instances.push({
                 ruleID,
                 what,
                 ordinalSeverity,
                 count: 1,
-                tagName,
-                id,
-                location: {
-                  notInDOM,
-                  doc: 'dom',
-                  type: 'xpath',
-                  spec: pathID
-                },
-                excerpt: cap(tidy(originalExcerpt)),
-                text,
-                boxID,
-                pathID
+                catalogIndex
               });
+              // Increment the standard total.
+              standardResult.totals[ordinalSeverity]++;
             }
           }
         }

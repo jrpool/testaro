@@ -1,6 +1,6 @@
 /*
   © 2022–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -20,7 +20,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const isVisible = element.checkVisibility({
       contentVisibilityAuto: true,
@@ -41,6 +42,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Visible links are above or to the left of the display';
   return await doTest(
-    page, withItems, 'focVis', 'a', whats, 2, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'focVis', 'a', whats, 2, getBadWhat.toString()
   );
 };

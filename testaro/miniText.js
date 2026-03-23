@@ -1,6 +1,6 @@
 /*
   © 2022–2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -21,7 +21,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const rawText = element.textContent || '';
     // If the element has text content with any non-whitespace:
@@ -47,6 +48,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Visible elements have font sizes smaller than 11 pixels';
   return await doTest(
-    page, withItems, 'miniText', 'body *:not(script, style)', whats, 2, null, getBadWhat.toString()
+    page, catalog, withItems, 'miniText', 'body *:not(script, style)', whats, 2, getBadWhat.toString()
   );
 };

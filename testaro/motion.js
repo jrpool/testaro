@@ -1,5 +1,5 @@
 /*
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
   Licensed under the MIT License. See LICENSE for details.
 */
 
@@ -14,13 +14,9 @@
 
 // IMPORTS
 
-// Module to process files.
 const fs = require('fs/promises');
-// Module to get operating-system properties.
 const os = require('os');
-// Module to compare screenshots.
 const blazediff = require('@blazediff/core').diff;
-// Module to parse PNGs.
 const {PNG} = require('pngjs');
 
 // CONSTANTS
@@ -29,7 +25,7 @@ const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
-// Reports motion in a page.
+// Runs the test and returns the result.
 exports.reporter = async page => {
   // Initialize the totals and standard instances.
   const data = {};
@@ -81,23 +77,8 @@ exports.reporter = async page => {
         standardInstances.push({
           ruleID: 'motion',
           what: violationWhat,
-          count: 1,
           ordinalSeverity,
-          tagName: 'HTML',
-          id: '',
-          location: {
-            doc: 'dom',
-            type: 'box',
-            spec: {
-              x: 0,
-              y: 0,
-              width,
-              height
-            }
-          },
-          excerpt: '<html>…</html>',
-          boxID: `0:0:${width}:${height}`,
-          pathID: '/html'
+          count: 1
         });
       }
     }

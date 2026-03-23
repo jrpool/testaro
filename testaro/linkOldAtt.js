@@ -1,6 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -19,7 +19,8 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems) => {
+// Runs the test and returns the result.
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const attNames = element.getAttributeNames();
     const allBadAttNames = ['charset', 'coords', 'name', 'rev', 'shape'];
@@ -38,6 +39,6 @@ exports.reporter = async (page, withItems) => {
   const selector = 'a[charset], a[coords], a[name], a[rev], a[shape]';
   const whats = 'Links have deprecated attributes';
   return await doTest(
-    page, withItems, 'linkOldAtt', selector, whats, 1, 'A', getBadWhat.toString()
+    page, catalog, withItems, 'linkOldAtt', selector, whats, 1, getBadWhat.toString()
   );
 };

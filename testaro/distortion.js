@@ -1,6 +1,6 @@
 /*
   © 2023 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const styleDec = window.getComputedStyle(element);
     const {transform} = styleDec;
@@ -38,6 +38,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Elements distort their texts';
   return await doTest(
-    page, withItems, 'distortion', 'body *', whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'distortion', 'body *', whats, 0, getBadWhat.toString()
   );
 };

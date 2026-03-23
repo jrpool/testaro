@@ -1,10 +1,9 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -21,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get the children of the element.
     const children = Array.from(element.children);
@@ -45,6 +44,6 @@ exports.reporter = async (page, withItems) => {
   const selector = 'section, article, nav, aside, main';
   const whats = 'First child headings of sectioning containers are deeper than others';
   return await doTest(
-    page, withItems, 'secHeading', selector, whats, 0, null, getBadWhat.toString()
+    page, catalog, withItems, 'secHeading', selector, whats, 0, getBadWhat.toString()
   );
 };

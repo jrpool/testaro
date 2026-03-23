@@ -1,6 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // Get whether the element has a non-spacing child text node.
     const hasText = Array.from(element.childNodes).some(child =>
@@ -47,6 +47,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Element line heights are less than 1.5 times their font sizes';
   return await doTest(
-    page, withItems, 'lineHeight', '*', whats, 1, null, getBadWhat.toString()
+    page, catalog, withItems, 'lineHeight', '*', whats, 1, getBadWhat.toString()
   );
 };

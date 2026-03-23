@@ -1,6 +1,6 @@
 /*
   © 2024–2025 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -9,18 +9,55 @@
 */
 
 /*
-  doTestAct
+  doActs
   Performs the tests of an act.
+  This file is designed to be run as a child process.
 */
+
+// ERROR LOGGING
+
+// Log uncaught exceptions.
+process.on('uncaughtException', error => {
+  console.error(`ERROR:\n${error.stack || 'Uncaught exception'}`);
+  process.exit(1);
+});
+
+// Log unhandled rejections.
+process.on('unhandledRejection', reason => {
+  console.error(`ERROR:\n${reason?.stack || 'Unhandled rejection'}`);
+  process.exit(1);
+});
 
 // IMPORTS
 
 // Module to perform file operations.
 const fs = require('fs/promises');
-//Modules to close and launch browsers.
-const {browserClose, launch} = require(`${__dirname}/../run`);
-// Module to set operating-system constants.
-const os = require('os');
+// Module to close and launch browsers.
+const {browserClose, launch} = require('./launch');
+
+// CONSTANTS
+
+/*
+  Tool XPath requirements.
+    none: Needs no script or extra load time.
+    own: Needs extra load time for its own XPath computations.
+    script: Needs the window.getXPath script.
+    attribute: Needs data-xpath attributes made with window.getXPath.
+*/
+const xPathNeeds = {
+  alfa: 'own',
+  aslint: 'own',
+  axe: 'attribute',
+  ed11y: 'script',
+  htmlcs: 'attribute',
+  ibm: 'attribute',
+  nuVal: 'attribute',
+  nuVnu: 'attribute',
+  qualWeb: 'attribute',
+  wave: 'script',
+  wax: 'attribute'
+};
+const accessibleNameNeeders = ['testaro'];
 
 // FUNCTIONS
 
@@ -52,19 +89,20 @@ const doTestAct = async (reportPath, actIndex) => {
     const browserID = act.launch && act.launch.browserID || report.browserID;
     const targetURL = act.launch && act.launch.target && act.launch.target.url || report.target.url;
     // Launch a browser, navigate to the URL, and update the run-module page export.
-    await launch(
+    page = await launch({
       report,
       actIndex,
-      'high',
-      browserID,
-      targetURL
-    );
+      tempBrowserID: browserID,
+      tempURL: targetURL,
+      xPathNeed: xPathNeeds[which] ?? 'none',
+      needsAccessibleName: accessibleNameNeeders.includes(which)
+    });
     // If the launch aborted the job:
-    if (report.jobData && report.jobData.aborted) {
-      // Close any existing browser.
-      await browserClose();
-      // Save the revised report.
+    if (report.jobData?.aborted) {
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
       const reportJSON = JSON.stringify(report);
+      // Save the revised report.
       await fs.writeFile(reportPath, reportJSON);
       // Report this.
       sendMessage({
@@ -72,11 +110,6 @@ const doTestAct = async (reportPath, actIndex) => {
         error: 'Page launch aborted'
       });
       process.exit(1);
-    }
-    // Otherwise, i.e. if the launch did not abort the job:
-    else {
-      // Get the updated page.
-      page = require('../run').page;
     }
   }
   // If the page exists or the tool is Testaro:
@@ -89,11 +122,16 @@ const doTestAct = async (reportPath, actIndex) => {
       act.result = actReport.result;
       // If the tool reported that the page prevented testing:
       if (act.data && act.data.prevented) {
+        const {standardResult} = act.result;
+        // Add this to any standard result.
+        if (standardResult) {
+          standardResult.prevented = true;
+        }
         // Add prevention data to the job data.
         report.jobData.preventions[which] = act.data.error;
       }
-      // Close any existing browser.
-      await browserClose();
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
       const reportJSON = JSON.stringify(report);
       // Save the revised report.
       await fs.writeFile(reportPath, reportJSON);
@@ -105,8 +143,8 @@ const doTestAct = async (reportPath, actIndex) => {
     }
     // If the tool invocation failed:
     catch(error) {
-      // Close any existing browser.
-      await browserClose();
+      // Close the browser and its context, if they exist.
+      await browserClose(page);
       // Save the revised report.
       const reportJSON = JSON.stringify(report);
       await fs.writeFile(reportPath, reportJSON);
@@ -128,8 +166,6 @@ const doTestAct = async (reportPath, actIndex) => {
     act.data.error = 'No page';
     // Add prevention data to the job data.
     report.jobData.preventions[which] = act.data.error;
-    // Close any existing browser.
-    await browserClose();
     const reportJSON = JSON.stringify(report);
     // Save the revised report.
     await fs.writeFile(reportPath, reportJSON);
@@ -143,7 +179,6 @@ const doTestAct = async (reportPath, actIndex) => {
     process.exit(1);
   }
 };
-
 process.on('uncaughtException', error => {
   console.log(`ERROR: uncaughtException (${error.message})`);
   sendMessage({
@@ -152,7 +187,6 @@ process.on('uncaughtException', error => {
   });
   process.exit(1);
 });
-
 process.on('unhandledRejection', error => {
   const message = error && error.message ? error.message : String(error);
   console.log(`ERROR: unhandledRejection (${message})`);
@@ -162,6 +196,6 @@ process.on('unhandledRejection', error => {
   });
   process.exit(1);
 });
-
 const args = process.argv;
+// Perform the specified test act.
 doTestAct(args[2], Number.parseInt(args[3]));

@@ -1,7 +1,7 @@
 /*
   © 2025 CVS Health and/or one of its affiliates. All rights reserved.
   © 2025 Juan S. Casado.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     // If the element has no aria-selected attribute:
     if (! element.hasAttribute('aria-selected')) {
@@ -32,6 +32,6 @@ exports.reporter = async (page, withItems) => {
   };
   const whats = 'Elements with role=option have no aria-selected attributes';
   return await doTest(
-    page, withItems, 'optRoleSel', '[role="option"]', whats, 1, null, getBadWhat.toString()
+    page, catalog, withItems, 'optRoleSel', '[role="option"]', whats, 1, getBadWhat.toString()
   );
 };

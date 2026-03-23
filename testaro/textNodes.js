@@ -1,5 +1,6 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -16,7 +17,8 @@
 
 // FUNCTIONS
 
-exports.reporter = async (page, withItems, detailLevel, text = '') => {
+// Runs the test and returns the result.
+exports.reporter = async (page, _, _, detailLevel, text = '') => {
   let data = {};
   // Get the data on the text nodes.
   try {

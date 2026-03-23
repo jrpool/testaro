@@ -1,9 +1,8 @@
 /*
   © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
-  Licensed under the MIT License. See LICENSE file at the project root or
-  https://opensource.org/license/mit/ for details.
+  Licensed under the MIT License. See LICENSE file at the project root or   https://opensource.org/license/mit/ for details.
 
   SPDX-License-Identifier: MIT
 */
@@ -16,7 +15,7 @@
 
 // ########## FUNCTIONS
 
-// Performs the test.
+// Runs the test and returns the result.
 exports.reporter = async page => {
   // Initialize the data and standard result.
   const data = {
@@ -56,18 +55,12 @@ exports.reporter = async page => {
   });
   // If there are any instances:
   if (data.total) {
-    // Add a summary instance.
+    // Add a summary instance to the standard instances.
     standardInstances.push({
       ruleID: 'headEl',
       what: `Invalid elements within the head: ${data.badTagNames.join(', ')}`,
       ordinalSeverity: 2,
-      count: data.total,
-      location: {
-        doc: '',
-        type: '',
-        spec: ''
-      },
-      excerpt: ''
+      count: data.total
     });
   }
   totals = [0, 0, data.total, 0];

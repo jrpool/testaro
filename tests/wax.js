@@ -1,6 +1,6 @@
 /*
   © 2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -15,11 +15,7 @@
 
 // IMPORTS
 
-// Function to add and use unique element IDs.
-const {addTestaroIDs} = require('../procs/testaro');
-// Function to get location data from an element.
-const {getElementData} = require('../procs/getElementData');
-// Modules to run WAX.
+const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 const runWax = require('@wally-ax/wax-dev');
 const waxDev = {runWax};
 
@@ -28,12 +24,23 @@ const waxDev = {runWax};
 // Conducts and reports the WAX tests.
 exports.reporter = async (page, report, actIndex) => {
   // Initialize the act report.
-  let data = {};
-  let result = {};
+  const data = {};
+  const result = {
+    nativeResult: {},
+    standardResult: {}
+  };
+  const standard = report.standard !== 'no';
+  // If standard results are to be reported:
+  if (standard) {
+    // Initialize the standard result.
+    result.standardResult = {
+      prevented: false,
+      totals: [0, 0, 0, 0],
+      instances: []
+    };
+  }
   const act = report.acts[actIndex];
   const rules = act.rules || [];
-  // Annotate all elements on the page with unique identifiers.
-  await addTestaroIDs(page);
   const pageCode = await page.content();
   const waxOptions = {
     rules,
@@ -60,15 +67,44 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Otherwise, i.e. if it is a successful report:
       else {
-        // Add location data to its reported violations.
-        for (const violation of actReport) {
-          const {element} = violation;
-          const elementLocation = await getElementData(page, element);
-          Object.assign(violation, elementLocation);
-        }
-        // Populate the act report.
-        result = {
-          violations: actReport
+        // Populate the native result with it.
+        result.nativeResult = actReport;
+        // If standard results are to be reported:
+        if (standard) {
+          const {standardResult} = result;
+          const {instances, totals} = standardResult;
+          actReport.forEach(violation => {
+            const ordinalSeverity = ['Minor', 'Moderate', '', 'Severe'].indexOf(violation.severity);
+            // Increment the applicable total of the standard result.
+            totals[ordinalSeverity]++;
+            // Initialize a standard instance.
+            const instance = {
+              ruleID: violation.message,
+              what: violation.description || violation.message,
+              ordinalSeverity,
+              count: 1
+            };
+            const {element} = violation;
+            // Get the path ID of the element from its data-xpath attribute.
+            const pathID = getAttributeXPath(element);
+            // If the acquisition succeeded:
+            if (pathID) {
+              // Get the catalog index of the element.
+              const catalogIndex = getXPathCatalogIndex(report.catalog, pathID);
+              // If the acquisition succeeded:
+              if (catalogIndex) {
+                // Add the catalog index to the standard instance.
+                instance.catalogIndex = catalogIndex;
+              }
+              // Otherwise, i.e. if the acquisition failed:
+              else {
+                // Add the path ID to the standard instance.
+                instance.pathID = pathID;
+              }
+              // Add the standard instance to the standard result.
+              instances.push(instance);
+            }
+          });
         }
       }
     }
@@ -93,32 +129,15 @@ exports.reporter = async (page, report, actIndex) => {
         data.error = 'wax failure';
       }
     }
-    try {
-      JSON.stringify(data);
-    }
-    catch(error) {
-      const message = `ERROR: WAX result cannot be made JSON (${error.message.slice(0, 200)})`;
-      data = {
-        prevented: true,
-        error: message
-      };
-    }
-    // Return the results.
-    return {
-      data,
-      result
-    };
   }
   catch(error) {
     const message = `ERROR running WallyAX (${error.message})`;
-    data = {
-      prevented: true,
-      error: message
-    };
+    data.prevented = true;
+    data.error = message;
     console.log(message);
-    return {
-      data,
-      result
-    };
   }
+  return {
+    data,
+    result
+  };
 };
