@@ -287,7 +287,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
         }
       });
     }
-    console.log('Watching complete');
+    console.log(`Watching $(abort ? 'aborted' : 'complete')`);
   }
   // Otherwise, i.e. if the job or report URL does not exist or is invalid:
   else {
