@@ -296,6 +296,7 @@ exports.doActs = async (report, opts = {}) => {
       const {type, which} = act;
       const actSuffix = type === 'test' ? ` ${which}` : '';
       const message = `>>>> ${type}${actSuffix}`;
+      console.log(message);
       // If granular reporting has been specified:
       if (localReport.observe) {
         const whichParam = which ? `&which=${which}` : '';
@@ -308,7 +309,6 @@ exports.doActs = async (report, opts = {}) => {
               type,
               which
             });
-            console.log(`${message} (observer notified)`);
           }
           catch (error) {
             console.log(`${message} (observer notification failed: ${errorStart(error)})`);

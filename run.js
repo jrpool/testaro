@@ -52,6 +52,8 @@ exports.doJob = async (job, opts = {}) => {
   }
   // Otherwise, i.e. if it is valid:
   else {
+    // Report this.
+    console.log(`Starting job ${job.id} (${job.target.what})`);
     // Add initialized job data to the report.
     const startTime = new Date();
     report.jobData = {
