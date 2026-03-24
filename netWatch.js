@@ -82,10 +82,11 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
           // Request a job.
           const requestOptions = {
             method: 'POST',
-            host: jobHost,
-            'content-type': 'application/json'
+            headers: {
+              host: jobHost,
+              'content-type': 'application/json; charset=utf-8'
+            }
           };
-          console.log('About to request a job');
           client.request(jobURL, requestOptions, response => {
             // Initialize a collection of data from the response.
             const chunks = [];
@@ -148,11 +149,13 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                       };
                       let responseJSON = JSON.stringify(responseObj, null, 2);
                       console.log(`Job ${id} finished (${nowString()})`);
-                      const reportLogStart = `Submitted report ${id} to ${publicReportURL} and got `;
+                      const reportLogStart = `Submitted report ${id} to ${reportURL} and got `;
                       const requestOptions = {
                         method: 'POST',
-                        host: reportHost,
-                        'content-type': 'application/json'
+                        headers: {
+                          host: reportHost,
+                          'content-type': 'application/json; charset=utf-8'
+                        }
                       };
                       // Submit the report.
                       const client = reportURL.protocol === 'https:' ? httpsClient : httpClient;
