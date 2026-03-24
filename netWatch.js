@@ -85,6 +85,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             host: jobHost,
             'Content-type': 'application/json'
           };
+          console.log('About to request a job');
           client.request(jobURL, requestOptions, response => {
             // Initialize a collection of data from the response.
             const chunks = [];
