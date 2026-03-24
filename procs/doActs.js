@@ -296,7 +296,6 @@ exports.doActs = async (report, opts = {}) => {
       const {type, which} = act;
       const actSuffix = type === 'test' ? ` ${which}` : '';
       const message = `>>>> ${type}${actSuffix}`;
-      console.log(message);
       // If granular reporting has been specified:
       if (localReport.observe) {
         const whichParam = which ? `&which=${which}` : '';
