@@ -114,7 +114,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                 // If it is a no-job message:
                 if (! Object.keys(contentObj).length) {
                   // Report this.
-                  console.log(`${logStart}no job to do`);
+                  console.log(`${logStart}no job to do; waiting ${intervalInSeconds} sec before next check`);
                   // Wait for the specified interval.
                   await wait(1000 * intervalInSeconds);
                   resolve(true);
