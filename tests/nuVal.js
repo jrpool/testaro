@@ -50,8 +50,8 @@ exports.reporter = async (page, report, actIndex) => {
     const fetchOptions = {
       method: 'post',
       headers: {
-        'User-Agent': 'Mozilla/5.0',
-        'Content-Type': 'text/html; charset=utf-8'
+        'user-agent': 'Mozilla/5.0',
+        'content-type': 'text/html; charset=utf-8'
       },
       body: testTarget
     };

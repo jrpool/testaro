@@ -47,7 +47,7 @@ const wait = ms => {
 };
 // Ends a response with an object in JSON format.
 const respondWithObject = (object, response) => {
-  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.setHeader('content-type', 'application/json; charset=utf-8');
   response.end(JSON.stringify(object));
 };
 /*
@@ -83,7 +83,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
           const requestOptions = {
             method: 'POST',
             host: jobHost,
-            'Content-type': 'application/json'
+            'content-type': 'application/json'
           };
           console.log('About to request a job');
           client.request(jobURL, requestOptions, response => {
@@ -152,7 +152,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                       const requestOptions = {
                         method: 'POST',
                         host: reportHost,
-                        'Content-type': 'application/json'
+                        'content-type': 'application/json'
                       };
                       // Submit the report.
                       const client = reportURL.protocol === 'https:' ? httpsClient : httpClient;
