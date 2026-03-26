@@ -57,7 +57,7 @@ const timeLimits = {
   nuVnu: 20,
   qualWeb: 45,
   testaro: 150 + Math.round(6 * waits / 1000),
-  wax: 25
+  wax: 35
 };
 // Timeout multiplier.
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
