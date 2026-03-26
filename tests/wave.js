@@ -183,6 +183,7 @@ exports.reporter = async (page, report, actIndex) => {
           data.pageURL = statistics.pageurl || '';
           data.elapsedSeconds = statistics.time || null;
           data.creditsRemaining = statistics.creditsremaining || null;
+          console.log(`WAVE credits remaining: ${data.creditsRemaining}`);
           data.allItemCount = statistics.allitemcount || null;
           data.totalElements = statistics.totalelements || null;
           data.waveURL = statistics.waveurl || '';
