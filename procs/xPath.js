@@ -56,7 +56,7 @@ exports.getAttributeXPath = html => {
   return match ? match[1] : '';
 };
 // Gets a tag name from an XPath.
-exports.getXPathTagName = xPath => {
+const getXPathTagName = xPath => {
   return xPath.split('/').pop().replace(/\[.+/, '').toUpperCase();
 };
 // Gets a catalog index as a string from an XPath.
