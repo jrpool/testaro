@@ -55,8 +55,24 @@ exports.getAttributeXPath = html => {
   const match = html.match(/ data-xpath="([^" ]+)"/);
   return match ? match[1] : '';
 };
+// Gets a tag name from an XPath.
+exports.getXPathTagName = xPath => {
+  return xPath.split('/').pop().replace(/\[.+/, '').toUpperCase();
+};
 // Gets a catalog index as a string from an XPath.
 exports.getXPathCatalogIndex = (catalog, xPath) => {
-  const index = catalog.pathID[xPath] ?? '';
+  // Get the index of the catalog item with the XPath.
+  const index = catalog.pathID[xPath];
+  // If no such item exists:
+  if (! index) {
+    // Add an item to the catalog.
+    const newIndex = Object.keys(catalog).length;
+    catalog[newIndex] = {
+      pathID: xPath,
+      tagName: getXPathTagName(xPath)
+    };
+    catalog.pathID[xPath] = `${newIndex}`;
+    return newIndex;
+  }
   return index;
 };

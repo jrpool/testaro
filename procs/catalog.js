@@ -184,7 +184,7 @@ exports.pruneCatalog = report => {
       });
     }
   });
-  // Delete the temporary path ID directory.
+  // Delete the temporary path ID property.
   delete catalog.pathID;
   // For each element in the catalog:
   Object.keys(catalog).forEach(elementIndex => {
