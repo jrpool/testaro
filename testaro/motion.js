@@ -27,7 +27,7 @@ const tmpDir = os.tmpdir();
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog) => {
+exports.reporter = async (_, catalog) => {
   // Initialize the totals and standard instances.
   const data = {};
   const totals = [0, 0, 0, 0];

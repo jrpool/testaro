@@ -115,6 +115,11 @@ exports.reporter = async (page, catalog, withItems) => {
       standardInstances: protoInstances
     };
   }, withItems);
+  // Convert the XPaths of the proto-instances to catalog indexes.
+  protoResult.standardInstances = protoResult.standardInstances.map(instance => {
+    instance.catalogIndex = getXPathCatalogIndex(catalog, instance.xPath);
+    delete instance.xPath;
+  });
   // Return the result.
   return protoResult;
 };

@@ -22,7 +22,9 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, catalog, withItems) => {
-  return await page.evaluate(withItems => {
+  const catalogIndex = getXPathCatalogIndex(catalog, '/html/body');
+  return await page.evaluate(args => {
+    const [withItems, catalogIndex] = args;
     // Get all links.
     const allLinks = Array.from(document.body.getElementsByTagName('a'));
     // Get the visible ones.
@@ -70,7 +72,7 @@ exports.reporter = async (page, catalog, withItems) => {
             what,
             ordinalSeverity: 2,
             count: linkCount,
-            catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+            catalogIndex
           });
         }
       }
@@ -84,7 +86,7 @@ exports.reporter = async (page, catalog, withItems) => {
         what,
         ordinalSeverity: 2,
         count: violationCount,
-        catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+        catalogIndex
       });
     }
     return {
@@ -92,5 +94,5 @@ exports.reporter = async (page, catalog, withItems) => {
       totals: [0, 0, violationCount, 0],
       standardInstances
     };
-  }, withItems);
+  }, [withItems, catalogIndex]);
 };

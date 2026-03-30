@@ -16,6 +16,8 @@
   3. Data on each specified element also include data on its sibling nodes.
 */
 
+// FUNCTIONS
+
 exports.reporter = async (
   page, _, _, detailLevel = 0, tagName = null, onlyVisible = false, attribute
 ) => {

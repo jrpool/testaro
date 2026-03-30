@@ -84,9 +84,9 @@ const linksByType = async page => await page.evaluateHandle(() => {
 exports.reporter = async (page, catalog, withItems) => {
   // Get an object with arrays of list links and adjacent links as properties.
   const linkTypes = await linksByType(page);
+  const catalogIndex = getXPathCatalogIndex(catalog, '/html/body');
   return await page.evaluate(args => {
-    const linkTypes = args[0];
-    const withItems = args[1];
+    const [linkTypes, withItems, catalogIndex] = args;
     const {body} = document;
     // Identify the settable style properties to be compared for all tag names.
     const mainStyles = [
@@ -261,7 +261,7 @@ exports.reporter = async (page, catalog, withItems) => {
           what: `${currentData[1]} have ${elementSubtotals.length} different styles`,
           ordinalSeverity: severity,
           count: extraCount,
-          catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+          catalogIndex
         });
       }
     });
@@ -271,5 +271,5 @@ exports.reporter = async (page, catalog, withItems) => {
       totals,
       standardInstances
     };
-  }, [linkTypes, withItems]);
+  }, [linkTypes, withItems, catalogIndex]);
 };

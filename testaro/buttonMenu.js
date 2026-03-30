@@ -296,18 +296,16 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
                 totals[2]++;
                 // If itemization is required:
                 if (withItems) {
+                  // Get the XPath of the menu button.
+                  const mbXPath = await mbLoc.evaluate(element => window.getXPath(element));
                   // Add an instance to the standard instances.
                   standardInstances.push({
                     ruleID: 'buttonMenu',
                     what: `Menu responds nonstandardly to the ${key} key`,
                     ordinalSeverity: 2,
                     count: 1,
-                    catalogIndex: getXPathCatalogIndex(catalog, mbLoc)
+                    catalogIndex: getXPathCatalogIndex(catalog, mbXPath)
                   });
-                  // Add a catalog index or XPath to it if possible.
-                  addCatalogIndex(protoInstance, mbLoc, catalog);
-                  // Add the proto-instance to the standard instances.
-                  standardInstances.push(protoInstance);
                 }
                 // Stop testing the menu button.
                 break;
@@ -333,17 +331,16 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
       totals[2]++;
       // If itemization is required:
       if (withItems) {
-        // Create a proto-instance.
-        const protoInstance = {
+        // Get the XPath of the menu button.
+        const mbXPath = await mbLoc.evaluate(element => window.getXPath(element));
+        // Add an instance to the standard instances.
+        standardInstances.push({
           ruleID: 'buttonMenu',
           what: 'Menu button does not control exactly 1 menu',
           ordinalSeverity: 2,
-          count: 1
-        };
-        // Add a catalog index or XPath to it if possible.
-        addCatalogIndex(protoInstance, mbLoc, catalog);
-        // Add the proto-instance to the standard instances.
-        standardInstances.push(protoInstance);
+          count: 1,
+          catalogIndex: getXPathCatalogIndex(catalog, mbXPath)
+        });
       }
     }
   }
@@ -354,7 +351,7 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
       ruleID: 'buttonMenu',
       what: 'Menu buttons and menus behave nonstandardly',
       count: totals[2],
-      ordinalSeverity: 2,
+      ordinalSeverity: 2
     });
   }
   return {

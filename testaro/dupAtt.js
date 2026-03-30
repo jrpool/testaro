@@ -20,7 +20,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, _, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Initialize the data and standard result.
   const data = {total: 0};
   if (withItems) {
