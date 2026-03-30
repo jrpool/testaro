@@ -13,10 +13,14 @@
   This test reports invalid descendants of the head of the document.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async page => {
+exports.reporter = async (page, catalog) => {
   // Initialize the data and standard result.
   const data = {
     total: 0,
@@ -60,7 +64,8 @@ exports.reporter = async page => {
       ruleID: 'headEl',
       what: `Invalid elements within the head: ${data.badTagNames.join(', ')}`,
       ordinalSeverity: 2,
-      count: data.total
+      count: data.total,
+      catalogIndex: getXPathCatalogIndex(catalog, '/html/head')
     });
   }
   totals = [0, 0, data.total, 0];

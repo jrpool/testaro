@@ -14,10 +14,14 @@
   This test reports text contents that are shared by links with distinct destinations. Text contents are compared case-insensitively.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, _, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   return await page.evaluate(withItems => {
     // Get all links.
     const allLinks = Array.from(document.body.getElementsByTagName('a'));
@@ -65,7 +69,8 @@ exports.reporter = async (page, _, withItems) => {
             ruleID: 'linkAmb',
             what,
             ordinalSeverity: 2,
-            count: linkCount
+            count: linkCount,
+            catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
           });
         }
       }
@@ -78,7 +83,8 @@ exports.reporter = async (page, _, withItems) => {
         ruleID: 'linkAmb',
         what,
         ordinalSeverity: 2,
-        count: violationCount
+        count: violationCount,
+        catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
       });
     }
     return {

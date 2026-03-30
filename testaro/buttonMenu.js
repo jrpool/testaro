@@ -296,13 +296,14 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
                 totals[2]++;
                 // If itemization is required:
                 if (withItems) {
-                  // Create a proto-instance.
-                  const protoInstance = {
+                  // Add an instance to the standard instances.
+                  standardInstances.push({
                     ruleID: 'buttonMenu',
                     what: `Menu responds nonstandardly to the ${key} key`,
                     ordinalSeverity: 2,
-                    count: 1
-                  };
+                    count: 1,
+                    catalogIndex: getXPathCatalogIndex(catalog, mbLoc)
+                  });
                   // Add a catalog index or XPath to it if possible.
                   addCatalogIndex(protoInstance, mbLoc, catalog);
                   // Add the proto-instance to the standard instances.

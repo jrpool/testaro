@@ -12,6 +12,10 @@
   This test reports style differences among links, buttons, and headings. It assumes that an accessible page employs few or only one style for adjacent links, and likewise for list links, buttons, and headings at each level. The test considers only particular style properties, listed in the 'mainStyles' and 'headingStyles' arrays.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
 // FUNCTIONS
 
 // Returns an object classifying the links in a page by layout.
@@ -77,7 +81,7 @@ const linksByType = async page => await page.evaluateHandle(() => {
   };
 });
 // Runs the test and returns the result.
-exports.reporter = async (page, _, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   // Get an object with arrays of list links and adjacent links as properties.
   const linkTypes = await linksByType(page);
   return await page.evaluate(args => {
@@ -256,7 +260,8 @@ exports.reporter = async (page, _, withItems) => {
           ruleID: 'styleDiff',
           what: `${currentData[1]} have ${elementSubtotals.length} different styles`,
           ordinalSeverity: severity,
-          count: extraCount
+          count: extraCount,
+          catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
         });
       }
     });

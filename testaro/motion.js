@@ -14,6 +14,7 @@
 
 // IMPORTS
 
+const {getXPathCatalogIndex} = require('../procs/xPath');
 const fs = require('fs/promises');
 const os = require('os');
 const blazediff = require('@blazediff/core').diff;
@@ -26,7 +27,7 @@ const tmpDir = os.tmpdir();
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async page => {
+exports.reporter = async (page, catalog) => {
   // Initialize the totals and standard instances.
   const data = {};
   const totals = [0, 0, 0, 0];
@@ -78,7 +79,8 @@ exports.reporter = async page => {
           ruleID: 'motion',
           what: violationWhat,
           ordinalSeverity,
-          count: 1
+          count: 1,
+          catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
         });
       }
     }

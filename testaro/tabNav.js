@@ -164,7 +164,7 @@ const testTabs = async (tabs, index, listOrientation, listIsCorrect, withItems, 
     const itemData = {};
     // If itemization is required:
     if (withItems) {
-      // Initialize a report on the element.
+      // Initialize data on the element.
       itemData.xPath = await page.evaluate(element => window.getXPath(element), currentTab);
       itemData.navigationErrors = [];
     }
@@ -368,32 +368,19 @@ exports.reporter = async (page, catalog, withItems) => {
   if (withItems) {
     // For each bad tab:
     data.tabElements.incorrect.forEach(item => {
-      // Create a proto-instance.
-      const protoInstance = {
+      // Add an instance to the standard instances.
+      standardInstances.push({
         ruleID: 'tabNav',
         what: `Tab responds nonstandardly to ${item.navigationErrors.join(', ')}`,
         ordinalSeverity: 1,
-        count: 1
-      };
-      // Try to get a catalog index from the xPath of the tab.
-      const catalogIndex = getXPathCatalogIndex(catalog, item.xPath);
-      // If the acquisition succeeded:
-      if (catalogIndex) {
-        // Add the catalog index to the proto-instance.
-        protoInstance.catalogIndex = catalogIndex;
-      }
-      // Otherwise, i.e. if the acquisition failed:
-      else {
-        // Add the XPath to the proto-instance as a path ID.
-        protoInstance.pathID = item.xPath;
-      }
-      // Add the proto-instance to the standard instances.
-      standardInstances.push(protoInstance);
+        count: 1,
+        catalogIndex: getXPathCatalogIndex(catalog, item.xPath)
+      });
     });
   }
   // Otherwise, if navigation is not required and any navigations were bad:
   else if (data.totals.navigations.all.incorrect) {
-    // Create a standard instance.
+    // Add a summary instance to the standard instances.
     standardInstances.push({
       ruleID: 'tabNav',
       what: 'Tab lists have nonstandard navigation',

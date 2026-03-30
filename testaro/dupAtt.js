@@ -14,8 +14,8 @@
 
 // ########## IMPORTS
 
-// Module to get the document source.
 const {getSource} = require('../procs/getSource');
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // ########## FUNCTIONS
 
@@ -95,7 +95,8 @@ exports.reporter = async (page, _, withItems) => {
           ruleID: 'dupAtt',
           what: `${item.tagName} element has 2 attributes named ${item.duplicatedAttribute}`,
           ordinalSeverity: 2,
-          count: 1
+          count: 1,
+          catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
         });
       });
     }
