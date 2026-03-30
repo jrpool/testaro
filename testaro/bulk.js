@@ -13,8 +13,14 @@
   This test reports the count of visible elements. The test assumes that simplicity and compactness, with one page having one purpose, is an accessibility virtue. Users with visual, motor, and cognitive disabilities often have trouble finding what they want or understanding the purpose of a page if the page is cluttered with content.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
+// FUNCTIONS
+
 // Runs the test and returns the result.
-exports.reporter = async page => {
+exports.reporter = async (page, catalog) => {
   // Get a count of elements deemed visible by Playwright.
   const visibleElementCount = await page.locator('body :visible').count();
   // Convert the count to a severity level, treating up to 400 as non-reportable.
@@ -31,7 +37,8 @@ exports.reporter = async page => {
         ruleID: 'bulk',
         what: `Page contains ${visibleElementCount} visible elements`,
         ordinalSeverity: severity,
-        count: 1
+        count: 1,
+        catalogIndex: getXPathCatalogIndex(catalog, '/html')
       }]
     };
   }

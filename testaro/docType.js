@@ -15,7 +15,7 @@
 */
 
 // Runs the test and returns the result.
-exports.reporter = async page => {
+exports.reporter = async (page, catalog) => {
   // Returns whether the page declares a document type.
   const docHasType = await page.evaluate(() => {
     const docType = document.doctype;
@@ -30,7 +30,8 @@ exports.reporter = async page => {
       ruleID: 'docType',
       what: 'Document has no standard HTML doctype preamble',
       ordinalSeverity: 3,
-      count: 1
+      count: 1,
+      catalogIndex: getXPathCatalogIndex('/html')
     }]
   };
 };
