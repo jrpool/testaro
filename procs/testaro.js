@@ -82,12 +82,13 @@ exports.doTest = async (
         totals[ordinalSeverity]++;
         // If itemization is required:
         if (withItems) {
-          // Add a proto-instance to the proto-instances.
-          protoInstances.push({
+          const protoInstance = {
             what: ruleWhat,
             ordinalSeverity,
-            pathID: window.getXPath(candidate)
-          });
+            xPath: window.getXPath(candidate) ?? '/html'
+          };
+          // Add a proto-instance to the proto-instances.
+          protoInstances.push(protoInstance);
         }
       }
     }
@@ -110,7 +111,7 @@ exports.doTest = async (
   if (withItems) {
     // For each proto-instance:
     protoInstances.forEach(protoInstance => {
-      const {what, ordinalSeverity, pathID} = protoInstance;
+      const {what, ordinalSeverity, xPath} = protoInstance;
       // Initialize a standard instance.
       const standardInstance = {
         ruleID,
@@ -119,9 +120,9 @@ exports.doTest = async (
         count: 1
       };
       // If the proto-instance includes an XPath:
-      if (pathID) {
+      if (xPath) {
         // Add the catalog index to the standard instance.
-        standardInstance.catalogIndex = getXPathCatalogIndex(catalog, pathID);
+        standardInstance.catalogIndex = getXPathCatalogIndex(catalog, xPath);
       }
       // Add the standard instance to the standard instances.
       standardInstances.push(standardInstance);

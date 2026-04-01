@@ -80,7 +80,7 @@ exports.reporter = async (page, catalog, withItems) => {
               what,
               ordinalSeverity,
               count: 1,
-              xPath: window.getXPath(element)
+              xPath: window.getXPath(element) ?? '/html'
             });
           }
         }

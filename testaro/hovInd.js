@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, _, withItems) => {
+exports.reporter = async (page, catalog, withItems) => {
   const getBadWhat = element => {
     const violationTypes = [];
     const isVisible = element.checkVisibility({
@@ -140,5 +140,5 @@ exports.reporter = async (page, _, withItems) => {
   };
   const selector = 'a, button, input, [onmouseenter], [onmouseover]';
   const whats = 'elements have confusing hover indicators';
-  return await doTest(page, withItems, 'hovInd', selector, whats, 1, getBadWhat.toString());
+  return await doTest(page, catalog, withItems, 'hovInd', selector, whats, 1, getBadWhat.toString());
 };
