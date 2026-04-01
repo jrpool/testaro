@@ -89,21 +89,11 @@ exports.reporter = async (page, report, actIndex) => {
             const pathID = getAttributeXPath(element);
             // If the acquisition succeeded:
             if (pathID) {
-              // Get the catalog index of the element.
-              const catalogIndex = getXPathCatalogIndex(report.catalog, pathID);
-              // If the acquisition succeeded:
-              if (catalogIndex) {
-                // Add the catalog index to the standard instance.
-                instance.catalogIndex = catalogIndex;
-              }
-              // Otherwise, i.e. if the acquisition failed:
-              else {
-                // Add the path ID to the standard instance.
-                instance.pathID = pathID;
-              }
-              // Add the standard instance to the standard result.
-              instances.push(instance);
+              // Add the catalog index to the standard instance.
+              instance.catalogIndex = getXPathCatalogIndex(report.catalog, pathID);
             }
+            // Add the standard instance to the standard result.
+            instances.push(instance);
           });
         }
       }

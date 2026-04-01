@@ -173,16 +173,10 @@ exports.reporter = async (page, report, actIndex) => {
           };
           // Get the XPath from the added attribute, because path.dom is wrong.
           const xPath = getAttributeXPath(item.snippet);
-          const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
-          // If a catalog index was found:
-          if (catalogIndex) {
-            // Add it to the standard instance.
-            standardItem.catalogIndex = catalogIndex;
-          }
-          // Otherwise, if no catalog index was found but the item has an XPath:
-          else if (xPath) {
-            // Add the XPath to the standard instance.
-            standardItem.pathID = xPath;
+          // If the XPath was obtained:
+          if (xPath) {
+            // Add the catalog index to the standard instance.
+            standardItem.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
           }
           // Add the standard instance to the standard result.
           standardResult.instances.push(standardItem);

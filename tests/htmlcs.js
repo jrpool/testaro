@@ -128,18 +128,14 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // If standard results are to be reported and the message reports an error or warning:
       if (standard && ['Error', 'Warning'].includes(parts[0])) {
+        const xPath = getAttributeXPath(parts[5]);
         const instance = {
           ruleID: `${parts[0][0]}-${parts[1]}`,
           what: parts[4],
           ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
-          count: 1
+          count: 1,
+          catalogIndex: getXPathCatalogIndex(report.catalog, xPath)
         };
-        const xPath = getAttributeXPath(parts[5]) || '/html';
-        const catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
-        instance.catalogIndex = catalogIndex ?? '';
-        if (! catalogIndex) {
-          instance.pathID = xPath;
-        }
         standardResult.instances.push(instance);
       }
     }

@@ -152,22 +152,9 @@ exports.reporter = async (page, report, actIndex) => {
                       ordinalSeverity,
                       count: 1
                     };
-                    const pathID = violation[1];
-                    // If the path ID of the violator was found:
-                    if (pathID) {
-                      // Get the catalog index of the violator.
-                      const catalogIndex = getXPathCatalogIndex(report.catalog, pathID);
-                      // If the acquisition succeeded:
-                      if (catalogIndex) {
-                        // Add the catalog index to the instance.
-                        instance.catalogIndex = catalogIndex;
-                      }
-                      // Otherwise, i.e. if the acquisition failed:
-                      else {
-                        // Add the path ID to the instance.
-                        instance.pathID = pathID;
-                      }
-                    }
+                    const xPath = violation[1];
+                    // Add the catalog index to the instance.
+                    instance.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
                     // Add the instance to the standard result.
                     instances.push(instance);
                   }

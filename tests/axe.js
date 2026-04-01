@@ -155,14 +155,12 @@ exports.reporter = async (page, report, actIndex) => {
                 standardResult.totals[ordinalSeverity]++;
                 // Get the XPath of the suspected element from its data-xpath attribute.
                 const xPath = getAttributeXPath(node.html);
-                // Get the catalog index of the suspected element from its XPath.
-                const catalogIndex = getXPathCatalogIndex(report.catalog, xPath) ?? '';
                 const instance = {
                   ruleID: rule.id,
                   what: Array.from(whatSet.values()).join('; '),
                   ordinalSeverity,
                   count: 1,
-                  catalogIndex
+                  catalogIndex: getXPathCatalogIndex(report.catalog, xPath)
                 };
                 standardResult.instances.push(instance);
               });

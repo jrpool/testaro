@@ -110,9 +110,6 @@ exports.reporter = async (page, report, actIndex) => {
       instance.ordinalSeverity = dismissalKey ? 0 : 2;
       instance.count = 1;
       instance.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
-      if (! instance.catalogIndex) {
-        instance.pathID = xPath;
-      }
       standardResult.instances.push(instance);
     });
   }

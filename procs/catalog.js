@@ -86,7 +86,7 @@ exports.getCatalog = async report => {
           ? ['x', 'y', 'width', 'height'].map(key => Math.round(domRect[key])).join(':')
           : '';
           // Get its path ID.
-          const pathID = window.getXPath(element);
+          const pathID = window.getXPath(element) ?? '/html';
           // If it is a heading that nullifies an existing current heading index:
           if (
             headingIndex
@@ -112,12 +112,9 @@ exports.getCatalog = async report => {
             // Assign its index to the current heading index.
             headingIndex = index;
           }
-          // If the element has a path ID:
-          if (pathID) {
-            // Add it to the temporary path ID directory in the catalog.
-            cat.pathID ??= {};
-            cat.pathID[pathID] = index;
-          }
+          // Add the path ID to the temporary path ID property of the catalog.
+          cat.pathID ??= {};
+          cat.pathID[pathID] = index;
         }
         // For each text in the catalog:
         Object.keys(texts).forEach(text => {
@@ -194,26 +191,4 @@ exports.pruneCatalog = report => {
       delete catalog[elementIndex];
     }
   });
-};
-// Adds a catalog index or, if necessary, an XPath to a proto-instance.
-exports.addCatalogIndex = async (protoInstance, locator, catalog) => {
-  // Get the XPath of the element referenced by the locator.
-  const xPath = await locator.evaluate(element => window.getXPath(element));
-  // If the acquisition succeeded:
-  if (xPath) {
-    // Get the catalog index of the element.
-    const catalogIndex = getXPathCatalogIndex(catalog, xPath);
-    // If the acquisition succeeded:
-    if (catalogIndex) {
-      // Add it to the proto-instance.
-      protoInstance.catalogIndex = catalogIndex;
-    }
-    // Otherwise, i.e. if the acquisition failed:
-    else {
-      // Add the XPath to the proto-instance.
-      protoInstance.pathID = xPath;
-    }
-  }
-  // Return the proto-instance with any modification.
-  return protoInstance;
 };

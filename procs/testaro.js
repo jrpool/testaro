@@ -14,8 +14,6 @@
 
 // ########## IMPORTS
 
-// Function to add a catalog index to a standard instance.
-const {addCatalogIndex} = require('./catalog');
 // Function to get a catalog index from an XPath.
 const {getXPathCatalogIndex} = require('./xPath');
 
@@ -122,18 +120,8 @@ exports.doTest = async (
       };
       // If the proto-instance includes an XPath:
       if (pathID) {
-        // Use it to get the catalog index of the element.
-        const catalogIndex = getXPathCatalogIndex(catalog, pathID);
-        // If the acquisition succeeded:
-        if (catalogIndex) {
-          // Add the catalog index to the standard instance.
-          standardInstance.catalogIndex = catalogIndex;
-        }
-        // Otherwise, i.e. if the acquisition failed:
-        else {
-          // Add the XPath to the standard instance as its path ID.
-          standardInstance.pathID = pathID;
-        }
+        // Add the catalog index to the standard instance.
+        standardInstance.catalogIndex = getXPathCatalogIndex(catalog, pathID);
       }
       // Add the standard instance to the standard instances.
       standardInstances.push(standardInstance);
@@ -161,6 +149,15 @@ exports.doTest = async (
     totals,
     standardInstances
   };
+};
+// Adds a catalog index or, if necessary, an XPath to a proto-instance.
+const addCatalogIndex = async (protoInstance, locator, catalog) => {
+  // Get the XPath of the element referenced by the locator.
+  const xPath = await locator.evaluate(element => window.getXPath(element) ?? '/html');
+  // Add a catalog index to the proto-instance.
+  protoInstance.catalogIndex = getXPathCatalogIndex(catalog, xPath);
+  // Return the proto-instance with any modification.
+  return protoInstance;
 };
 // Tests for a doTest-ineligible Testaro rule.
 exports.getBasicResult = async (
@@ -191,7 +188,7 @@ exports.getBasicResult = async (
         ordinalSeverity,
         count: 1
       };
-      // Add a catalog index or path ID to it.
+      // Add a catalog index to it.
       addCatalogIndex(protoInstance, loc, catalog);
       // Add the standard instance to the standard instances.
       standardInstances.push(protoInstance);

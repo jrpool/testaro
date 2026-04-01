@@ -125,29 +125,15 @@ exports.reporter = async (page, report, actIndex) => {
             }
             // Increment the standard total.
             standardResult.totals[ordinalSeverity]++;
-            // Initialize a proto-instance.
-            const protoInstance = {
+            const xPath = getNormalizedXPath(item.path?.replace(/\/text\(\).*$/, '') || '/html');
+            // Add an instance to the standard instances.
+            standardResult.instances.push({
               ruleID,
               what,
               ordinalSeverity,
-              count: 1
-            };
-            // Get the pathID of the element or, if none, the document pathID.
-            const pathID = getNormalizedXPath(item.path.replace(/\/text\(\).*$/, '')) || '/html';
-            // Use it to get the index of the element in the catalog.
-            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
-            // If the acquisition succeeded:
-            if (catalogIndex) {
-              // Add the catalog index to the proto-instance.
-              protoInstance.catalogIndex = catalogIndex;
-            }
-            // Otherwise, i.e. if the acquisition failed:
-            else {
-              // Add the pathID to the proto-instance.
-              protoInstance.pathID = pathID;
-            }
-            // Add the proto-instance to the instances of the standard result.
-            standardResult.instances.push(protoInstance);
+              count: 1,
+              catalogIndex: getXPathCatalogIndex(catalog, xPath)
+            });
           }
         }
       }

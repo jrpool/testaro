@@ -234,27 +234,14 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                             standardResult.totals[ordinalSeverity]++;
                             // Initialize a standard instance.
                             const what = `[${verdict}] ${raResult.description}`;
+                            const xPath = getAttributeXPath(element.htmlCode);
                             const instance = {
                               ruleID,
                               what,
                               ordinalSeverity: ordinalSeverities[section][verdict],
-                              count: 1
+                              count: 1,
+                              catalogIndex: getXPathCatalogIndex(report.catalog, xPath)
                             };
-                            // Get the pathID of the element or, if none, the document pathID.
-                            const pathID = getAttributeXPath(element.htmlCode) || '/html';
-                            const {catalog} = report;
-                            // Use it to get the catalog index.
-                            const catalogIndex = getXPathCatalogIndex(catalog, pathID);
-                            // If the acquisition succeeded:
-                            if (catalogIndex) {
-                              // Add the catalog index to the instance.
-                              instance.catalogIndex = catalogIndex;
-                            }
-                            // Otherwise, i.e. if the acquisition failed:
-                            else {
-                              // Add the XPath to the instance.
-                              instance.pathID = pathID;
-                            }
                             // Add the instance to the standard result.
                             standardResult.instances.push(instance);
                           }

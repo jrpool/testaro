@@ -47,13 +47,13 @@ exports.getNormalizedXPath = xPath => {
     return normalizedSegments.join('/');
   }
   else {
-    return '';
+    return '/html';
   }
 };
 // Gets an XPath from a data-xpath attribute in an HTML excerpt.
 exports.getAttributeXPath = html => {
   const match = html.match(/ data-xpath="([^" ]+)"/);
-  return match ? match[1] : '';
+  return match ? match[1] : '/html';
 };
 // Gets a tag name from an XPath.
 const getXPathTagName = xPath => {
