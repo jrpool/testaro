@@ -610,7 +610,7 @@ exports.reporter = async (page, report, actIndex) => {
               standardResult.totals[index] += Math.round(total);
             });
           }
-          if (ruleResult.instances) {
+          if (ruleResult.instances?.length) {
             standardResult.instances.push(... ruleResult.instances);
           }
           justPrevented = false;

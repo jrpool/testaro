@@ -1203,8 +1203,8 @@ exports.doActs = async (report, opts = {}) => {
           for (const instance of instances) {
             // Increment the instance count.
             actCatalogData.instanceCount++;
-            const {catalogIndex} = instance;
-            // If the instance has a catalogIndex value:
+            const catalogIndex = instance?.catalogIndex;
+            // If the instance has a catalog index:
             if (catalogIndex) {
               // Increment the catalog count.
               actCatalogData.catalogCount++;

@@ -119,6 +119,7 @@ exports.reporter = async (page, catalog, withItems) => {
   protoResult.standardInstances = protoResult.standardInstances.map(instance => {
     instance.catalogIndex = getXPathCatalogIndex(catalog, instance.xPath);
     delete instance.xPath;
+    return instance;
   });
   // Return the result.
   return protoResult;

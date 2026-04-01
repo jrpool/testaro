@@ -157,6 +157,7 @@ exports.getCatalog = async report => {
 };
 // Prunes a catalog.
 exports.pruneCatalog = report => {
+  console.log('Pruning catalog');
   const {acts, catalog} = report;
   const citedElementIndexes = new Set();
   // For each act in the report:
@@ -166,7 +167,7 @@ exports.pruneCatalog = report => {
       const {instances} = act.result?.standardResult ?? [];
       // For each instance of the standard result:
       instances.forEach(instance => {
-        const {catalogIndex} = instance;
+        const catalogIndex = instance?.catalogIndex;
         // If the instance has a catalog index:
         if (catalogIndex) {
           // Ensure the index is classified as cited.
