@@ -43,6 +43,11 @@ exports.getNormalizedXPath = xPath => {
         normalizedSegments.push(`${segment}[1]`);
       }
     });
+    // If the final segment contains any nonstandard character:
+    if (/[[^\]A-Za-z0-9]/.test(segments[segments.length - 1])) {
+      // Remove it.
+      normalizedSegments.pop();
+    }
     // Return the concatenated segments as the normalized XPath.
     return normalizedSegments.join('/');
   }
