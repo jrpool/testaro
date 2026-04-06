@@ -140,9 +140,17 @@ exports.reporter = async (page, report, actIndex) => {
     };
   }
   catch(error) {
-    console.log(`ERROR: Navigation to URL timed out (${error})`);
     data.prevented = true;
-    data.error = 'ERROR: Act failed';
+    const {message} = error;
+    if (message) {
+      if (message.includes('Unsupported node of type: 4')) {
+        data.error = 'Alfa cannot test page because it contains CDATA';
+      }
+      else {
+        data.error = message;
+      }
+    }
+    console.log(`ERROR: ${data.error}`);
   }
   return {
     data,

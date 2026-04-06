@@ -132,9 +132,14 @@ exports.reporter = async (page, report, actIndex) => {
                     for (const index in selectors) {
                       const selector = selectors[index];
                       // Get the violator.
-                      const violator = document.querySelector(selector);
-                      // Concatenate its selector with its XPath in the native result.
-                      selectors[index] = [selector, window.getXPath(violator) ?? ''];
+                      let violator;
+                      try {
+                        violator = document.querySelector(selector);
+                        // Concatenate its selector with its XPath in the native result.
+                        selectors[index] = [selector, window.getXPath(violator) ?? ''];
+                      } catch (error) {
+                        console.error(`ERROR: Invalid selector: ${selector} (${error.message})`);
+                      }
                     }
                   });
                   return items;
