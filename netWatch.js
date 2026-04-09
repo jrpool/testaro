@@ -95,9 +95,6 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             .on('error', async error => {
               // Report it.
               console.log(`${logStart}error message ${error.message}`);
-              // Stop checking.
-              abort = true;
-              resolve(true);
             })
             // If the response delivers data:
             .on('data', chunk => {
