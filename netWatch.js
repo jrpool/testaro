@@ -243,29 +243,21 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             if (error.code && error.code.includes('ECONNREFUSED')) {
               // Report this.
               console.log(`${logStart}no connection`);
-              // Stop checking.
-              abort = true;
             }
             // Otherwise, if it was a DNS failure:
             else if (error.code && error.code.includes('ENOTFOUND')) {
               // Report this.
               console.log(`${logStart}no domain name resolution`);
-              // Stop checking.
-              abort = true;
             }
             // Otherwise, if it was any other error with a message:
             else if (error.message) {
               // Report this.
               console.log(`ERROR: ${logStart}got error message ${error.message.slice(0, 200)}`);
-              // Stop checking.
-              abort = true;
             }
             // Otherwise, i.e. if it was any other error with no message:
             else {
               // Report this.
               console.log(`ERROR: ${logStart}got an error with no message`);
-              // Stop checking.
-              abort = true;
             }
             resolve(true);
           })
@@ -278,8 +270,6 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
         catch(error) {
           // Report this.
           console.log(`ERROR requesting a network job (${error.message})`);
-          // Stop checking.
-          abort = true;
           resolve(true);
         }
       });
