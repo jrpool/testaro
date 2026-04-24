@@ -185,6 +185,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                             console.log(
                               `${reportLogStart}response message: ${JSON.stringify(ackObj, null, 2)}\n`
                             );
+                            // Wait for the specified interval.
+                            await wait(1000 * intervalInSeconds);
                           }
                           // If it is not JSON:
                           catch(error) {
@@ -192,12 +194,12 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                             console.log(
                               `ERROR: ${reportLogStart}status ${repResponse.statusCode}, error message ${error.message}, and response ${content.slice(0, 1000)}\n`
                             );
+                            // Wait for the specified interval.
+                            await wait(1000 * intervalInSeconds);
                           }
                           // Free the memory used by the job and the report.
                           contentObj = {};
                           responseJSON = '';
-                          // Wait for the specified interval.
-                          await wait(1000 * intervalInSeconds);
                           resolve(true);
                         });
                       })
