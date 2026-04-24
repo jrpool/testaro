@@ -185,8 +185,6 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                             console.log(
                               `${reportLogStart}response message: ${JSON.stringify(ackObj, null, 2)}\n`
                             );
-                            // Wait for the specified interval.
-                            await wait(1000 * intervalInSeconds);
                           }
                           // If it is not JSON:
                           catch(error) {
