@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "70.2.0",
+  "version": "71.0.0",
   "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
@@ -38,7 +38,6 @@
     "@siteimprove/alfa-act": "*",
     "@siteimprove/alfa-playwright": "*",
     "@siteimprove/alfa-rules": "*",
-    "@wally-ax/wax-dev": "npm:@jrpool/wax-dev@^1.0.0",
     "accessibility-checker": "*",
     "aria-query": "*",
     "aslint-testaro": "*",

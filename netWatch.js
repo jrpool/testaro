@@ -76,7 +76,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
       // Configure the next check.
       const logStart = `Requested job from ${jobHost} and got `;
       // Perform it.
-      await new Promise(resolve => {
+      await new Promise(async resolve => {
         try {
           const client = jobURL.protocol === 'https:' ? httpsClient : httpClient;
           // Request a job.
@@ -116,7 +116,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   await wait(1000 * intervalInSeconds);
                   resolve(true);
                 }
-                // Otherwise, if a job was received:
+                // Otherwise, if it is a job:
                 else if (id) {
                   // Check it for validity.
                   const jobValidity = isValidJob(contentObj);
@@ -128,6 +128,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                       error: jobValidity.error
                     }, response);
                     console.log(`${logStart}invalid job (${jobValidity.error})`);
+                    // Wait for the specified interval.
+                    await wait(1000 * intervalInSeconds);
                     resolve(true);
                   }
                   // Otherwise, i.e. if it is valid:
@@ -164,8 +166,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                         .on('error', async error => {
                           // Report this.
                           console.log(`${reportLogStart}error message ${error.message}\n`);
-                          // Stop checking.
-                          abort = true;
+                          // Wait for the specified interval.
+                          await wait(1000 * intervalInSeconds);
                           resolve(true);
                         })
                         // If the response delivers data:
@@ -194,6 +196,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                           // Free the memory used by the job and the report.
                           contentObj = {};
                           responseJSON = '';
+                          // Wait for the specified interval.
+                          await wait(1000 * intervalInSeconds);
                           resolve(true);
                         });
                       })
@@ -205,8 +209,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                         console.log(
                           `ERROR ${error.code} in report submission: ${reportLogStart}error message ${error.message}\n`
                         );
-                        // Stop checking.
-                        abort = true;
+                        // Wait for the specified interval.
+                        await wait(1000 * intervalInSeconds);
                         resolve(true);
                       })
                       // Finish submitting the report.
@@ -214,8 +218,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                     }
                     catch(error) {
                       console.log(`ERROR performing job ${id} (${error.message})`);
-                      // Stop checking.
-                      abort = true;
+                      // Wait for the specified interval.
+                      await wait(1000 * intervalInSeconds);
                       resolve(true);
                     }
                   }
@@ -224,6 +228,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                 else {
                   // Report it.
                   console.log(`${logStart}${JSON.stringify(contentObj, null, 2)}`);
+                  // Wait for the specified interval.
+                  await wait(1000 * intervalInSeconds);
                   resolve(true);
                 }
               }
@@ -231,8 +237,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
               catch(error) {
                 // Report this.
                 console.log(`ERROR: ${logStart}status ${response.statusCode}, error message ${error.message}, and non-JSON response ${content.slice(0, 1000)}\n`);
-                // Stop checking.
-                abort = true;
+                // Wait for the specified interval.
+                await wait(1000 * intervalInSeconds);
                 resolve(true);
               };
             });
@@ -259,6 +265,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
               // Report this.
               console.log(`ERROR: ${logStart}got an error with no message`);
             }
+            // Wait for the specified interval.
+            await wait(1000 * intervalInSeconds);
             resolve(true);
           })
           // Finish sending the job request.
@@ -270,6 +278,8 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
         catch(error) {
           // Report this.
           console.log(`ERROR requesting a network job (${error.message})`);
+          // Wait for the specified interval.
+          await wait(1000 * intervalInSeconds);
           resolve(true);
         }
       });

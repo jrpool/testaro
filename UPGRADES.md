@@ -789,7 +789,7 @@ testaro-monorepo/
 
 Comments on the above suggestions:
 
-The `nuVal` tool is one of three (also `wave` and `wax`) that operate as APIs, with the substantial disadvantage that they can test only publicly reachable pages. The `nuVal` tool could be brought into the package (see How to to run your own copy of the [Nu Html Checker](@https://validator.w3.org/nu/about.html)). Until then, it seems to me that it avoids presenting incompatibility problems, so I believe another tool would be better to start with. But that decision could await the start of the upgrade project.
+The `nuVal` tool is one of two (also `wave`) that operate as APIs, with the substantial disadvantage that they can test only publicly reachable pages. The `nuVal` tool could be brought into the package (see How to to run your own copy of the [Nu Html Checker](@https://validator.w3.org/nu/about.html)). Until then, it seems to me that it avoids presenting incompatibility problems, so I believe another tool would be better to start with. But that decision could await the start of the upgrade project.
 
 I forgot to mention the modernization of validation. I am using that term in place of unit, integration, and end-to-end testing, because the entire project is a testing project and it gets confusing when the word “test” can refer both to the primary functionality of the project and the verification that the project works correctly. Currently validation is limited to the Testaro tool’s 55 or so tests. The idea behind that is that this project treats the 10 external tools like oracles that make claims, but these claims are inherently suspect, so for any tool there are 10 others that may perform their own version of any test. When tools disagree, Testaro does not try to decide which is correct. Instead, it uses Testilo to find similar tests of other tools and collect the results together so users can experience the disagreements and decide for themselves which tools are correct. Such user judgments can be collected by the UI and lead to deprecations by Testilo so that dubious tests are disregarded. Validation of the Testaro tests is currently exposed in a nonstandard way, and I want to consider converting it to a widely accepted interface.
 
@@ -809,7 +809,6 @@ You're absolutely right about `nuVal`'s limitations. Since it requires publicly 
 
 1. **`htmlcs`** - Pure JavaScript, no external dependencies, works on any HTML
 2. **`wave`** - Also API-based, so same limitations as `nuVal`
-3. **`wax`** - API-based as well
 4. **`axe`** - Self-contained, works on any page, excellent for establishing patterns
 
 **I recommend starting with `axe`** because:
@@ -844,7 +843,7 @@ interface ValidationSuite {
 
 // Tool-specific validation
 interface ToolValidation extends ValidationSuite {
-  tool: 'axe' | 'wave' | 'htmlcs' | 'nuVal' | 'wax' | 'alfa' | 'qualWeb' | 'ibm' | 'ed11y' | 'aslint';
+  tool: 'axe' | 'wave' | 'htmlcs' | 'nuVal' | 'alfa' | 'qualWeb' | 'ibm' | 'ed11y' | 'aslint';
   rules: RuleDefinition[];
 }
 ```
@@ -1050,7 +1049,7 @@ interface ValidationSuite {
 
 // Tool-specific validation
 interface ToolValidation extends ValidationSuite {
-  tool: 'axe' | 'wave' | 'htmlcs' | 'nuVal' | 'wax' | 'alfa' | 'qualWeb' | 'ibm' | 'ed11y' | 'aslint';
+  tool: 'axe' | 'wave' | 'htmlcs' | 'nuVal' | 'alfa' | 'qualWeb' | 'ibm' | 'ed11y' | 'aslint';
   rules: RuleDefinition[];
 }
 ```
@@ -1636,7 +1635,6 @@ testaro-monorepo/
 │   │   ├── ed11y/                      # Editoria11y package
 │   │   ├── nuval/                      # Nu Html Checker package
 │   │   ├── wave/                       # WAVE package
-│   │   ├── wax/                        # WallyAX package
 │   │   └── testaro-rules/              # Testaro custom rules package
 │   ├── validation/                     # Validation framework
 │   └── custom-tools/                   # Customer-specific tools
@@ -1936,7 +1934,6 @@ testaro-monorepo/
 │   │   ├── ed11y/                      # Editoria11y package
 │   │   ├── nuval/                      # Nu Html Checker package
 │   │   ├── wave/                       # WAVE package
-│   │   ├── wax/                        # WallyAX package
 │   │   └── testaro-rules/              # Testaro custom rules package
 │   ├── validation/                     # Validation framework
 │   └── custom-tools/                   # Customer-specific tools
@@ -2968,7 +2965,6 @@ One example of the elapsed times (in seconds) for tool execution on a relatively
   "alfa": 13,
   "qualWeb": 13,
   "aslint": 7,
-  "wax": 7,
   "axe": 6,
   "ed11y": 5,
   "nuVal": 4,

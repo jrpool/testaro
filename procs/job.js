@@ -35,7 +35,6 @@ const tools = exports.tools = {
   nuVnu: 'Html Checker',
   qualWeb: 'QualWeb',
   testaro: 'Testaro',
-  wax: 'WallyAX',
   wave: 'WAVE',
 };
 

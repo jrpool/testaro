@@ -57,12 +57,11 @@ Testaro can perform tests of these _tools_:
 - [Nu Html Checker](https://github.com/validator/validator) (World Wide Web Consortium)
 - [QualWeb](https://www.npmjs.com/package/@qualweb/core) (University of Lisbon)
 - [Testaro](https://www.npmjs.com/package/testaro) (CVS Health)
-- [WallyAX](https://www.npmjs.com/package/@wally-ax/wax-dev) (Wally Solutions)
 - [WAVE](https://wave.webaim.org/api/) (WebAIM)
 
 For the tools that are open-source, the identified organizations are their principal or original sponsors.
 
-As shown, Testaro is not only an integrator but also one of the 11 integrated tools. That is because it provides about 50 tests of its own, mostly to complement tests provided by the other 10 tools. Some of those Testaro tests are designed to act as approximate alternatives to tests of vulnerable, restricted, or no longer available tools. In all such cases the Testaro tests are independently designed and implemented, without reference to the code of the tests that inspired them.
+As shown, Testaro is not only an integrator but also one of the integrated tools. That is because it provides about 50 tests of its own, mostly to complement tests provided by the other tools. Some of those Testaro tests are designed to act as approximate alternatives to tests of vulnerable, restricted, or no longer available tools. In all such cases the Testaro tests are independently designed and implemented, without reference to the code of the tests that inspired them.
 
 ## Concepts and terms
 
@@ -121,8 +120,6 @@ PUPPETEER_DISABLE_HEADLESS_WARNING=true
 WAITS=0
 # API key to enable the WAVE tool.
 WAVE_KEY=yourwavekey (get it from [WebAim](https://wave.webaim.org/api/)).
-# `proTestKit` API key to enable the `npm Package` of the WallyAX tool.
-WAX_KEY=yourwaxkey (get it from [WallyAX](https://account.wallyax.com/?ref_app=Developer&app_type=npm)).
 #----------------------------
 # When Testaro listens for new jobs in a directory:
 # Directory where it listens for them.
@@ -332,7 +329,7 @@ Testaro uses the following techniques to make the tools calculate XPaths:
 - `alfa` and `aslint`: They report XPaths, so Testaro needs only to normalize them.
 - `ed11y`: Testaro adds it and a `window.getXPath` method to the page; when the tool reports an element, Testaro computes its XPath.
 - `wave`: It reports a selector for each element; Testaro finds each element in the page via its selector and executes `window.getXPath` on the element.
-- `axe`, `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`, `wax`: Testaro adds `data-xpath` attributes to all elements; the tools include code excerpts, with the `data-expath` attributes, in the reported violations.
+- `axe`, `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`: Testaro adds `data-xpath` attributes to all elements; the tools include code excerpts, with the `data-expath` attributes, in the reported violations.
 - `testaro`: Testaro designs each of its own tests to report element XPaths.
 
 By attaching a catalog entry to each reported element, Testaro allows an application that uses Testaro to tell users, for any particular HTML element, which tools ascribed violations of which rules to that element. An application could, for example, use a screenshot or a text-fragment link or could ask the user to paste the XPath into a browser developer tool.
@@ -506,12 +503,6 @@ The `testaro` tool (like the `ibm` tool) has a `withItems` property. If you set 
 Unlike any other tool, the `testaro` tool requires a `stopOnFail` property, which specifies whether a failure to conform to any rule (i.e. any value of `totals` other than `[0, 0, 0, 0]`) should terminate the execution of tests for the remaining rules.
 
 Tests of the `testaro` tests (i.e. _validation_) can be performed as documented in the `VALIDATION.md` file.
-
-### WallyAX
-
-If a `wax` test act is included in the job, an environment variable named `WAX_KEY` must exist, with your WallyAX API key as its value. You can obtain it from [WallyAX](https://account.wallyax.com/?ref_app=Developer&app_type=npm).
-
-The `wax` tool imposes a limit on the size of a page to be tested. If the page exceeds the limit, Testaro treats the page as preventing `wax` from performing its tests. The limit is less than 500,000 characters.
 
 ### WAVE
 
