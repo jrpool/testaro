@@ -30,7 +30,10 @@
       <p class="oblique">This text has been transformed by its style to oblique.</p>
       <p><em id="indirect">This text has no explicit style, but is in an em element, so is made italic by the user agent</em> except at the end</p>
       <p>This text is transformed to italic <span class="italic">only in small part</span>.</p>
-      <p>Qualifying text nodes: 3</p>
+      <div id="slantedParent" class="oblique">
+        <p>This text is oblique by inheritance from its parent.</p>
+      </div>
+      <p>Qualifying text nodes: 4</p>
     </main>
   </body>
 </html>

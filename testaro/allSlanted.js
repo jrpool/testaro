@@ -26,7 +26,19 @@ exports.reporter = async (page, catalog, withItems) => {
     const {textContent} = element;
     // If the element contains 40 or more characters of slanted text:
     if (['italic', 'oblique'].includes(styleDec.fontStyle) && textContent.length > 39) {
-      // Return a violation description.
+      const parent = element.parentElement;
+      // If the element has a parent:
+      if (parent) {
+        // Get the style declaration of the parent.
+        const parentStyleDec = window.getComputedStyle(parent);
+        const {fontStyle: parentFontStyle} = parentStyleDec;
+        // If the parent also has slanted text:
+        if (['italic', 'oblique'].includes(parentFontStyle)) {
+          // Do not report a violation, because the slant may be inherited.
+          return null;
+        }
+      }
+      // If it has no parent or its slant is autonomous, return a violation description.
       return 'Element contains all-slanted text';
     }
   };

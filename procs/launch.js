@@ -82,10 +82,10 @@ const browserClose = exports.browserClose = async page => {
 };
 // Visits a URL and returns the response of the server.
 const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
-  // If the URL is a file path:
+  // If the URL is a file path relative to the project root:
   if (url.startsWith('file://')) {
-    // Make it absolute.
-    url = url.replace('file://', `file://${__dirname}/`);
+    // Make it the absolute path to the specified file.
+    url = url.replace('file://', `file://${__dirname}/../`);
   }
   // Visit the URL.
   const startTime = Date.now();
