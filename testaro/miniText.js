@@ -40,6 +40,17 @@ exports.reporter = async (page, catalog, withItems) => {
         const fontSize = Number.parseFloat(fontSizeString);
         // If its font size is smaller than 11 pixels:
         if (fontSize < 11) {
+          const parent = element.parentElement;
+          // If the element has a parent:
+          if (parent) {
+            const parentStyleDec = window.getComputedStyle(parent);
+            const parentFontSize = Number.parseFloat(parentStyleDec.fontSize);
+            // If the parent also has a font size smaller than 11 pixels:
+            if (parentFontSize < 11) {
+              // Do not report a violation, because the font size may be inherited.
+              return null;
+            }
+          }
           // Return a violation description.
           return `Element is visible but its font size is ${fontSize}px, smaller than 11px`;
         }

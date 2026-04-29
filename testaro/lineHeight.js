@@ -38,6 +38,20 @@ exports.reporter = async (page, catalog, withItems) => {
       const isBad = lineHeightNum < 1.495 * fontSizeNum;
       // If it does:
       if (isBad) {
+        const parent = element.parentElement;
+        // If the element has a parent:
+        if (parent) {
+          // Get the style properties of the parent.
+          const parentStyleDec = window.getComputedStyle(parent);
+          const {fontSize: parentFontSize, lineHeight: parentLineHeight} = parentStyleDec;
+          const parentFontSizeNum = Number.parseFloat(parentFontSize);
+          const parentLineHeightNum = Number.parseFloat(parentLineHeight);
+          // If the parent also violates the rule:
+          if (parentLineHeightNum < 1.495 * parentFontSizeNum) {
+            // Do not report a violation, because the line height may be inherited.
+            return null;
+          }
+        }
         const whatFontSize = `font size (${fontSizeNum.toFixed(1)}px)`;
         const whatLineHeight = `line height (${lineHeightNum.toFixed(1)}px)`;
         // Return a violation description.
