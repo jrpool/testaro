@@ -138,7 +138,7 @@ exports.reporter = async (page, catalog, withItems) => {
       }
     }
   };
-  const selector = 'a, button, input, [onmouseenter], [onmouseover]';
+  const selector = 'body a, body button, body input, body [onmouseenter], body [onmouseover]';
   const whats = 'elements have confusing hover indicators';
   return await doTest(page, catalog, withItems, 'hovInd', selector, whats, 1, getBadWhat.toString());
 };

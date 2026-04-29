@@ -27,6 +27,6 @@ exports.reporter = async (page, catalog, withItems) => {
   }
   const whats = 'HR elements are used for vertical segmentation';
   return await doTest(
-    page, catalog, withItems, 'hr', 'hr', whats, 0, getBadWhat.toString()
+    page, catalog, withItems, 'hr', 'body hr', whats, 0, getBadWhat.toString()
   );
 };

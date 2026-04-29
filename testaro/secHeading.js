@@ -41,7 +41,7 @@ exports.reporter = async (page, catalog, withItems) => {
       }
     }
   };
-  const selector = 'section, article, nav, aside, main';
+  const selector = 'body section, body article, body nav, body aside, body main';
   const whats = 'First child headings of sectioning containers are deeper than others';
   return await doTest(
     page, catalog, withItems, 'secHeading', selector, whats, 0, getBadWhat.toString()

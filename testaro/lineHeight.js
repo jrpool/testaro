@@ -47,6 +47,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Element line heights are less than 1.5 times their font sizes';
   return await doTest(
-    page, catalog, withItems, 'lineHeight', '*', whats, 1, getBadWhat.toString()
+    page, catalog, withItems, 'lineHeight', 'body, body *', whats, 1, getBadWhat.toString()
   );
 };

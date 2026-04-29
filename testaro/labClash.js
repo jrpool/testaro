@@ -41,7 +41,7 @@ exports.reporter = async (page, catalog, withItems) => {
       return `Element has inconsistent label types (${labelTypes.join(', ')})`;
     }
   };
-  const selector = 'button, input:not([type=hidden]), select, textarea';
+  const selector = 'body button, body input:not([type=hidden]), body select, body textarea';
   const whats = 'Elements have inconsistent label types';
   return await doTest(
     page, catalog, withItems, 'labClash', selector, whats, 2, getBadWhat.toString()

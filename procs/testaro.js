@@ -39,7 +39,7 @@ exports.doTest = async (
       getBadWhatString
     ] = args;
     // Get all violator candidates.
-    const candidates = document.body.querySelectorAll(candidateSelector);
+    const candidates = document.querySelectorAll(candidateSelector);
     let violationCount = 0;
     // Initialize proto-instances.
     const protoInstances = [];

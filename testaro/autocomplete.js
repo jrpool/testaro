@@ -76,7 +76,7 @@ exports.reporter = async (
       return `input has no autocomplete="${requiredAuto}" attribute`;
     }
   };
-  const selector = 'input[type=text], input[type=email], input:not([type])';
+  const selector = 'body input[type=text], body input[type=email], body input:not([type])';
   const whats = 'Inputs are missing required autocomplete attributes';
   const placeHolders = Object.keys(labels).map(key => `__${key}Labels__`);
   const replacers = Object.values(labels).map(value => JSON.stringify(value));

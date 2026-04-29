@@ -26,7 +26,7 @@ exports.reporter = async (page, catalog, withItems) => {
     // Return a violation description.
     return `Likely ineffective title attribute is used on the ${elementType} element`;
   }
-  const selector = '[title]:not(iframe, link, style)';
+  const selector = 'body [title]:not(iframe, link, style)';
   const whats = 'title attributes are used on elements they are likely ineffective on';
   return await doTest(
     page, catalog, withItems, 'titledEl', selector, whats, 0, getBadWhat.toString()

@@ -42,6 +42,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Visible links are above or to the left of the display';
   return await doTest(
-    page, catalog, withItems, 'focVis', 'a', whats, 2, getBadWhat.toString()
+    page, catalog, withItems, 'focVis', 'body a', whats, 2, getBadWhat.toString()
   );
 };
