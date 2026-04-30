@@ -22,6 +22,7 @@ const https = require('https');
 const MIN_CONFIDENCE = 0.5;
 const MAX_MARGIN = 100;
 const MAX_TOTAL = 2000;
+const MAX_QUALIFYING = 100;
 
 // CONSTANTS
 
@@ -109,32 +110,50 @@ const classifyWithAI = entries => new Promise((resolve, reject) => {
 });
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (_, catalog, withItems) => {
   const data = {};
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
+  // Get data on the catalog entries whose text values contain 2+ consecutive capital letters.
   const qualifying = Object.entries(catalog)
-    .filter(([, entry]) => entry.text && /\p{Lu}{2,}/u.test(entry.text))
-    .map(([index, entry]) => ({
-      index: Number(index),
-      tagName: entry.tagName,
-      text: getContext(entry.text)
-    }));
+  .filter(([, entry]) => entry.text && /\p{Lu}{2,}/u.test(entry.text))
+  .map(([index, entry]) => ({
+    index: Number(index),
+    tagName: entry.tagName,
+    text: getContext(entry.text)
+  }));
+  // If there are none:
   if (!qualifying.length) {
+    // Report this.
     return {data, totals, standardInstances};
+  }
+  // Sort them, with unbiased (Fisher–Yates) randomization.
+  const sample = qualifying.slice();
+  for (let i = sample.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [sample[i], sample[j]] = [sample[j], sample[i]];
+  }
+  // If their count exceeds the limit on AI assistance:
+  if (sample.length > MAX_QUALIFYING) {
+    // Truncate them.
+    sample.length = MAX_QUALIFYING;
   }
   let violations;
   try {
-    const classifications = await classifyWithAI(qualifying);
+    // Get AI estimates of the probabilities of their violating the rule.
+    const classifications = await classifyWithAI(sample);
+    // Treat the entries with above-minimum violation confidence levels as violations.
     violations = classifications
-      .filter(({confidence}) => confidence >= MIN_CONFIDENCE)
-      .map(({index, confidence}) => ({
-        catalogIndex: String(index),
-        what: `Element contains unnecessarily (with confidence ${Math.round(confidence * 100)}%) all-capital text`
-      }));
+    .filter(({confidence}) => confidence >= MIN_CONFIDENCE)
+    .map(({index, confidence}) => ({
+      catalogIndex: String(index),
+      what: `Element contains unnecessarily (with confidence ${Math.round(confidence * 100)}%) all-capital text`
+    }));
     const evaluated = classifications.length;
     const leftOut = qualifying.length - evaluated;
+    // If any entries were truncated out and any AI confidence levels were above-minimum:
     if (leftOut > 0 && evaluated > 0) {
+      // Add data about the estimated violation rate among those entries.
       data.leftOut = {
         count: leftOut,
         estimatedViolations: Math.round((violations.length / evaluated) * leftOut)
@@ -146,16 +165,24 @@ exports.reporter = async (page, catalog, withItems) => {
     violations = getRuleBasedViolations(catalog);
   }
   const estimatedLeftOut = data.leftOut?.estimatedViolations ?? 0;
+  // Add the estimated violation count to the totals.
   totals[0] = violations.length + estimatedLeftOut;
+  // If itemization is required:
   if (withItems) {
+    // For each entry deemed a violation:
     for (const {catalogIndex, what} of violations) {
+      // Add an instance to the standard instances.
       standardInstances.push({ruleID, what, ordinalSeverity: 0, count: 1, catalogIndex});
     }
+    // If any entries were truncated:
     if (estimatedLeftOut) {
+      // Add a summary instance for them.
       standardInstances.push({ruleID, what: whats, ordinalSeverity: 0, count: estimatedLeftOut});
     }
   }
+  // Otherwise, i.e. if itemization is not required, and if any violations exist:
   else if (totals[0]) {
+    // Add a summary instance for them.
     standardInstances.push({ruleID, what: whats, ordinalSeverity: 0, count: totals[0]});
   }
   return {data, totals, standardInstances};
