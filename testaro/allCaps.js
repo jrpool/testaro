@@ -45,7 +45,7 @@ const getRuleBasedViolations = catalog =>
   Object.entries(catalog)
     .filter(([, entry]) => entry.text && /\p{Lu}{8,}/u.test(entry.text))
     .map(([index]) => ({
-      catalogIndex: Number(index),
+      catalogIndex: index,
       what: '[No AI available] Element contains all-capital text'
     }));
 
@@ -89,12 +89,13 @@ const classifyWithAI = entries => new Promise((resolve, reject) => {
           return;
         }
         const text = parsed.content[0].text;
-        const jsonMatch = text.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-          reject(new Error('No JSON array in Haiku response'));
-          return;
-        }
-        resolve(JSON.parse(jsonMatch[0]));
+        resolve(
+          [...text.matchAll(/\{"index":\s*\d+,\s*"confidence":\s*[01]\.\d{1,2}\}/g)]
+          .map(m => {
+            const {index, confidence} = JSON.parse(m[0]);
+            return {index, confidence: Math.round(confidence * 10) / 10};
+          })
+        );
       }
       catch(error) {
         reject(new Error(`Haiku response error: ${error.message}`));
@@ -128,22 +129,34 @@ exports.reporter = async (page, catalog, withItems) => {
     violations = classifications
       .filter(({confidence}) => confidence >= MIN_CONFIDENCE)
       .map(({index, confidence}) => ({
-        catalogIndex: index,
-        what: `Element contains all-capital text (${Math.round(confidence * 100)}% non-intrinsic probability)`
+        catalogIndex: String(index),
+        what: `Element contains unnecessarily (with confidence ${Math.round(confidence * 100)}%) all-capital text`
       }));
+    const evaluated = classifications.length;
+    const leftOut = qualifying.length - evaluated;
+    if (leftOut > 0 && evaluated > 0) {
+      data.leftOut = {
+        count: leftOut,
+        estimatedViolations: Math.round((violations.length / evaluated) * leftOut)
+      };
+    }
   }
   catch(error) {
     data.aiError = error.message;
     violations = getRuleBasedViolations(catalog);
   }
-  totals[0] = violations.length;
+  const estimatedLeftOut = data.leftOut?.estimatedViolations ?? 0;
+  totals[0] = violations.length + estimatedLeftOut;
   if (withItems) {
     for (const {catalogIndex, what} of violations) {
       standardInstances.push({ruleID, what, ordinalSeverity: 0, count: 1, catalogIndex});
     }
+    if (estimatedLeftOut) {
+      standardInstances.push({ruleID, what: whats, ordinalSeverity: 0, count: estimatedLeftOut});
+    }
   }
-  else if (violations.length) {
-    standardInstances.push({ruleID, what: whats, ordinalSeverity: 0, count: violations.length});
+  else if (totals[0]) {
+    standardInstances.push({ruleID, what: whats, ordinalSeverity: 0, count: totals[0]});
   }
   return {data, totals, standardInstances};
 };
