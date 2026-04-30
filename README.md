@@ -502,7 +502,9 @@ The `testaro` tool (like the `ibm` tool) has a `withItems` property. If you set 
 
 Unlike any other tool, the `testaro` tool requires a `stopOnFail` property, which specifies whether a failure to conform to any rule (i.e. any value of `totals` other than `[0, 0, 0, 0]`) should terminate the execution of tests for the remaining rules.
 
-Tests of the `testaro` tests (i.e. _validation_) can be performed as documented in the `VALIDATION.md` file.
+Tests of the `testaro` tests (i.e. _validation_) could previously be performed as documented in the `VALIDATION.md` file. This functionality has broken and its redesign is planned.
+
+One Testaro rule, `allCaps`, is currently being tested for in part with the assistance of the Claude Haiku artificial intelligence (AI) model. To obtain that assistance, you need an Anthropic API key, and its value must be assigned to the `ANTHROPIC_API_KEY` environment variable in the `.env` file. If no valid API key is set there, the rule will be tested for, but without AI assistance.
 
 ### WAVE
 
