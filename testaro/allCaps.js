@@ -19,7 +19,7 @@ const https = require('https');
 
 // PARAMETERS
 
-const MIN_CONFIDENCE = 0.5;
+const MIN_CONFIDENCE = 0.8;
 const MAX_MARGIN = 100;
 const MAX_TOTAL = 2000;
 const MAX_QUALIFYING = 100;
