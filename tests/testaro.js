@@ -41,10 +41,10 @@ const allRules = [
   },
   {
     id: 'allCaps',
-    what: 'leaf elements with entirely upper-case text longer than 7 characters',
+    what: 'elements with unnecessarily all-capital text substrings',
     contaminates: false,
     needsAccessibleName: false,
-    timeOut: 5,
+    timeOut: 30,
     defaultOn: true
   },
   {

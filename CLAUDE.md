@@ -59,6 +59,8 @@ Two implementation patterns exist:
 
 ### Validation
 
+Validation is currently broken. A reconsideration of its architecture is anticipated, but in the meantime the next paragraph describes its current inoperative design.
+
 Validation tests live in `validation/tests/jobs/` (jobs with `expect` arrays) and `validation/tests/targets/` (static HTML pages served locally as test targets). Running `npm test <ruleID>` executes `validation/executors/test.js` → `validation/validateTest.js`, which runs the job and compares `result` fields against `expect` clauses.
 
 ### Tool XPath strategy
@@ -87,6 +89,8 @@ Key variables:
 
 ESLint (`eslintrc.json`): 2-space indent, single quotes, semicolons, Stroustrup brace style (`else`/`catch` on a new line after `}`), `no-use-before-define`. The `htmlcs/HTMLCS.js` file uses a separate, looser ESLint config and must not be reformatted.
 
+Long comments are not broken into multiple lines per paragraph.
+
 ## Adding a new Testaro rule
 
 1. Add an entry to `allRules` in `tests/testaro.js`.
@@ -97,7 +101,7 @@ ESLint (`eslintrc.json`): 2-space indent, single quotes, semicolons, Stroustrup 
 ## Key files
 
 | File | Purpose |
-|------|---------|
+| ---- | ------- |
 | `run.js` | `doJob()` — the main entry point |
 | `call.js` | CLI wrapper for `run`, `dirWatch`, `netWatch` |
 | `procs/doActs.js` | Iterates acts; forks child for each tool |

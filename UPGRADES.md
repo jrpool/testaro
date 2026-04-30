@@ -809,7 +809,7 @@ You're absolutely right about `nuVal`'s limitations. Since it requires publicly 
 
 1. **`htmlcs`** - Pure JavaScript, no external dependencies, works on any HTML
 2. **`wave`** - Also API-based, so same limitations as `nuVal`
-4. **`axe`** - Self-contained, works on any page, excellent for establishing patterns
+3. **`axe`** - Self-contained, works on any page, excellent for establishing patterns
 
 **I recommend starting with `axe`** because:
 
