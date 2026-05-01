@@ -90,13 +90,13 @@ const classifyWithAI = entries => new Promise((resolve, reject) => {
           return;
         }
         const text = parsed.content[0].text;
-        resolve(
-          [...text.matchAll(/\{"index":\s*\d+,\s*"confidence":\s*[01]\.\d{1,2}\}/g)]
-          .map(m => {
-            const {index, confidence} = JSON.parse(m[0]);
-            return {index, confidence: Math.round(confidence * 10) / 10};
-          })
-        );
+        const classifications = [...text.matchAll(/\{"index":\s*\d+,\s*"confidence":\s*[01]\.\d{1,2}\}/g)]
+        .map(m => {
+          const {index, confidence} = JSON.parse(m[0]);
+          return {index, confidence: Math.round(confidence * 10) / 10};
+        });
+        const {input_tokens, output_tokens} = parsed.usage;
+        resolve({classifications, anthropicUsage: {inputTokens: input_tokens, outputTokens: output_tokens}});
       }
       catch(error) {
         reject(new Error(`Haiku response error: ${error.message}`));
@@ -141,7 +141,8 @@ exports.reporter = async (_, catalog, withItems) => {
   let violations;
   try {
     // Get AI estimates of the probabilities of their violating the rule.
-    const classifications = await classifyWithAI(sample);
+    const {classifications, anthropicUsage} = await classifyWithAI(sample);
+    data.anthropicUsage = anthropicUsage;
     // Treat the entries with above-minimum violation confidence levels as violations.
     violations = classifications
     .filter(({confidence}) => confidence >= MIN_CONFIDENCE)
