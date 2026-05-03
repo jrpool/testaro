@@ -1,7 +1,7 @@
 {
   "name": "testaro",
-  "version": "72.1.3",
-  "description": "Run 1000 web accessibility tests from 11 tools and get a standardized report",
+  "version": "72.2.0",
+  "description": "Run 1300 web accessibility tests from 10 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
     "build:nameComputation": "esbuild src/nameComputation.js --bundle --format=iife --global-name=computeAccessibleName --outfile=dist/nameComputation.js",

@@ -43,20 +43,20 @@ exports.reporter = async (page, catalog, withItems) => {
       if (isFocusable) {
         // Get its live style declaration.
         const styleDec = window.getComputedStyle(element);
-        // If the element has an outline before being focused:
-        if (styleDec.outlineWidth !== '0px') {
+        // If the element has a visible outline before being focused:
+        if (styleDec.outlineStyle !== 'none' && styleDec.outlineWidth !== '0px') {
           // Return a violation description.
           return 'Element is focusable but has an outline when blurred';
         }
         // Otherwise, i.e. if the element has no outline, focus the element.
         element.focus({preventScroll: true});
         // If it now has no outline:
-        if (styleDec.outlineWidth === '0px') {
+        if (styleDec.outlineWidth === '0px' || styleDec.outlineStyle === 'none') {
           // Return a violation description.
           return 'Element when focused has no outline';
         }
         // Otherwise, if it now has an outline thinner than 2 pixels:
-        if (Number.parseFloat(styleDec.outlineWidth) < 2) {
+        if (Number.parseFloat(styleDec.outlineWidth) < 2 && styleDec.outlineStyle !== 'none') {
           // Return a violation description.
           return 'Element when focused has an outline thinner than 2 pixels';
         }
