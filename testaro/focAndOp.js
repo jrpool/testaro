@@ -35,7 +35,9 @@ exports.reporter = async (page, catalog, withItems) => {
       // Get whether it is focusable.
       const isFocusable = element.tabIndex === 0;
       // Get the operable tagnames.
-      const opTags = new Set(['A', 'BUTTON', 'IFRAME', 'INPUT','OPTION', 'SELECT', 'TEXTAREA']);
+      const opTags = new Set(
+        ['A', 'BUTTON', 'IFRAME', 'INPUT','OPTION', 'SELECT', 'SUMMARY', 'TEXTAREA']
+      );
       // Get the operable roles.
       const opRoles = new Set([
         'button',
