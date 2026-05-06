@@ -55,8 +55,15 @@ exports.reporter = async (page, report, actIndex) => {
     };
   }
   try {
-    // Wait for a stable page to make the page and its alfa version consistent.
-    await page.waitForLoadState('networkidle', {timeout: applyMultiplier(6000)});
+    try {
+      // Wait for a stable page to make the page and its alfa version consistent.
+      await page.waitForLoadState('networkidle', {timeout: applyMultiplier(9000)});
+    }
+    // If that fails:
+    catch (error) {
+      // Wait for the page to be loaded.
+      await page.waitForLoadState('domcontentloaded', {timeout: applyMultiplier(6000)});
+    }
     const doc = await page.evaluateHandle('document');
     const alfaPage = await Playwright.toPage(doc);
     // Test the page content with the specified rules.
