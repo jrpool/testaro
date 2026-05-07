@@ -6,6 +6,13 @@
 /*
   shoot
   Makes and saves as a PNG buffer file a full-page screenshot and returns the file path.
+
+  Call shape:
+    shoot(page, label, options?)
+      label:   string|number used in the saved filename (testaro-shoot-<label>.png).
+      options: optional object:
+        exclusion: a Playwright Locator to mask in the screenshot.
+        dir:       output directory (defaults to the OS temp dir).
 */
 
 // IMPORTS
@@ -40,9 +47,11 @@ const screenShot = async (page, exclusion = null) => {
     return '';
   });
 };
-exports.shoot = async (page, index) => {
+exports.shoot = async (page, label, options = {}) => {
+  const exclusion = options.exclusion || null;
+  const dir = options.dir || tmpDir;
   // Make and get a screenshot as a buffer.
-  let shot = await screenShot(page);
+  let shot = await screenShot(page, exclusion);
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
@@ -54,8 +63,8 @@ exports.shoot = async (page, index) => {
     if (global.gc) {
       global.gc();
     }
-    const fileName = `testaro-shoot-${index}.png`;
-    const pngPath = path.join(tmpDir, fileName);
+    const fileName = `testaro-shoot-${label}.png`;
+    const pngPath = path.join(dir, fileName);
     // Save the PNG buffer.
     await fs.writeFile(pngPath, pngBuffer);
     // Return the result.
