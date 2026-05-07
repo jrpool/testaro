@@ -9,7 +9,11 @@
 
   Call shape:
     shoot(page, label, options?)
-      label:   string|number used in the saved filename (testaro-shoot-<label>.png).
+      label:   string|number used in the saved filename. Sanitized to
+               testaro-shoot-<safe>.png — characters outside [A-Za-z0-9._-]
+               collapse to '_', leading/trailing dots and underscores are
+               stripped, length is capped at 100, and an empty result becomes
+               'unnamed'.
       options: optional object:
         exclusion: a Playwright Locator to mask in the screenshot.
         dir:       output directory (defaults to the OS temp dir).
@@ -29,6 +33,22 @@ const {PNG} = require('pngjs');
 const tmpDir = os.tmpdir();
 
 // FUNCTIONS
+
+// Coerces a label into a filesystem-safe string. Runs of any character outside
+// [A-Za-z0-9._-] collapse to one underscore; leading and trailing dots and
+// underscores are stripped (no hidden files, no traversal); capped at 100
+// characters; falls back to 'unnamed' if nothing usable remains.
+const sanitizeLabel = (label) => {
+  const raw = String(label);
+  const cleaned = raw
+    .replace(/[^A-Za-z0-9._-]+/g, '_')
+    .replace(/^[._]+|[._]+$/g, '')
+    .slice(0, 100) || 'unnamed';
+  if (cleaned !== raw) {
+    console.log(`>> shoot: label sanitized from "${raw}" to "${cleaned}"`);
+  }
+  return cleaned;
+};
 
 // Creates and returns a screenshot.
 const screenShot = async (page, exclusion = null) => {
@@ -63,7 +83,7 @@ exports.shoot = async (page, label, options = {}) => {
     if (global.gc) {
       global.gc();
     }
-    const fileName = `testaro-shoot-${label}.png`;
+    const fileName = `testaro-shoot-${sanitizeLabel(label)}.png`;
     const pngPath = path.join(dir, fileName);
     // Save the PNG buffer.
     await fs.writeFile(pngPath, pngBuffer);
