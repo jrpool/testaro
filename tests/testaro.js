@@ -288,7 +288,7 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'targetSmall',
+    id: 'targetsNear',
     what: 'labels, buttons, inputs, and links too near each other',
     contaminates: false,
     needsAccessibleName: false,
