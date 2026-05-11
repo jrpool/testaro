@@ -7403,7 +7403,7 @@ pool@jpdev testaro % claude
 ❯ Resend on its website offers a template for its use with node.js. Is there any reason to implement it? import { Resend } from
   'resend';
 
-  const resend = new Resend('re_JfX1xcwY_PcLTACGxX9Zg7W2Tjq24mNFC');
+  const resend = new Resend('…');
 
   resend.emails.send({
     from: 'onboarding@resend.dev',
