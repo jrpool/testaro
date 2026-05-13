@@ -72,7 +72,13 @@ exports.doJob = async (job, opts = {}) => {
       presses: 0,
       amountRead: 0,
       toolTimes: {},
-      preventions: {}
+      preventions: {},
+      // URLs that a launch attempt has already proved unreachable for this
+      // job. Populated by doActs after a test act exhausts launch.js's retry
+      // loop. Subsequent test acts targeting the same URL skip the fork
+      // instead of re-running the same retry loop. Keyed by URL → error
+      // message captured at first failure.
+      unreachableURLs: {}
     };
     process.on('message', message => {
       if (message === 'interrupt') {

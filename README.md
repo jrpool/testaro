@@ -298,6 +298,8 @@ As Testaro performs a job, information about the job as a whole is inserted into
 
 Testaro inserts the `jobData` property into every job, but inserts the `catalog` property only into jobs that instruct Testaro to produce standard results.
 
+The `jobData.unreachableURLs` property is an object keyed by URL. When a test act exhausts its launch retries against a URL (browser launch failure, navigation timeout, etc.), Testaro records the URL there. Subsequent test acts in the same job that target the same URL are marked prevented without forking a new child process, so an unreachable target costs one act's retries rather than one set of retries per engine.
+
 #### Catalog
 
 Whenever a job requires any testing and requires the production of standard results, Testaro inserts a _catalog_ into the report before calling any of the testing tools. The catalog is an inventory of HTML elements in the DOM of the target.
