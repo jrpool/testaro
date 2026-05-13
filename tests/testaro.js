@@ -504,9 +504,14 @@ exports.reporter = async (page, report, actIndex) => {
     // Wait 1 second to prevent out-of-order logging with granular reporting.
     await wait(1000);
     // Get the rules to be tested for and their execution order.
+    // 'y' = include-list: run exactly the rules in ruleSpec.slice(1).
+    // 'n' = exclude-list: run all defaultOn rules EXCEPT those in ruleSpec.slice(1).
+    const excludeIDs = ruleSpec.slice(1);
     const jobRuleIDs = ruleSpec[0] === 'y'
-    ? ruleSpec.slice(1)
-    : allRules.filter(rule => rule.defaultOn && ! allRuleIDs.includes(rule.id));
+    ? excludeIDs
+    : allRules
+      .filter(rule => rule.defaultOn && ! excludeIDs.includes(rule.id))
+      .map(rule => rule.id);
     const jobRules = allRules.filter(rule => jobRuleIDs.includes(rule.id));
     let justPrevented = false;
     // For each rule to be tested for:
