@@ -148,7 +148,7 @@ exports.reporter = async (_, catalog, withItems) => {
     .filter(({confidence}) => confidence >= MIN_CONFIDENCE)
     .map(({index, confidence}) => ({
       catalogIndex: String(index),
-      what: `Element contains unnecessarily (with confidence ${Math.round(confidence * 100)}%) all-capital text`
+      what: `Claude Haiku has ${Math.round(confidence * 100)}% confidence that the element contains unnecessarily all-capital text`
     }));
     const evaluated = classifications.length;
     const leftOut = qualifying.length - evaluated;
