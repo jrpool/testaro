@@ -171,6 +171,11 @@ Here is a sample job, showing properties that you can set:
     }
   },
   browserID: 'chromium', // or 'webkit' or 'firefox'
+  stealth: true, // Optional. Whether to enable puppeteer-extra-plugin-stealth
+                 // evasions. Only applies to Chromium (the plugin is
+                 // Chromium-specific). Defaults to true. Set false to opt
+                 // out — useful for sites whose anti-bot heuristics react
+                 // badly to stealth's patches.
   creationTimeStamp: '241229T0537', // When job was created
   executionTimeStamp: '250110T1200', // When job will be ready to be performed
   target: {
