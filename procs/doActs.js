@@ -25,6 +25,8 @@ const {fork} = require('child_process');
 const os = require('os');
 // Function to prune a catalog.
 const {pruneCatalog} = require('./catalog');
+// Function to take a full-page screenshot.
+const {shoot} = require('./shoot');
 // Module to handle file system operations.
 const fs = require('fs/promises');
 const httpClient = require('http');
@@ -701,6 +703,14 @@ exports.doActs = async (report, opts = {}) => {
               console.log(`ERROR making all elements visible (${error.message})`);
               act.result.success = false;
             });
+          }
+          // Otherwise, if the act is a screenshot:
+          else if (type === 'shoot') {
+            const exclusion = act.exclusion ? page.locator(act.exclusion) : null;
+            const pngPath = await shoot(page, act.which, {exclusion});
+            act.result = pngPath
+              ? {success: true, path: pngPath}
+              : {success: false, prevented: true};
           }
           // Otherwise, if the act is a move:
           else if (moves[type]) {

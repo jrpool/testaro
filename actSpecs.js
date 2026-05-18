@@ -121,6 +121,14 @@ exports.actSpecs = {
         what: [true, 'string', 'hasLength', 'substring of option text content']
       }
     ],
+    shoot: [
+      'Save a full-page screenshot to <tmpdir>/testaro-shoot-<which>.png',
+      {
+        which: [true, 'string', 'hasLength', 'screenshot label, used in the filename'],
+        exclusion: [false, 'string', 'hasLength', 'CSS selector for an element to mask'],
+        what: [false, 'string', 'hasLength', 'comment']
+      }
+    ],
     state: [
       'Wait until the page reaches a load state',
       {

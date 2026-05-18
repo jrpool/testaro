@@ -1,0 +1,46 @@
+{
+  "id": "240101T1300-shoot-example",
+  "what": "Demonstrate the shoot action: full-page screenshots interleaved with scripted steps",
+  "strict": true,
+  "timeLimit": 30,
+  "acts": [
+    {
+      "type": "launch",
+      "which": "chromium",
+      "url": "https://example.edu/",
+      "what": "Chromium browser"
+    },
+    {
+      "type": "shoot",
+      "which": "before",
+      "what": "Snapshot the landing page before any interaction"
+    },
+    {
+      "type": "shoot",
+      "which": "before-masked",
+      "exclusion": "header",
+      "what": "Same view with the page header masked out"
+    },
+    {
+      "type": "test",
+      "which": "testaro",
+      "withItems": false,
+      "stopOnFail": true,
+      "rules": [
+        "y",
+        "bulk"
+      ]
+    },
+    {
+      "type": "shoot",
+      "which": "after-tests",
+      "what": "Snapshot the page after Testaro tests have run"
+    }
+  ],
+  "sources": {},
+  "standard": "only",
+  "observe": false,
+  "sendReportTo": "http://localhost:3007/api",
+  "timeStamp": "240101T1300",
+  "creationTimeStamp": "240101T1300"
+}
