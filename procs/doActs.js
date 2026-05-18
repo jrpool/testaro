@@ -382,6 +382,33 @@ exports.doActs = async (report, opts = {}) => {
       else if (type === 'test') {
         // Add a description of the tool to the act.
         act.what = tools[act.which];
+        // Determine the URL this test act will visit. Same precedence the
+        // forked child (procs/doTestAct.js) applies: act-level override
+        // first, then the job-level target.
+        const actTargetURL = (act.launch && act.launch.target && act.launch.target.url)
+          || localReport.target.url;
+        // If a prior test act in this job already exhausted launch.js's
+        // retry loop against this URL, the URL is unreachable for the
+        // job's lifetime. Mark this act prevented inline and skip the
+        // child fork — re-running the same retry loop just burns time
+        // (3 retries with backoff × N remaining engines).
+        const priorFailure = localReport.jobData.unreachableURLs
+          && localReport.jobData.unreachableURLs[actTargetURL];
+        if (priorFailure) {
+          const skipMessage = `Target URL previously unreachable; skipped (${priorFailure})`;
+          console.log(`>>>> test ${act.which} skipped: ${skipMessage}`);
+          act.startTime = Date.now();
+          act.data ??= {};
+          act.data.prevented = true;
+          act.data.error = skipMessage;
+          act.result ??= {};
+          act.result.success = false;
+          act.result.error = skipMessage;
+          localReport.jobData.preventions[act.which] = skipMessage;
+          localReport.jobData.toolTimes[act.which] ??= 0;
+          actCount++;
+          continue;
+        }
         // Get the start time of the act.
         const startTime = Date.now();
         // Add it to the act.
@@ -505,6 +532,23 @@ exports.doActs = async (report, opts = {}) => {
         }
         // Get the (usually revised) act.
         act = acts[actIndex];
+        // If this act was prevented because launch.js exhausted its
+        // retries against actTargetURL, remember the URL so subsequent
+        // test acts targeting it can skip the fork. Recognize the two
+        // canonical launch-failure error strings:
+        //   - 'No page' — set by doTestAct.js when launch() returned null
+        //   - starts with 'ERROR: No retries left' — set by launch.js
+        // Tool-internal preventions (e.g. axe choking on bad markup) use
+        // different error strings, so they don't poison this set.
+        if (act.data && act.data.prevented) {
+          const e = act.data.error || '';
+          const isLaunchFailure = e === 'No page'
+            || e.startsWith('ERROR: No retries left');
+          if (isLaunchFailure) {
+            localReport.jobData.unreachableURLs ??= {};
+            localReport.jobData.unreachableURLs[actTargetURL] ??= e;
+          }
+        }
         // Add the elapsed time of the tool to the local report.
         const time = Math.round((Date.now() - startTime) / 1000);
         const {toolTimes} = localReport.jobData;
