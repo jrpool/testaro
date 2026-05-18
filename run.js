@@ -27,11 +27,11 @@ const {getCatalog} = require('./procs/catalog');
 const {nowString} = require('./procs/dateTime');
 // Module to create browsers.
 const {chromium, webkit, firefox} = require('playwright-extra');
-// Module to evade automation detection.
+// Module to evade automation detection. Chromium-only: the plugin injects
+// Chromium-specific launch args (e.g. --disable-blink-features=AutomationControlled)
+// that WebKit and Firefox reject at startup.
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
-webkit.use(StealthPlugin());
-firefox.use(StealthPlugin());
 
 // FUNCTIONS
 
