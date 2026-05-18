@@ -55,7 +55,11 @@ exports.reporter = async (page, report, actIndex) => {
       },
       body: testTarget
     };
-    const nuURL = 'https://validator.w3.org/nu/?parser=html&out=json';
+    // Override target for self-hosted Nu Html Checker instances (Docker
+    // image ghcr.io/validator/validator or equivalent). Defaults to the
+    // public W3C service, which 502s on bodies >~80 kB.
+    const nuURL = process.env.TESTARO_NU_URL
+      || 'https://validator.w3.org/nu/?parser=html&out=json';
     let nuData = {};
     let nuResponse = new Response();
     try {
