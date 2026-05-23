@@ -582,10 +582,10 @@ exports.launch = async (opts = {}) => {
   }
   // Otherwise, i.e. if the report is invalid:
   else {
-    // Report this.
+    // Report this and abort the job.
     addError(
       true,
-      false,
+      true,
       report,
       actIndex,
       `ERROR: Cannot launch browser for invalid job (${jobValidation.error})`

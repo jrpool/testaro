@@ -473,10 +473,10 @@ exports.doActs = async (report, opts = {}) => {
             console.log(
               `ERROR: Tool sent message ${actResult.message}. Report is no longer JSON (${error.message}) but is instead a(n) ${typeof localReportJSON} of length ${localReportJSON.length}:\n${localReportJSON}`
             );
-            // Add the error data to the act.
+            // Add the error data to the act and abort the job.
             addError(
               false,
-              false,
+              true,
               localReport,
               actIndex,
               `Non-JSON local report file after message ${actResult.message}`
@@ -650,7 +650,7 @@ exports.doActs = async (report, opts = {}) => {
           )
           // If the wait times out:
           .catch(async error => {
-            // Report this and abort the job.
+            // Report this.
             console.log(`ERROR waiting for page to be ${act.which} (${error.message})`);
             addError(true, false, localReport, actIndex, `ERROR waiting for page to be ${act.which}`);
           });
@@ -795,7 +795,7 @@ exports.doActs = async (report, opts = {}) => {
                 }
                 // If the move fails:
                 catch(error) {
-                  // Add the error result to the act and abort the job.
+                  // Add the error result to the act.
                   addError(true, false, localReport, actIndex, `ERROR: ${move} failed`);
                 }
                 if (act.result.success) {
@@ -1129,19 +1129,19 @@ exports.doActs = async (report, opts = {}) => {
           }
           // Otherwise, i.e. if the act type is unknown:
           else {
-            // Add the error result to the act and abort the job.
+            // Add the error result to the act.
             addError(true, false, localReport, actIndex, 'ERROR: Invalid act type');
           }
         }
         // Otherwise, a page URL is required but does not exist, so:
         else {
-          // Add an error result to the act and abort the job.
+          // Add an error result to the act.
           addError(true, false, localReport, actIndex, 'ERROR: Page has no URL');
         }
       }
       // Otherwise, i.e. if no page exists:
       else {
-        // Add an error result to the act and abort the job.
+        // Add an error result to the act.
         addError(true, false, localReport, actIndex, 'ERROR: No page identified');
       }
       // Add the end time to the act.
