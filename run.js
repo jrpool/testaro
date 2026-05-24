@@ -48,7 +48,7 @@ exports.doJob = async (job, opts = {}) => {
     console.log(`ERROR: ${jobInvalidity.error}`);
     jobData.aborted = true;
     jobData.abortedAct = null;
-    jobData.abortError = jobInvalidity.error;
+    jobData.abortMessage = jobInvalidity.error;
   }
   // Otherwise, i.e. if it is valid:
   else {
@@ -69,6 +69,8 @@ exports.doJob = async (job, opts = {}) => {
       visitRejectionCount: 0,
       aborted: false,
       abortedAct: null,
+      abortTime: '',
+      abortMessage: '',
       presses: 0,
       amountRead: 0,
       toolTimes: {},
