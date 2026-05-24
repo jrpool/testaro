@@ -501,11 +501,7 @@ exports.reporter = async (page, report, actIndex) => {
     && ['y', 'n'].includes(ruleSpec[0])
     && ruleSpec.slice(1).every(ruleID => allRuleIDs.includes(ruleID))
   ) {
-    // Wait 1 second to prevent out-of-order logging with granular reporting.
-    await wait(1000);
-    // Get the rules to be tested for and their execution order.
-    // 'y' = include-list: run exactly the rules in ruleSpec.slice(1).
-    // 'n' = exclude-list: run all defaultOn rules EXCEPT those in ruleSpec.slice(1).
+    // Get the rules to be (y) or not to be (n) tested for and their execution order.
     const excludeIDs = ruleSpec.slice(1);
     const jobRuleIDs = ruleSpec[0] === 'y'
     ? excludeIDs

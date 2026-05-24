@@ -27,9 +27,6 @@ const os = require('os');
 const {pruneCatalog} = require('./catalog');
 // Module to handle file system operations.
 const fs = require('fs/promises');
-const httpClient = require('http');
-const httpsClient = require('https');
-const agent = process.env.AGENT;
 
 // CONSTANTS
 
@@ -65,24 +62,6 @@ const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1
 
 // FUNCTIONS
 
-// Sends a notice to a network observer.
-const tellServer = (report, messageParams, logMessage) => {
-  const observerURL = process.env.NETWATCH_URL_OBSERVE;
-  if (observerURL) {
-    const whoParams = `agent=${agent}&jobID=${report.id || ''}`;
-    const wholeURL = `${observerURL}?${whoParams}&${messageParams}`;
-    const client = wholeURL.startsWith('https://') ? httpsClient : httpClient;
-    client.request(wholeURL)
-    // If the notification threw an error:
-    .on('error', error => {
-      // Report the error.
-      const errorMessage = 'ERROR notifying the server';
-      console.log(`${errorMessage} (${error.message})`);
-    })
-    .end();
-    console.log(`${logMessage} (server notified)`);
-  }
-};
 // Normalizes spacing characters and cases in a string.
 const debloat = string => string.replace(/\s/g, ' ').trim().replace(/ {2,}/g, ' ').toLowerCase();
 // Returns the first line of an error message.
@@ -254,8 +233,6 @@ exports.doActs = async (report, opts = {}) => {
   let localReport = JSON.parse(JSON.stringify(report));
   let page = null;
   let {acts} = localReport;
-  // Get the granular observation options, if any.
-  const {onProgress = null, signal = null} = opts;
   // Get the standardization specification.
   const standard = localReport.standard || 'only';
   // Set the temporary directory.
@@ -298,34 +275,8 @@ exports.doActs = async (report, opts = {}) => {
       const {type, which} = act;
       const actSuffix = type === 'test' ? ` ${which}` : '';
       const message = `>>>> ${type}${actSuffix}`;
-      // If granular reporting has been specified:
-      if (localReport.observe) {
-        const whichParam = which ? `&which=${which}` : '';
-        const messageParams = `act=${type}${whichParam}`;
-        // If a progress callback has been provided by a caller on this host:
-        if (onProgress) {
-          // Notify the observer of the act.
-          try {
-            onProgress({
-              type,
-              which
-            });
-          }
-          catch (error) {
-            console.log(`${message} (observer notification failed: ${errorStart(error)})`);
-          }
-        }
-        // Otherwise, i.e. if no progress callback has been provided:
-        else {
-          // Notify the remote observer of the act and log it.
-          tellServer(localReport, messageParams, message);
-        }
-      }
-      // Otherwise, i.e. if granular reporting has not been specified:
-      else {
-        // Log the act.
-        console.log(message);
-      }
+      // Log the act.
+      console.log(message);
       // If the act is an index changer:
       if (type === 'next') {
         const condition = act.if;

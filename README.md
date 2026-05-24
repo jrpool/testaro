@@ -162,8 +162,6 @@ AGENT=agentabc
 # When Testaro polls a network host to ask for new jobs, data on the host.
 # URL to poll.
 NETWATCH_JOB=http://localhost:3000/api/assignJob/agentabc
-# URL to which to send progress reports during jobs.
-NETWATCH_OBSERVE=http://localhost:3000/api/granular/agentabc
 # URL to which to send completed job reports.
 NETWATCH_REPORT=http://localhost:3000/api/takeReport/agentabc
 # Password to give to the host to authenticate this instance.
