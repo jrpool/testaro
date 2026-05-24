@@ -182,7 +182,6 @@ Here is a sample job, showing properties that you can set:
   what: 'monthly health check', // Job description
   strict: true, // Whether to reject redirections from the target URL
   standard: 'also', // or 'only' or 'no' (whether to report a standard result)
-  observe: false, // Whether to send progress notices to the requesting host
   device: { // Device to emulate
     id: 'iPhone 8',
     windowOptions: {

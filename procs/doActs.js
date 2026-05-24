@@ -14,18 +14,12 @@
 
 // IMPORTS
 
-// Module to handle errors.
-const {abortActs, addError} = require('./error');
-// Function to close a browser and/or its context.
+const {addError} = require('./error');
 const {getNonce, goTo, launch, wait} = require('./launch');
-// Constant describing the tools.
 const {tools} = require('./job');
-// Module to create child processes.
 const {fork} = require('child_process');
 const os = require('os');
-// Function to prune a catalog.
 const {pruneCatalog} = require('./catalog');
-// Module to handle file system operations.
 const fs = require('fs/promises');
 
 // CONSTANTS
@@ -228,49 +222,44 @@ const waitError = (page, act, error, what) => {
   return false;
 };
 // Performs the acts in a report and adds the results to the report.
-exports.doActs = async (report, opts = {}) => {
-  // Make a local copy of the report.
-  let localReport = JSON.parse(JSON.stringify(report));
+exports.doActs = async report => {
+  // Make a temporary copy of the report. Precondition: report is valid.
+  let tempReport = JSON.parse(JSON.stringify(report));
   let page = null;
-  let {acts} = localReport;
+  let {acts} = tempReport;
   // Get the standardization specification.
-  const standard = localReport.standard || 'only';
-  // Set the temporary directory.
-  let tmpDir = `${__dirname}/../${process.env.TMPDIRNAME || 'scratch'}`;
-  try {
-    await fs.access(tmpDir, fs.constants.W_OK);
-  }
-  catch(error) {
-    console.log(`ERROR: ${tmpDir} is not writable`);
-    tmpDir = os.tmpdir();
+  const standard = tempReport.standard || 'only';
+  const tmpDirs = [`${__dirname}/../${process.env.TMPDIRNAME || 'scratch'}`, os.tmpdir(), '/tmp'];
+  let tmpDir = null;
+  // For each potential temporary directory:
+  for (const tmpDirAlternative of tmpDirs) {
     try {
-      await fs.access(tmpDir, fs.constants.W_OK);
+      // Verify that it is writable.
+      await fs.access(tmpDirAlternative, fs.constants.W_OK);
+      tmpDir = tmpDirAlternative;
+      break;
     }
+    // If it is not:
     catch(error) {
-      console.log(`ERROR: ${tmpDir} is not writable`);
-      tmpDir = '/tmp';
-      try {
-        await fs.access(tmpDir, fs.constants.W_OK);
-      }
-      catch(error) {
-        console.log(`ERROR: ${tmpDir} is not writable; quitting`);
-        process.exit(1);
-      }
+      // Report this.
+      console.log(`ERROR: ${tmpDirAlternative} is not a writable directory for temporary reports`);
     }
+  }
+  // If no writable temporary directory was found:
+  if (! tmpDir) {
+    // Report this.
+    console.log('ERROR: No writable temporary directory was found; quitting');
+    // Quit.
+    process.exit(1);
   }
   // Get a path for temporary reports.
-  const reportPath = `${tmpDir}/${localReport.id}.json`;
+  const reportPath = `${tmpDir}/${tempReport.id}.json`;
   // Initialize the count of completed acts.
   let actCount = 0;
-  // For each act in the local report:
+  // For each act in the temporary report:
   for (const actIndex in acts) {
-    // If the job has been aborted by a signal:
-    if (signal && signal.aborted) {
-      // Report this.
-      throw new Error('doActs aborted');
-    }
-    // Otherwise, and if the job has not been aborted internally:
-    if (localReport.jobData && ! localReport.jobData.aborted) {
+    // If the job has not been aborted:
+    if (tempReport?.jobData && ! tempReport.jobData.aborted) {
       let act = acts[actIndex];
       const {type, which} = act;
       const actSuffix = type === 'test' ? ` ${which}` : '';
@@ -317,16 +306,16 @@ exports.doActs = async (report, opts = {}) => {
       else if (type === 'launch') {
         // Launch a browser, navigate to a page, and add the result to the act.
         page = await launch({
-          localReport,
+          tempReport,
           actIndex,
-          tempBrowserID: getActBrowserID(localReport, actIndex),
-          tempURL: getActTargetURL(localReport, actIndex),
+          tempBrowserID: getActBrowserID(tempReport, actIndex),
+          tempURL: getActTargetURL(tempReport, actIndex),
           xPathNeed: 'none'
         });
         // If this failed:
         if (! page) {
           // Report this.
-          addError(false, false, localReport, actIndex, page.error ?? '');
+          addError(false, false, tempReport, actIndex, page.error ?? '');
         }
       }
       // Otherwise, if the act is a test act:
@@ -337,9 +326,9 @@ exports.doActs = async (report, opts = {}) => {
         const startTime = Date.now();
         // Add it to the act.
         act.startTime = startTime;
-        let localReportJSON = JSON.stringify(localReport);
-        // Save a copy of the local report, which the child process will read.
-        await fs.writeFile(reportPath, localReportJSON);
+        let tempReportJSON = JSON.stringify(tempReport);
+        // Save a copy of the temporary report, which the child process will read.
+        await fs.writeFile(reportPath, tempReportJSON);
         let timedOut = false;
         const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
         const actResult = await new Promise(resolve => {
@@ -410,28 +399,30 @@ exports.doActs = async (report, opts = {}) => {
         });
         // If the child process sent a message:
         if (actResult.kind === 'message') {
-          // Get the revised localReport file.
-          localReportJSON = await fs.readFile(reportPath, 'utf8');
+          // Get the revised tempReport file.
+          tempReportJSON = await fs.readFile(reportPath, 'utf8');
           try {
-            // Reassign it to the local report.
-            localReport = JSON.parse(localReportJSON);
-            // Redefine the acts as those in the revised local report.
-            ({acts} = localReport);
+            // Reassign it to the temporary report.
+            tempReport = JSON.parse(tempReportJSON);
+            // Redefine the acts as those in the revised temporary report.
+            ({acts} = tempReport);
           }
-          // If the conversion fails, leaving the local report and its acts unchanged:
+          // If the reassignment fails, leaving the temporary report and its acts unchanged:
           catch (error) {
             // Report this.
             console.log(
-              `ERROR: Tool sent message ${actResult.message}. Report is no longer JSON (${error.message}) but is instead a(n) ${typeof localReportJSON} of length ${localReportJSON.length}:\n${localReportJSON}`
+              `ERROR: Tool sent message ${actResult.message}. Report is no longer JSON (${error.message}) but is instead a(n) ${typeof tempReportJSON} of length ${tempReportJSON.length}:\n${tempReportJSON}`
             );
             // Report this and that the job was aborted.
             addError(
               false,
               true,
-              localReport,
+              tempReport,
               actIndex,
-              `Non-JSON local report file after message ${actResult.message}`
+              `Non-JSON temporary report file after message ${actResult.message}`
             );
+            // Stop processing acts.
+            break;
           }
         }
         // Otherwise, i.e. if the child process closed abnormally:
@@ -440,25 +431,25 @@ exports.doActs = async (report, opts = {}) => {
           const {code, error, kind, signal} = actResult;
           if (kind === 'close' && timedOut) {
             addError(
-              false, false, localReport, actIndex, `Timed out at ${Math.round(limitMs / 1000)} seconds`
+              false, false, tempReport, actIndex, `Timed out at ${Math.round(limitMs / 1000)} seconds`
             );
           }
           else if (kind === 'close') {
             addError(
-              true, false, localReport, actIndex, `Closed with code ${code} and signal ${signal})`
+              true, false, tempReport, actIndex, `Closed with code ${code} and signal ${signal})`
             );
           }
           else {
             addError(
-              true, false, localReport, actIndex, `Terminated with error ${error}`
+              true, false, tempReport, actIndex, `Terminated with error ${error}`
             );
           }
         }
         // Get the (usually revised) act.
         act = acts[actIndex];
-        // Add the elapsed time of the tool to the local report.
+        // Add the elapsed time of the tool to the temporary report.
         const time = Math.round((Date.now() - startTime) / 1000);
-        const {toolTimes} = localReport.jobData;
+        const {toolTimes} = tempReport.jobData;
         toolTimes[act.which] ??= 0;
         toolTimes[act.which] += time;
         // If the act was not prevented:
@@ -496,16 +487,16 @@ exports.doActs = async (report, opts = {}) => {
           const resolved = act.which.replace('__dirname', __dirname);
           requestedURL = resolved;
           // Visit it and wait until the DOM is loaded.
-          const navResult = await goTo(localReport, page, requestedURL, 15000, 'domcontentloaded');
+          const navResult = await goTo(tempReport, page, requestedURL, 15000, 'domcontentloaded');
           // If the visit succeeded:
           if (navResult.success) {
-            // Revise the local report URL to this URL.
-            localReport.target.url = requestedURL;
+            // Revise the temporary report URL to this URL.
+            tempReport.target.url = requestedURL;
             // Add the script nonce, if any, to the act.
             const {response} = navResult;
             const scriptNonce = getNonce(response);
             if (scriptNonce) {
-              localReport.jobData.lastScriptNonce = scriptNonce;
+              tempReport.jobData.lastScriptNonce = scriptNonce;
             }
             // Add the resulting URL to the act.
             if (! act.result) {
@@ -515,13 +506,13 @@ exports.doActs = async (report, opts = {}) => {
             // If a prohibited redirection occurred:
             if (response.exception === 'badRedirection') {
               // Report this.
-              addError(true, false, localReport, actIndex, 'ERROR: Navigation illicitly redirected');
+              addError(true, false, tempReport, actIndex, 'ERROR: Navigation illicitly redirected');
             }
           }
           // Otherwise, i.e. if the visit failed:
           else {
             // Report this.
-            addError(true, false, localReport, actIndex, 'ERROR: Visit failed');
+            addError(true, false, tempReport, actIndex, 'ERROR: Visit failed');
           }
         }
         // Otherwise, if the act is a wait for text:
@@ -539,8 +530,7 @@ exports.doActs = async (report, opts = {}) => {
             }
             // If the wait times out:
             catch(error) {
-              // Quit.
-              abortActs(localReport, actIndex);
+              // Report this.
               waitError(page, act, error, 'text in the URL');
             }
           }
@@ -563,8 +553,7 @@ exports.doActs = async (report, opts = {}) => {
             }
             // If the wait times out:
             catch(error) {
-              // Quit.
-              abortActs(localReport, actIndex);
+              // Report this.
               waitError(page, act, error, 'text in the title');
             }
           }
@@ -586,8 +575,7 @@ exports.doActs = async (report, opts = {}) => {
             }
             // If the wait times out:
             catch(error) {
-              // Quit.
-              abortActs(localReport, actIndex);
+              // Report this.
               waitError(page, act, error, 'text in the body');
             }
           }
@@ -603,11 +591,11 @@ exports.doActs = async (report, opts = {}) => {
           .catch(async error => {
             // Report this.
             console.log(`ERROR waiting for page to be ${act.which} (${error.message})`);
-            addError(true, false, localReport, actIndex, `ERROR waiting for page to be ${act.which}`);
+            addError(true, false, tempReport, actIndex, `ERROR waiting for page to be ${act.which}`);
           });
           // If the wait succeeded:
           if (actIndex > -2) {
-            // Add state data to the local report.
+            // Add state data to the temporary report.
             act.result = {
               success: true,
               state: act.which
@@ -690,7 +678,7 @@ exports.doActs = async (report, opts = {}) => {
                     }
                     // If no element satisfied the specifications:
                     if (! act.result.found) {
-                      // Add the failure data to the local report.
+                      // Add the failure data to the temporary report.
                       act.result.success = false;
                       act.result.error = 'exhausted';
                       act.result.typeElementCount = selections.length;
@@ -703,7 +691,7 @@ exports.doActs = async (report, opts = {}) => {
                   }
                   // Otherwise, i.e. if there are too few such elements to make a match possible:
                   else {
-                    // Add the failure data to the local report.
+                    // Add the failure data to the temporary report.
                     act.result.success = false;
                     act.result.error = 'fewer';
                     act.result.typeElementCount = selections.length;
@@ -712,7 +700,7 @@ exports.doActs = async (report, opts = {}) => {
                 }
                 // Otherwise, i.e. if there are no elements of the specified type:
                 else {
-                  // Add the failure data to the local report.
+                  // Add the failure data to the temporary report.
                   act.result.success = false;
                   act.result.error = 'none';
                   act.result.typeElementCount = 0;
@@ -721,7 +709,7 @@ exports.doActs = async (report, opts = {}) => {
               }
               // Otherwise, i.e. if the page no longer exists:
               else {
-                // Add the failure data to the local report.
+                // Add the failure data to the temporary report.
                 act.result.success = false;
                 act.result.error = 'gone';
                 act.result.message = 'Page gone';
@@ -747,7 +735,7 @@ exports.doActs = async (report, opts = {}) => {
                 // If the move fails:
                 catch(error) {
                   // Report this.
-                  addError(true, false, localReport, actIndex, `ERROR: ${move} failed`);
+                  addError(true, false, tempReport, actIndex, `ERROR: ${move} failed`);
                 }
                 if (act.result.success) {
                   try {
@@ -839,7 +827,7 @@ exports.doActs = async (report, opts = {}) => {
                   }
                   // If the link click succeeded:
                   if (! act.result.error) {
-                    // Add success data to the local report.
+                    // Add success data to the temporary report.
                     act.result.success = true;
                     act.result.move = 'clicked';
                   }
@@ -888,7 +876,7 @@ exports.doActs = async (report, opts = {}) => {
                 }
                 // Enter the text.
                 await selection.type(what);
-                localReport.jobData.presses += what.length;
+                tempReport.jobData.presses += what.length;
                 act.result.success = true;
                 act.result.move = 'entered';
                 // If the input is a search input:
@@ -918,7 +906,7 @@ exports.doActs = async (report, opts = {}) => {
           else if (type === 'press') {
             // Identify the number of times to press the key.
             let times = 1 + (act.again || 0);
-            localReport.jobData.presses += times;
+            tempReport.jobData.presses += times;
             const key = act.which;
             // Press the key.
             while (times--) {
@@ -1072,26 +1060,26 @@ exports.doActs = async (report, opts = {}) => {
             if (withItems) {
               act.result.items = items;
             }
-            // Add the totals to the local report.
-            localReport.jobData.presses += presses;
-            localReport.jobData.amountRead += amountRead;
+            // Add the totals to the temporary report.
+            tempReport.jobData.presses += presses;
+            tempReport.jobData.amountRead += amountRead;
           }
           // Otherwise, i.e. if the act type is unknown:
           else {
             // Report this.
-            addError(true, false, localReport, actIndex, 'ERROR: Invalid act type');
+            addError(true, false, tempReport, actIndex, 'ERROR: Invalid act type');
           }
         }
         // Otherwise, a page URL is required but does not exist, so:
         else {
           // Report this.
-          addError(true, false, localReport, actIndex, 'ERROR: Page has no URL');
+          addError(true, false, tempReport, actIndex, 'ERROR: Page has no URL');
         }
       }
       // Otherwise, i.e. if no page exists:
       else {
         // Report this.
-        addError(true, false, localReport, actIndex, 'ERROR: No page identified');
+        addError(true, false, tempReport, actIndex, 'ERROR: No page identified');
       }
       // Add the end time to the act.
       act.endTime = Date.now();
@@ -1105,20 +1093,20 @@ exports.doActs = async (report, opts = {}) => {
     // If the native results are not to be included in the report:
     if (standard === 'only') {
       // Remove them.
-      localReport.acts.forEach(act => {
+      tempReport.acts.forEach(act => {
         if (act.result?.nativeResult) {
           delete act.result.nativeResult;
         }
       });
     }
     // If a catalog was created:
-    if (localReport.catalog) {
-      let {catalog} = localReport;
+    if (tempReport.catalog) {
+      let {catalog} = tempReport;
       // Get its element count.
       const elementCount = Object.keys(catalog).length;
       // Prune it, removing elements with no reported violations.
-      pruneCatalog(localReport);
-      ({catalog} = localReport);
+      pruneCatalog(tempReport);
+      ({catalog} = tempReport);
       // Get properties of the pruned catalog.
       const textCount = Object.values(catalog).filter(entry => entry.text).length;
       const linkableTextCount = Object.values(catalog).filter(entry => entry.textLinkable).length;
@@ -1135,7 +1123,7 @@ exports.doActs = async (report, opts = {}) => {
         },
         tools: {}
       };
-      const {acts} = localReport;
+      const {acts} = tempReport;
       // For each act:
       for (const act of acts) {
         // If it is a test act:
@@ -1168,12 +1156,12 @@ exports.doActs = async (report, opts = {}) => {
           }
         }
       }
-      // Add the catalog data to the local report.
-      localReport.jobData.catalogData = catalogData;
+      // Add the catalog data to the temporary report.
+      tempReport.jobData.catalogData = catalogData;
     }
   }
-  // Delete the temporary local report file.
+  // Delete the temporary temporary report file.
   await fs.rm(reportPath, {force: true});
-  // Return the local report.
-  return localReport;
+  // Return the temporary report.
+  return tempReport;
 };

@@ -26,7 +26,6 @@ const job = {
   what: '',
   strict: true,
   standard: 'only',
-  observe: false,
   device: {
     id: 'default',
     windowOptions: {

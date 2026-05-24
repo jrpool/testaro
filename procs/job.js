@@ -175,7 +175,6 @@ exports.isValidJob = job => {
       id,
       strict,
       standard,
-      observe,
       device,
       browserID,
       creationTimeStamp,
@@ -202,12 +201,6 @@ exports.isValidJob = job => {
         isValid: false,
         error: 'Bad job standard'
       };
-    }
-    if (typeof observe !== 'boolean') {
-      return {
-        isValid: false,
-        error: 'Bad job observe'
-      }
     }
     if (! isDeviceID(device.id)) {
       return {
