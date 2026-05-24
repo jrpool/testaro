@@ -50,6 +50,7 @@ const errorWords = [
 ];
 // Seconds to wait between actions.
 const waits = Number(process.env.WAITS) ?? 0;
+const abortAssertively = process.env.ABORT_ASSERTIVELY === 'true';
 
 // FUNCTIONS
 
@@ -546,7 +547,7 @@ exports.launch = async (opts = {}) => {
       let retriesLeft = retries;
       let {error} = launchResult;
       // As long as retries remain, decrement the allowed retry count and:
-      while (retriesLeft--) {
+      while (retriesLeft) {
         // Prepare to wait 1 second before a retry.
         let waitSeconds = 1;
         // If the error was a visit failure due to rate limiting:
@@ -560,7 +561,7 @@ exports.launch = async (opts = {}) => {
         }
         // Report the wait.
         console.log(
-          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retriesLeft})`
+          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retriesLeft--})`
         );
         // Wait as specified.
         await wait(1000 * waitSeconds);
@@ -586,13 +587,15 @@ exports.launch = async (opts = {}) => {
         else {
           error = launchResult.error;
           // Report this.
-          console.log(`WARNING: Retry failed (${error}); retries left: ${retriesLeft}`);
+          console.log(`WARNING: Retry failed (${error})`);
         }
       }
       // If the retries were exhausted:
-      if (retriesLeft === -1) {
-        // Report this.
-        addError(true, false, report, actIndex, 'No retries left');
+      if (! retriesLeft) {
+        // Report this and, if so configured, that the job was aborted.
+        addError(
+          true, abortAssertively, report, actIndex, `Launch or navigation failed; retries exhausted`
+        );
       }
       // Return a failure.
       return null;

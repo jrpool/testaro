@@ -53,6 +53,8 @@ const timeLimits = {
 };
 // Timeout multiplier.
 const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
+// Abort aggressiveness.
+const abortAssertively = process.env.ABORT_ASSERTIVELY === 'true';
 
 // FUNCTIONS
 
@@ -287,7 +289,7 @@ exports.doActs = async report => {
         if (truth[1]) {
           // If the performance of acts is to stop:
           if (act.jump === 0) {
-            // Quit.
+            // Stop processing acts.
             break;
           }
           // Otherwise, if there is a numerical jump:
@@ -427,22 +429,35 @@ exports.doActs = async report => {
         }
         // Otherwise, i.e. if the child process closed abnormally:
         else {
-          // Report this.
+          // Report this and, if so configured, that the job was aborted.
           const {code, error, kind, signal} = actResult;
           if (kind === 'close' && timedOut) {
             addError(
-              false, false, tempReport, actIndex, `Timed out at ${Math.round(limitMs / 1000)} seconds`
+              false,
+              abortAssertively,
+              tempReport,
+              actIndex,
+              `Timed out at ${Math.round(limitMs / 1000)} seconds`
             );
           }
           else if (kind === 'close') {
             addError(
-              true, false, tempReport, actIndex, `Closed with code ${code} and signal ${signal})`
+              true,
+              abortAssertively,
+              tempReport,
+              actIndex,
+              `Closed with code ${code} and signal ${signal})`
             );
           }
           else {
             addError(
-              true, false, tempReport, actIndex, `Terminated with error ${error}`
+              true, abortAssertively, tempReport, actIndex, `Terminated with error ${error}`
             );
+          }
+          // If the job was aborted:
+          if (abortAssertively) {
+            // Stop processing acts.
+            break;
           }
         }
         // Get the (usually revised) act.

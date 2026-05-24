@@ -12,14 +12,22 @@
   Handles errors.
 */
 
+// IMPORTS
+
+const {nowString} = require('./dateTime');
+
+// FUNCTIONS
+
 // Reports a job being aborted.
-const abortActs = exports.abortActs = (report, actIndex) => {
+const abortActs = (report, actIndex, message = '') => {
   // Add data on the aborted act to the report.
   report.jobData.abortTime = nowString();
-  report.jobData.abortedAct = actIndex;
+  report.jobData.abortedAct = actIndex ?? 'none';
   report.jobData.aborted = true;
+  report.jobData.abortMessage = message;
+  const abortedActString = typeof actIndex === 'number' ? ` on act ${actIndex}` : '';
   // Log that the job is aborted.
-  console.log(`ERROR: Job aborted on act ${actIndex}`);
+  console.log(`ERROR: Job aborted${abortedActString}`);
 };
 // Adds an error result to an act.
 exports.addError = (alsoLog, alsoAbort, report, actIndex, message) => {
@@ -48,6 +56,6 @@ exports.addError = (alsoLog, alsoAbort, report, actIndex, message) => {
   // If the job is to be aborted:
   if (alsoAbort) {
     // Add this to the report.
-    abortActs(report, actIndex);
+    abortActs(report, actIndex, message);
   }
 };
