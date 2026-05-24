@@ -137,36 +137,7 @@ You can make `testaro` a dependency in another application. As noted at the begi
 
 ## Environment configuration
 
-The `.env` file stores your decisions about the environment in which Testaro runs. The variables that can be defined there are:
-
-```conf
-# Whether the browsers launched by Testaro should have visible windows.
-HEADED_BROWSER=false
-# Whether console logging in launched browsers should be mirrored to the Testaro console.
-DEBUG=false
-# Whether to disable Puppeteer log warnings of a future headless-mode deprecation.
-PUPPETEER_DISABLE_HEADLESS_WARNING=true
-# How much time, in milliseconds, to insert between Playwright operations for debugging.
-WAITS=0
-# API key to enable the WAVE tool.
-WAVE_KEY=yourwavekey (get it from [WebAim](https://wave.webaim.org/api/)).
-#----------------------------
-# When Testaro listens for new jobs in a directory:
-# Directory where it listens for them.
-JOBDIR=../testing/jobs
-# Directory into which Testaro saves the reports of those jobs.
-REPORTDIR=../testing/reports
-# Name of this Testaro instance when it listens for jobs and sends reports to requesting hosts.
-AGENT=agentabc
-#----------------------------
-# When Testaro polls a network host to ask for new jobs, data on the host.
-# URL to poll.
-NETWATCH_JOB=http://localhost:3000/api/assignJob/agentabc
-# URL to which to send completed job reports.
-NETWATCH_REPORT=http://localhost:3000/api/takeReport/agentabc
-# Password to give to the host to authenticate this instance.
-NETWATCH_AUTH=abcxyz
-```
+The `.env` file stores your decisions about the environment in which Testaro runs. The variables that can be defined there are documented in the `env.example` file.
 
 ## Jobs
 
