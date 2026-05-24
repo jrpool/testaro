@@ -600,7 +600,7 @@ exports.launch = async (opts = {}) => {
   }
   // Otherwise, i.e. if the report is invalid:
   else {
-    // Report this and abort the job.
+    // Report this and that the job was aborted.
     addError(
       true,
       true,

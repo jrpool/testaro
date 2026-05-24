@@ -18,7 +18,7 @@ const abortActs = exports.abortActs = (report, actIndex) => {
   report.jobData.abortTime = nowString();
   report.jobData.abortedAct = actIndex;
   report.jobData.aborted = true;
-  // Report that the job is aborted.
+  // Log that the job is aborted.
   console.log(`ERROR: Job aborted on act ${actIndex}`);
 };
 // Adds an error result to an act.
