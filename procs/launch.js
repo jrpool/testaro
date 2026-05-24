@@ -80,6 +80,29 @@ const browserClose = exports.browserClose = async page => {
     }
   }
 };
+// Normalizes a file URL in case it has the Windows path format.
+const normalizeURL = url => {
+  // If a URL was provided:
+  if (url) {
+    // If it is that of a local file:
+    if (url.toLowerCase().startsWith('file:')) {
+      let path = url.replace(/^file:\/+/i, '');
+      path = path.replace(/\\/g, '/');
+      // Return the URL normalized.
+      return 'file:///' + path.replace(/^\//, '');
+    }
+    // Otherwise, i.e. if it is not that of a local file:
+    else {
+      // Return it.
+      return url;
+    }
+  }
+  // Otherwise, i.e. if no URL was provided:
+  else {
+    // Return this.
+    return undefined;
+  }
+};
 // Visits a URL and returns the response of the server.
 const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
   // If the URL is a file path relative to the project root:
@@ -96,11 +119,11 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     });
     report.jobData.visitLatency += Math.round((Date.now() - startTime) / 1000);
     const httpStatus = response.status();
-    // If the response status was normal:
+    // If the response status was normal or the URL points to a local file:
     if ([200, 304].includes(httpStatus) || url.startsWith('file:')) {
       const actualURL = page.url();
-      const actualNorm = actualURL.startsWith('file:') ? normalizeFile(actualURL) : actualURL;
-      const urlNorm = url.startsWith('file:') ? normalizeFile(url) : url;
+      const actualNorm = actualURL.startsWith('file:') ? normalizeURL(actualURL) : actualURL;
+      const urlNorm = url.startsWith('file:') ? normalizeURL(url) : url;
       // If the browser was redirected in violation of a strictness requirement:
       if (report.strict && deSlash(actualNorm) !== deSlash(urlNorm)) {
         // Return an error.
@@ -151,11 +174,10 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     // Otherwise, i.e. if the response status was otherwise abnormal:
     else {
       // Return an error.
-      console.log(`ERROR: Visit to ${url} got status ${httpStatus}`);
       report.jobData.visitRejectionCount++;
       return {
         success: false,
-        error: 'badStatus'
+        error: `ERROR: Visit to ${url} got status ${httpStatus}`
       };
     }
   }
@@ -165,7 +187,7 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     }
     return {
       success: false,
-      error: 'noVisit'
+      error: `ERROR visiting ${url} (${error.message.slice(0, 200)})`
     };
   }
 };
@@ -208,15 +230,13 @@ const launchOnce = async opts => {
   const {device} = report;
   const deviceID = device?.id;
   const browserID = tempBrowserID || report.browserID || '';
-  const url = tempURL || report.target?.url || '';
+  const url = normalizeURL(tempURL || report.target?.url || '');
   let page;
   // If the specified browser and device types and URL are valid:
   if (isBrowserID(browserID) && isDeviceID(deviceID) && isURL(url)) {
-    // Replace the report target URL with this URL.
+    // Replace the report target URL with the specified URL.
     report.target.url = url;
-    // Create a browser of the specified or default type.
     const browserType = playwrightBrowsers[browserID];
-    // Define the browser-option args, depending on the browser type and head-emulation level.
     const browserOptionArgs = [];
     if (browserID === 'chromium') {
       browserOptionArgs.push(
@@ -244,7 +264,7 @@ const launchOnce = async opts => {
         );
       }
     }
-    // Define the browser options.
+    // Get the browser options.
     const browserOptions = {
       logger: {
         isEnabled: () => false,
@@ -462,33 +482,30 @@ const launchOnce = async opts => {
         throw new Error(`Navigation failed (${navResult.error})`);
       }
     }
-    // If an error occurred:
+    // If the browser and page creation and navigation threw an error:
     catch(error) {
-      // Report this.
-      console.log(`ERROR launching or navigating (${error.message})`);
       // Close the browser and its context, if they exist.
       await browserClose(page);
-      // Return a failure.
+      // Return the error.
       return {
         success: false,
         error: error.message
       };
     }
   }
-  // If the launch and navigation succeeded, return the page.
+  // Otherwise, i.e. if the specified browser or device type or URL is invalid:
+  else {
+    // Return this.
+    return {
+      success: false,
+      error: 'Invalid browser, device type, or URL'
+    };
+  }
+  // If the browser and page creation and navigation succeeded, return the page.
   return {
     success: true,
     page
   };
-};
-// Normalizes a file URL in case it has the Windows path format.
-const normalizeFile = u => {
-  if (!u) return u;
-  if (!u.toLowerCase().startsWith('file:')) return u;
-  // Ensure forward slashes and three slashes after file:
-  let path = u.replace(/^file:\/+/i, '');
-  path = path.replace(/\\/g, '/');
-  return 'file:///' + path.replace(/^\//, '');
 };
 // Manages browser launching and navigating and returns a page.
 exports.launch = async (opts = {}) => {
@@ -527,9 +544,9 @@ exports.launch = async (opts = {}) => {
     // Otherwise, i.e. if the launch or navigation failed:
     else {
       let retriesLeft = retries;
+      let {error} = launchResult;
       // As long as retries remain, decrement the allowed retry count and:
       while (retriesLeft--) {
-        const {error} = launchResult;
         // Prepare to wait 1 second before a retry.
         let waitSeconds = 1;
         // If the error was a visit failure due to rate limiting:
@@ -567,14 +584,15 @@ exports.launch = async (opts = {}) => {
         }
         // Otherwise, i.e. if the launch or navigation failed:
         else {
+          error = launchResult.error;
           // Report this.
-          console.log(`WARNING: Retry failed; retries left: ${retries}`);
+          console.log(`WARNING: Retry failed (${error}); retries left: ${retries}`);
         }
       }
       // If the retries were exhausted:
       if (retriesLeft === -1) {
         // Report this.
-        addError(true, false, report, actIndex, 'ERROR: No retries left');
+        addError(true, false, report, actIndex, 'No retries left');
       }
       // Return a failure.
       return null;
@@ -588,7 +606,7 @@ exports.launch = async (opts = {}) => {
       true,
       report,
       actIndex,
-      `ERROR: Cannot launch browser for invalid job (${jobValidation.error})`
+      `ERROR: Job invalid (${jobValidation.error})`
     );
     // Return a failure.
     return null;
