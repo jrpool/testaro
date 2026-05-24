@@ -560,7 +560,7 @@ exports.launch = async (opts = {}) => {
         }
         // Report the wait.
         console.log(
-          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retries})`
+          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retriesLeft})`
         );
         // Wait as specified.
         await wait(1000 * waitSeconds);
@@ -586,7 +586,7 @@ exports.launch = async (opts = {}) => {
         else {
           error = launchResult.error;
           // Report this.
-          console.log(`WARNING: Retry failed (${error}); retries left: ${retries}`);
+          console.log(`WARNING: Retry failed (${error}); retries left: ${retriesLeft}`);
         }
       }
       // If the retries were exhausted:
