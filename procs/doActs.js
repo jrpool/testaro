@@ -1,5 +1,6 @@
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jeff Witt.
   © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or  https://opensource.org/license/mit/ for details.
@@ -20,6 +21,7 @@ const {tools} = require('./job');
 const {fork} = require('child_process');
 const os = require('os');
 const {pruneCatalog} = require('./catalog');
+const {applyMultiplier, getTmpDir} = require('./config');
 const fs = require('fs/promises');
 
 // CONSTANTS
@@ -51,8 +53,6 @@ const timeLimits = {
   testaro: 200 + Math.round(6 * waits / 1000),
   wave: 25
 };
-// Timeout multiplier.
-const timeoutMultiplier = Number.parseFloat(process.env.TIMEOUT_MULTIPLIER) || 1;
 // Abort aggressiveness.
 const abortAssertively = process.env.ABORT_ASSERTIVELY === 'true';
 
@@ -231,31 +231,21 @@ exports.doActs = async report => {
   let {acts} = tempReport;
   // Get the standardization specification.
   const standard = tempReport.standard || 'only';
-  const tmpDirs = [`${__dirname}/../${process.env.TMPDIRNAME || 'scratch'}`, os.tmpdir(), '/tmp'];
-  let tmpDir = null;
-  // For each potential temporary directory:
-  for (const tmpDirAlternative of tmpDirs) {
-    try {
-      // Verify that it is writable.
-      await fs.access(tmpDirAlternative, fs.constants.W_OK);
-      tmpDir = tmpDirAlternative;
-      break;
-    }
-    // If it is not:
-    catch(error) {
-      // Report this.
-      console.log(`ERROR: ${tmpDirAlternative} is not a writable directory for temporary reports`);
-    }
+  // Get the path to a writable temporary directory.
+  const tmpDir = await getTmpDir();
+  let reportPath;
+  // If it was found:
+  if (tmpDir) {
+    // Get a path for temporary reports.
+    reportPath = `${tmpDir}/${tempReport.id}.json`;
   }
-  // If no writable temporary directory was found:
-  if (! tmpDir) {
+  // Otherwise, i.e. if it was not found:
+  else {
     // Report this.
     console.log('ERROR: No writable temporary directory was found; quitting');
     // Quit.
     process.exit(1);
   }
-  // Get a path for temporary reports.
-  const reportPath = `${tmpDir}/${tempReport.id}.json`;
   // Initialize the count of completed acts.
   let actCount = 0;
   // For each act in the temporary report:
@@ -332,7 +322,7 @@ exports.doActs = async report => {
         // Save a copy of the temporary report, which the child process will read.
         await fs.writeFile(reportPath, tempReportJSON);
         let timedOut = false;
-        const limitMs = timeoutMultiplier * 1000 * (timeLimits[act.which] || 15);
+        const limitMs = applyMultiplier(1000 * (timeLimits[act.which] || 15));
         const actResult = await new Promise(resolve => {
           let closed = false;
           // Create a child process to perform the act.

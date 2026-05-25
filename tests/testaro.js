@@ -16,7 +16,7 @@
 // IMPORTS
 
 // Shared configuration for timeout multiplier.
-const {timeoutMultiplier} = require('../procs/config');
+const {applyMultiplier} = require('../procs/config');
 const {launch} = require('../procs/launch');
 
 // CONSTANTS
@@ -578,7 +578,7 @@ exports.reporter = async (page, report, actIndex) => {
       let timer;
       try {
         // Apply a time limit to the test.
-        const timeLimit = 1000 * timeoutMultiplier * rule.timeOut;
+        const timeLimit = applyMultiplier(1000 * rule.timeOut);
         let timeout;
         // If the time limit expires during the test:
         timer = new Promise(resolve => {
