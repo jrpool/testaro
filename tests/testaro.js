@@ -16,7 +16,7 @@
 // IMPORTS
 
 // Shared configuration for timeout multiplier.
-const {timeoutMultiplier} = require('../procs/config');
+const {applyMultiplier} = require('../procs/config');
 const {launch} = require('../procs/launch');
 
 // CONSTANTS
@@ -28,6 +28,7 @@ const allRules = [
     what: 'first page screenshot',
     contaminates: false,
     needsAccessibleName: false,
+    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -332,6 +333,7 @@ const allRules = [
     what: 'second page screenshot',
     contaminates: false,
     needsAccessibleName: false,
+    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -340,6 +342,7 @@ const allRules = [
     what: 'motion without user request, measured across tests',
     contaminates: false,
     needsAccessibleName: false,
+    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -501,8 +504,6 @@ exports.reporter = async (page, report, actIndex) => {
     && ['y', 'n'].includes(ruleSpec[0])
     && ruleSpec.slice(1).every(ruleID => allRuleIDs.includes(ruleID))
   ) {
-    // Wait 1 second to prevent out-of-order logging with granular reporting.
-    await wait(1000);
     // Get the rules to be tested for and their execution order.
     // 'y' = include-list: run exactly the rules in ruleSpec.slice(1).
     // 'n' = exclude-list: run all defaultOn rules EXCEPT those in
@@ -578,6 +579,11 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Initialize an argument array for the reporter.
       const ruleArgs = [page, report.catalog, withItems];
+      // If the rule needs a temporary directory:
+      if (rule.needsTmpDir) {
+        // Add its path to the argument array.
+        ruleArgs.push(report.jobData.tmpDir);
+      }
       // If the rule has extra arguments:
       if (argRules?.includes(ruleResult.id)) {
         // Add them to the argument array.
@@ -587,7 +593,7 @@ exports.reporter = async (page, report, actIndex) => {
       let timer;
       try {
         // Apply a time limit to the test.
-        const timeLimit = 1000 * timeoutMultiplier * rule.timeOut;
+        const timeLimit = applyMultiplier(1000 * rule.timeOut);
         let timeout;
         // If the time limit expires during the test:
         timer = new Promise(resolve => {

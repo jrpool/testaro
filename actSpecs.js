@@ -1,6 +1,7 @@
 /*
   © 2021–2024 CVS Health and/or one of its affiliates. All rights reserved.
-  © 2025 Jonathan Robert Pool.
+  © 2026 Jeff Witt.
+  © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -119,6 +120,14 @@ exports.actSpecs = {
         which: [false, 'string', 'hasLength', 'substring of select-list text'],
         index: [false, 'number', '', 'index among matches if not 0'],
         what: [true, 'string', 'hasLength', 'substring of option text content']
+      }
+    ],
+    shoot: [
+      'Save a full-page screenshot to <tmpdir>/testaro-shoot-<which>.png',
+      {
+        which: [true, 'string', 'hasLength', 'screenshot label, used in the filename'],
+        exclusion: [false, 'string', 'hasLength', 'CSS selector for an element to mask'],
+        what: [false, 'string', 'hasLength', 'comment']
       }
     ],
     state: [

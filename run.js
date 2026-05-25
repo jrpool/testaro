@@ -1,5 +1,6 @@
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jeff Witt.
   © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
@@ -15,31 +16,71 @@
 
 // IMPORTS
 
-// Module to perform acts.
 const {doActs} = require('./procs/doActs');
-// Module to keep secrets.
 require('dotenv').config({quiet: true});
-// Function to validate jobs.
 const {isValidJob} = require('./procs/job');
-// Module to create catalogs.
 const {getCatalog} = require('./procs/catalog');
-// Module to process dates and times.
 const {nowString} = require('./procs/dateTime');
 // Module to create browsers.
-const {chromium, webkit, firefox} = require('playwright-extra');
+const {chromium} = require('playwright-extra');
+const fs = require('fs').promises;
+const os = require('os');
 // Module to evade automation detection.
+// Stealth is Chromium-specific: its evasions inject Chromium-only launch
+// flags (e.g. `--disable-blink-features=AutomationControlled`) and patch
+// Blink-only DOM globals. WebKit and Firefox reject the unknown args at
+// startup, so registering stealth on them breaks every launch. Job-level
+// opt-out for Chromium happens in procs/launch.js via the `stealth` field.
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
-webkit.use(StealthPlugin());
-firefox.use(StealthPlugin());
 
 // FUNCTIONS
 
+// Returns an operating-system-compatible absolute path to a temporary directory.
+const getTmpDirPath = async jobName => {
+  let jobTmpDir = `${__dirname}/tmp/${jobName}`;
+  try {
+    // Ensure that a temporary directory exists.
+    await fs.mkdir(jobTmpDir, {recursive: true});
+  }
+  catch (error) {
+    console.log(`ERROR: Could not create temporary directory (${error.message})`);
+    jobTmpDir = null;
+  }
+  const tmpDirs = [os.tmpdir(), '/tmp'];
+  if (jobTmpDir) {
+    tmpDirs.unshift(jobTmpDir);
+  }
+  let tmpDir = null;
+  // For each potential temporary directory:
+  for (const tmpDirAlternative of tmpDirs) {
+    try {
+      // Verify that it is writable.
+      await fs.access(tmpDirAlternative, fs.constants.W_OK);
+      tmpDir = tmpDirAlternative;
+      // If it is, stop checking alternatives.
+      break;
+    }
+    // If it is not:
+    catch(error) {
+      // Report this and continue checking alternatives.
+      console.log(`ERROR: ${tmpDirAlternative} not writable for temporary files`);
+    }
+  }
+  // If no writable temporary directory was found:
+  if (! tmpDir) {
+    // Report this.
+    console.log('ERROR: No writable temporary directory was found');
+  }
+  // Return the directory path or a failure.
+  return tmpDir;
+};
 // Runs a job and returns a report.
 exports.doJob = async (job, opts = {}) => {
   // Initialize a report as a copy of the job.
   let report = JSON.parse(JSON.stringify(job));
-  const jobData = report.jobData = {};
+  report.jobData ??= {};
+  const {jobData} = report;
   // Get whether the job is valid and, if not, why not.
   const jobInvalidity = isValidJob(job);
   // If it is invalid:
@@ -48,15 +89,17 @@ exports.doJob = async (job, opts = {}) => {
     console.log(`ERROR: ${jobInvalidity.error}`);
     jobData.aborted = true;
     jobData.abortedAct = null;
-    jobData.abortError = jobInvalidity.error;
+    jobData.abortMessage = jobInvalidity.error;
   }
   // Otherwise, i.e. if it is valid:
   else {
     // Report this.
     console.log(`Starting job ${job.id} (${job.target.what})`);
+    const tmpDir = await getTmpDirPath(job.id);
     // Add initialized job data to the report.
     const startTime = new Date();
     report.jobData = {
+      tmpDir,
       startTime: nowString(),
       endTime: '',
       elapsedSeconds: 0,
@@ -69,6 +112,8 @@ exports.doJob = async (job, opts = {}) => {
       visitRejectionCount: 0,
       aborted: false,
       abortedAct: null,
+      abortTime: '',
+      abortMessage: '',
       presses: 0,
       amountRead: 0,
       toolTimes: {},
@@ -87,6 +132,8 @@ exports.doJob = async (job, opts = {}) => {
     }
     // Perform the acts and revise the report.
     report = await doActs(report, opts);
+    // Delete the temporary directory.
+    await fs.rm(tmpDir, {recursive: true, force: true});
     // Add the end time and duration to the report.
     const endTime = new Date();
     report.jobData.endTime = nowString();
