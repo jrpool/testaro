@@ -22,6 +22,7 @@ const {isValidJob} = require('./procs/job');
 const {getCatalog} = require('./procs/catalog');
 const {nowString} = require('./procs/dateTime');
 const {chromium, webkit, firefox} = require('playwright-extra');
+const os = require('os');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 webkit.use(StealthPlugin());
