@@ -1,5 +1,6 @@
 /*
   © 2022–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -42,7 +43,7 @@ const rawDir = `${reportDir}/raw`;
 
 // FUNCTIONS
 
-// Fulfills a testing request.
+// Fulfills a request to perform a job.
 const callRun = async jobIDStart => {
   // Find the job.
   const jobDirFileNames = await fs.readdir(todoDir);
@@ -56,9 +57,7 @@ const callRun = async jobIDStart => {
     // Get it.
     const jobJSON = await fs.readFile(`${todoDir}/${jobFileName}`, 'utf8');
     let report = JSON.parse(jobJSON);
-    // Ensure it does not specify server properties.
-    report.observe = false;
-    // Run it.
+    // Run the job.
     report = await doJob(report);
     // Archive it.
     await fs.rename(`${todoDir}/${jobFileName}`, `${jobDir}/done/${jobFileName}`);

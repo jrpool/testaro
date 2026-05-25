@@ -16,15 +16,11 @@
 
 // IMPORTS
 
-const fs = require('fs/promises');
-const os = require('os');
-const {vnu} = require('vnu-jar');
 const {curate, getContent} = require('../procs/nu');
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
-
-// CONSTANTS
-
-const tmpDir = os.tmpdir();
+const fs = require('fs/promises');
+const path = require('path');
+const {vnu} = require('vnu-jar');
 
 // FUNCTIONS
 
@@ -58,7 +54,7 @@ exports.reporter = async (page, report, actIndex) => {
     const {testTarget} = content;
     // If it was obtained and contains a test target:
     if (testTarget) {
-      const pagePath = `${tmpDir}/nuVnu-page-${report.id}.html`;
+      const pagePath = path.join(report.jobData.tmpDir, 'nuVnu-page.html');
       // Save the test target in a temporary file.
       await fs.writeFile(pagePath, testTarget);
       let nuData;

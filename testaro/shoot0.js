@@ -15,9 +15,9 @@ const {shoot} = require('../procs/shoot');
 // FUNCTIONS
 
 // Makes and saves the first screenshot.
-exports.reporter = async page => {
+exports.reporter = async (page, _, __, tmpDir) => {
   // Make and save the screenshot.
-  const pngPath = await shoot(page, 0);
+  const pngPath = await shoot(page, 0, tmpDir);
   // Return whether the screenshot was prevented.
   return {
     data: {

@@ -1,11 +1,11 @@
 {
-  "rule": "targetSmall",
+  "rule": "targetsNear",
   "timeLimit": 20,
   "acts": [
     {
       "type": "launch",
       "target": {
-        "url": "file://validation/tests/targetSmall/index.html",
+        "url": "file://validation/tests/targetsNear/index.html",
         "what": "page with variously sized interaction targets"
       }
     },
@@ -28,7 +28,7 @@
         [
           "standardResult.instances.0.ruleID",
           "=",
-          "targetSmall"
+          "targetsNear"
         ],
         [
           "standardResult.instances.0.what",
@@ -103,7 +103,7 @@
       ],
       "rules": [
         "y",
-        "targetSmall"
+        "targetsNear"
       ]
     },
     {
@@ -125,7 +125,7 @@
         [
           "standardResult.instances.0.ruleID",
           "=",
-          "targetSmall"
+          "targetsNear"
         ],
         [
           "standardResult.instances.0.what",
@@ -145,7 +145,7 @@
       ],
       "rules": [
         "y",
-        "targetSmall"
+        "targetsNear"
       ]
     }
   ]

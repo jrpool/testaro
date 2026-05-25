@@ -175,14 +175,14 @@ exports.isValidJob = job => {
       id,
       strict,
       standard,
-      observe,
       device,
       browserID,
       creationTimeStamp,
       executionTimeStamp,
       target,
       sources,
-      acts
+      acts,
+      jobData
     } = job;
     // Return an error for the first missing or invalid property.
     if (! id || typeof id !== 'string') {
@@ -202,12 +202,6 @@ exports.isValidJob = job => {
         isValid: false,
         error: 'Bad job standard'
       };
-    }
-    if (typeof observe !== 'boolean') {
-      return {
-        isValid: false,
-        error: 'Bad job observe'
-      }
     }
     if (! isDeviceID(device.id)) {
       return {
@@ -265,6 +259,12 @@ exports.isValidJob = job => {
       return {
         isValid: false,
         error: `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`
+      };
+    }
+    if (jobData && typeof jobData !== 'object') {
+      return {
+        isValid: false,
+        error: 'Bad job jobData'
       };
     }
     return {

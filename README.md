@@ -4,11 +4,11 @@ Ensemble testing for web accessibility
 
 ## Breaking change notice
 
-Version 68.0.0 introduces major breaking changes.
+Version 68.0.0 introduced major breaking changes.
 
 Any application that has successfully relied on version 67.1.0 is likely to fail if it updates the `testaro` dependency to version 68.0.0 or later. To prevent such failures, pin `testaro` to version 67.1.0 in your `package.json` file.
 
-Revision of this `README` document to reflect version 68.0.0 is in progress but is incomplete.
+Revision of this `README` document to reflect the latest version is in progress but is incomplete.
 
 ## Purposes
 
@@ -28,13 +28,13 @@ Testaro is described in two papers:
 
 ## Functionality
 
-Testaro performs tasks defined by a _job_. Typically, a job identifies the URL of a web page and asks Testaro to call an ensemble of 11 tools to test the page. Testaro adds the results of the testing to the job, thereby converting the job into a _report_.
+Testaro performs tasks defined by a _job_. Typically, a job identifies the URL of a web page and asks Testaro to call an ensemble of tools to test the page. Testaro adds the results of the testing to the job, thereby converting the job into a _report_.
 
 Testaro can be given a job to perform, in which case it performs the job, delivers the report, and quits.
 
-Alternatively, testaro can run as a daemon, listening for jobs and performing them when they appear.
+Alternatively, testaro can run as a daemon, polling a server or a directory for new jobs and performing them when they are provided or when they appear in the directory.
 
-A practical application that leverages Testaro will use other software to prepare jobs, schedule them, post-process the reports as needed, and manage the report files. Some utilities for such purposes can be found in the [Testilo project](https://www.npmjs.com/package/testilo). One application that leverages Testaro is [Kilotest](https://github.com/jrpool/kilotest).
+A practical application that leverages Testaro will use other software to prepare jobs, schedule them, post-process the reports as needed, and manage the report files. Some utilities for such purposes can be found in the [Testilo project](https://www.npmjs.com/package/testilo). One application that leverages Testaro for a web service is [Kilotest](https://github.com/jrpool/kilotest).
 
 ## Dependencies
 
@@ -70,22 +70,52 @@ The main concepts of Testaro are:
 - `job`: a document that tells Testaro what to do.
 - `act`: one step in a job
 - `report`: a job that Testaro has added results to.
-- `tool`: one of the (currently 11) testing applications in the ensemble that Testaro has created.
-- `rule`: a success or failure criterion defined by a tool (currently about a thousand across all tools).
+- `tool`: one of the testing applications in the ensemble that Testaro has created.
+- `rule`: a success or failure criterion defined by a tool (currently about 1300 across all tools).
 - `test`: the software that a tool uses to apply a rule.
 - `target`: a web page that a job tells Testaro to test.
 - `result`: the information that Testaro adds to a job to describe the test outcomes.
 - `native result`: the test outcomes of a tool in the native form of that tool.
 - `standard result`: the test outcomes of a tool in a uniform Testaro-defined form.
-- `catalog`: a collection of data on the HTML elements that fail one or more tests.
+- `catalog`: a collection of data on the HTML elements relevant to one or more tests.
 
 ## System requirements
 
-Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating system.
+### Operating system and Node.js version
 
-Testaro is tested with the latest long-term-support version of [Node.js](https://nodejs.org/en/).
+Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating system with the latest long-term-support version of [Node.js](https://nodejs.org/en/).
 
-Testaro is configured so that, when Playwright or Puppeteer (a dependency of Playwright and of some tools) launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright and Puppeteer, and Testaro does not override that default. The host must therefore permit sandboxed browsers. Documentation on how to configure an Ubuntu Linux host for this purpose is available in the [`SERVICE.md` file of the Kilotest repository](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges). If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
+### Browser security
+
+Testaro is configured so that, when Playwright or Puppeteer (a dependency of Playwright and of some tools, including QualWeb) launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright and Puppeteer, and Testaro does not override that default. The host must therefore permit sandboxed browsers. If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
+
+In some operating systems a sandboxed browser requires an [unprivileged user namespace](https://ubuntu.com/blog/ubuntu-23-10-restricted-unprivileged-user-namespaces). In one case, a `…userns.conf` file in the `/etc/sysctl.d` directory with the content `kernel.apparmor_restrict_unprivileged_userns = 1` prohibits unprivileged user namespaces and thereby makes sandboxed browsers unlaunchable.
+
+#### Option A
+
+One way to cope with this prohibition is to configure Playwright and Puppeteer to launch `chromium` non-sandboxed. In both cases, launch arguments `'--no-sandbox'` and `'--disable-setuid-sandbox'` are available to specify this.
+
+- For Playwright, `'--no-sandbox'` and `'--disable-setuid-sandbox'` are added to the arguments of `browserOptionArgs.push` in the Testaro `run.js` file.
+- For the `qualWeb` tool, this is done in the Testaro `tests/qualweb.js` file, where the `qualWeb.start` method is called with an options argument. Its `args` array property is modified to include `'--no-sandbox'` and `'--disable-setuid-sandbox'`.
+- The `ibm` tool, too, can launch a Puppeteer `chromium` browser, if page content instead of a Playwright page is passed to the `accessibilityChecker.getCompliance` method, or if the implementation of the tool is changed in the future. For anticipation of such a case, the Testaro `aceconfig.js` file is modified. That file defines a `module.exports` object with a `puppeteerArgs` property, and, `--no-sandbox` and `--disable-setuid-sandbox` are added to its array value.
+
+Non-sandboxed browsers are less secure than sandboxed ones, particularly when there is no restriction on who can use Testaro and what web pages they can test with it.
+
+### Option B
+
+Another solution is to leave the `chromium` configuration unchanged, but configure the operating system to permit a sandboxed browser to be launched. In one case, this is implemented with:
+
+```bash
+sudo sysctl -w kernel.unprivileged_userns_clone=1
+sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+sudo tee /etc/sysctl.d/99-kilotest-userns.conf >/dev/null <<'EOF'
+kernel.unprivileged_userns_clone = 1
+kernel.apparmor_restrict_unprivileged_userns = 0
+EOF
+sudo sysctl --system
+```
+
+This repository implements option B.
 
 ## Installation
 
@@ -107,38 +137,7 @@ You can make `testaro` a dependency in another application. As noted at the begi
 
 ## Environment configuration
 
-The `.env` file stores your decisions about the environment in which Testaro runs. The variables that can be defined there are:
-
-```conf
-# Whether the browsers launched by Testaro should have visible windows.
-HEADED_BROWSER=false
-# Whether console logging in launched browsers should be mirrored to the Testaro console.
-DEBUG=false
-# Whether to disable Puppeteer log warnings of a future headless-mode deprecation.
-PUPPETEER_DISABLE_HEADLESS_WARNING=true
-# How much time, in milliseconds, to insert between Playwright operations for debugging.
-WAITS=0
-# API key to enable the WAVE tool.
-WAVE_KEY=yourwavekey (get it from [WebAim](https://wave.webaim.org/api/)).
-#----------------------------
-# When Testaro listens for new jobs in a directory:
-# Directory where it listens for them.
-JOBDIR=../testing/jobs
-# Directory into which Testaro saves the reports of those jobs.
-REPORTDIR=../testing/reports
-# Name of this Testaro instance when it listens for jobs and sends reports to requesting hosts.
-AGENT=agentabc
-#----------------------------
-# When Testaro polls a network host to ask for new jobs, data on the host.
-# URL to poll.
-NETWATCH_JOB=http://localhost:3000/api/assignJob/agentabc
-# URL to which to send progress reports during jobs.
-NETWATCH_OBSERVE=http://localhost:3000/api/granular/agentabc
-# URL to which to send completed job reports.
-NETWATCH_REPORT=http://localhost:3000/api/takeReport/agentabc
-# Password to give to the host to authenticate this instance.
-NETWATCH_AUTH=abcxyz
-```
+The `.env` file stores your decisions about the environment in which Testaro runs. The variables that can be defined there are documented in the `env.example` file.
 
 ## Jobs
 
@@ -154,7 +153,6 @@ Here is a sample job, showing properties that you can set:
   what: 'monthly health check', // Job description
   strict: true, // Whether to reject redirections from the target URL
   standard: 'also', // or 'only' or 'no' (whether to report a standard result)
-  observe: false, // Whether to send progress notices to requesting hosts
   device: { // Device to emulate
     id: 'iPhone 8',
     windowOptions: {
@@ -190,13 +188,12 @@ Here is a sample job, showing properties that you can set:
       which: 'axe', // ID of the tool
       detailLevel: 2, // An argument required by this tool
       rules: ['landmark-complementary-is-top-level'], // Which rules of the tool to test for
-      what: 'Axe'
     },
     {
       type: 'test',
       launch: {
-        browserID: 'webkit', // For this act, use Webkit instead of Chromium
-        target: { // For this act, test the contact page instead of the home page
+        browserID: 'webkit', // For this act, override browserID to use Webkit
+        target: { // For this act, override target to test the contact page
           what: 'Real Estate Management contact',
           url: 'https://abccorp.com/mgmt/realproperty/contactus'
         }
@@ -204,7 +201,6 @@ Here is a sample job, showing properties that you can set:
       which: 'qualWeb',
       withNewContent: false,
       rules: ['QW-BP25', 'QW-BP26']
-      what: 'QualWeb'
     }
   ]
 }
@@ -216,26 +212,30 @@ There are 18 act types. They and their options are documented in the `etc` prope
 
 ### Running jobs
 
-#### Immediate job execution
+#### Job as an object
 
-An application can execute a job with::
+An application can execute a job with:
 
 ```javascript
 const {doJob} = require('testaro/run');
 doJob(job)
 .then(report => {
-  // Process the report.
+  // Perform the job and create a report.
+  …
+  return report;
 });
 ```
 
-A user can make Testaro execute a job with a command like either of:
+#### Job as a file
+
+#### Immediate execution
+
+A user can make Testaro execute a job from a file with a command like either of:
 
 ```bash
 node call run
 node call run 250725T
 ```
-
-#### Directory-watched job execution
 
 An application can watch a directory for jobs with::
 
@@ -250,40 +250,38 @@ A user can make Testaro watch a directory for jobs with::
 node call dirWatch true 300
 ```
 
-In both cases, the first argument of `dirWatch` tells Testaro whether to continue watching after performing one job, and the second argument tells Testaro how many secods to wait after not finding a job to perform.
+In both cases, the first argument of `dirWatch` tells Testaro whether to continue watching after performing one job, and the second argument tells Testaro how many secods to wait after not finding a job to perform before checking again.
 
-Except for the first (`doJob`) case, Testaro finds a file containing a job in the `todo` subdirectory of the `process.env.JOBDIR` directory and saves the report of that job in the `done/raw` subdirectory. In the `node call run` case, the job selected will be the first one whose file name begins with the argument of `run`, or the first one if that argument is absent.
+Testaro finds a file containing a job in the `todo` subdirectory of the `process.env.JOBDIR` directory and saves the report of that job in the `done/raw` subdirectory. In the `node call run` case, the job selected will be the first one whose file name begins with the argument of `run`, or the first one if that argument is absent.
 
-#### Network-watched job execution
+#### Job from a server
 
-Testaro can poll servers for jobs to be performed. Such a server can act as the “controller” described in [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3). The server is responsible for preparing Testaro jobs, assigning them to Testaro agents, receiving reports back from those agents, and performing any further processing of the reports, including enhancement, storage, and disclosure to audiences. It can be any server reachable with a URL. That includes a server running on the same host as Testaro, with a URL such as `localhost:3000`.
+Testaro can poll a server for jobs to be performed. The server can act as the “controller” described in [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3). The server is responsible for preparing Testaro jobs, assigning them to Testaro agents, receiving reports back from those agents, and performing any further processing of the reports, including enhancement, storage, and disclosure to audiences. It can be any server reachable with a URL. That includes a server running on the same host as Testaro, with a URL such as `localhost:3000`.
 
-To make Testaro poll a server for jobs, define the following environment variables, replacing `0` wih any integer:
+To make Testaro poll a server for jobs, define the following environment variables:
 
-- `NETWATCH_URL_0_JOB`: which URL to poll (the URL must contain the value of the `AGENT` environment variable)
-- `NETWATCH_URL_0_OBSERVE`: which URL to send progress messages to, if requested, during job execution
-- `NETWATCH_URL_0_REPORT`: which URL to send job reports to
-- `NETWATCH_URL_0_AUTH`: the password to supply to the server when polling and when delivering a report
-- `NETWATCH_URLS`: the integer IDs of the servers to be polled, comma-delimited (e.g., `0,3,4`)
+- `NETWATCH_URL_JOB`: which URL to poll (the URL must contain the value of the `AGENT` environment variable)
+- `NETWATCH_URL_REPORT`: which URL to send job reports to
+- `NETWATCH_URL_AUTH`: the password to supply to the server when polling and when delivering a report
 
 The job request sent to the server can be a `POST` request, in which the `agentPW` property of the payload will be the password. Or it can be a `GET` request with the URL containing the password.
 
 Testaro will send the report as a `POST` request whose payload is a JSON object with two properties: `agentPW` (the password) and `report` (the report). However, if the environment does not contain a password, the payload is a JSON object containing only the report.
 
-An application can watch the network for jobs with:
+An application can poll a server for jobs with:
 
 ```javaScript
 const {netWatch} = require('testaro/netWatch');
 netWatch(true, 300, true);
 ```
 
-A user can make Testaro watch the network for jobs with:
+A user can make Testaro poll a server for jobs with:
 
 ```bash
 node call netWatch true 300 true
 ```
 
-The first argument of `netWatch` tells Testaro whether to continue watching after performing the first job. The second argument tells Testaro how many seconds to wait after receiving a no-jobs response. The third argument tells Testaro whether to be certificate-tolerant, i.e. to accept SSL certificates that fail verification against a list of certificate authorities (the default is `true`).
+The first argument of `netWatch` tells Testaro whether to continue polling after performing the first job. The second argument tells Testaro how many seconds to wait after receiving a no-jobs response. The third argument tells Testaro whether to be certificate-tolerant, i.e. to accept SSL certificates that fail verification against a list of certificate authorities (the default is `true`).
 
 ## Reports
 
@@ -293,8 +291,8 @@ A report is a job with information about the results of the performance of the j
 
 As Testaro performs a job, information about the job as a whole is inserted into the job. That information is organized into one or two properties:
 
-- `jobData`: Miscellaneous facts about the completed job
-- `catalog`: A collection of data about the elements on the target that failed any test(s)
+- `jobData`: Facts about the performance of the job
+- `catalog`: A collection of data about the HTML elements on the target that are relevant to any test failures
 
 Testaro inserts the `jobData` property into every job, but inserts the `catalog` property only into jobs that instruct Testaro to produce standard results.
 
@@ -329,7 +327,7 @@ Testaro uses the following techniques to make the tools calculate XPaths:
 - `alfa` and `aslint`: They report XPaths, so Testaro needs only to normalize them.
 - `ed11y`: Testaro adds it and a `window.getXPath` method to the page; when the tool reports an element, Testaro computes its XPath.
 - `wave`: It reports a selector for each element; Testaro finds each element in the page via its selector and executes `window.getXPath` on the element.
-- `axe`, `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`: Testaro adds `data-xpath` attributes to all elements; the tools include code excerpts, with the `data-expath` attributes, in the reported violations.
+- `axe`, `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`: Testaro adds `data-xpath` attributes to all elements; the tools include code excerpts, with the `data-xpath` attributes, in the reported violations.
 - `testaro`: Testaro designs each of its own tests to report element XPaths.
 
 By attaching a catalog entry to each reported element, Testaro allows an application that uses Testaro to tell users, for any particular HTML element, which tools ascribed violations of which rules to that element. An application could, for example, use a screenshot or a text-fragment link or could ask the user to paste the XPath into a browser developer tool.
@@ -479,7 +477,7 @@ Thus, when the `rules` argument is omitted, QualWeb will test for all of the rul
 
 The target can be provided to QualWeb either as HTML or as a URL. Experience indicates that the results can differ between these methods, with each method reporting some rule violations or some instances that the other method does not report. For at least some cases, more rules are reported violated when HTML is provided (`withNewItems: false`).
 
-QualWeb creates sandboxed Puppeteer pages to perform its tests on. Therefore, the host must permit sandboxed browsers to be launched. See the pertinent [Kilotest documentation](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges) for information about the configuration of an Ubuntu Linux host for this purpose.
+QualWeb creates sandboxed Puppeteer pages to perform its tests on. Therefore, the host must permit sandboxed browsers to be launched. See the discussion above about browser security. Also see the pertinent [Kilotest documentation](https://github.com/jrpool/kilotest/blob/main/SERVICE.md#browser-privileges) for information about the configuration of an Ubuntu Linux host for this purpose.
 
 ### Testaro
 
@@ -573,7 +571,7 @@ Testaro normally performs tests with headless browsers. Some experiments appear 
 
 ## Repository exclusions
 
-The files in the `temp` directory are presumed ephemeral and are not tracked by `git`.
+Any files in the `temp` or `tmp` directory are presumed ephemeral and are not tracked by `git`. Jobs create temporary files in subdirectories of `tmp` and delete those subdirectories on termination.
 
 ## Related work
 
@@ -589,6 +587,10 @@ The files in the `temp` directory are presumed ephemeral and are not tracked by 
 Testilo contains procedures that reorganize report data by issue and by element, rather than tool, and that compensate for duplicative tests when computing scores.
 
 Report standardization could be performed by other software rather than by Testaro. That would require sending the original reports to the server. They are typically larger than standardized reports. Whenever users want only standardized reports, the fact that Testaro standardizes them eliminates the need to send the original reports anywhere.
+
+### Kilotest
+
+[Kilotest](https://www.npmjs.com/package/kilotest) is an application that offers a simplified interface to Testaro. At present it is [deployed as a public service](https://kilotest.com/).
 
 ## Code style
 
@@ -619,7 +621,6 @@ Future work on this project is being considered. Strategic recommendations for s
 © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
 © 2025–2026 Jonathan Robert Pool.
 
-Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
-at the project root for details.
+Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file at the project root for details.
 
 SPDX-License-Identifier: MIT

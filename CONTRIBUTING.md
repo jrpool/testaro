@@ -69,7 +69,7 @@ From 12 February 2024 through 30 September 2025, contributors of code to Testaro
 ## License
 
 © 2023–2024 CVS Health and/or one of its affiliates. All rights reserved.
-© 2025 Jonathan Robert Pool.
+© 2025–2026 Jonathan Robert Pool.
 
 Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
 at the project root for details.
