@@ -40,6 +40,8 @@ const tools = exports.tools = {
 
 // FUNCTIONS
 
+// Validates a browser type.
+const isBrowserID = exports.isBrowserID = type => ['chromium', 'firefox', 'webkit'].includes(type);
 // Returns whether a variable has a specified type.
 const hasType = (variable, type) => {
   if (type === 'string') {
@@ -105,8 +107,6 @@ const hasSubtype = (variable, subtype) => {
 };
 // Validates a device ID.
 const isDeviceID = exports.isDeviceID = deviceID => deviceID === 'default' || !! devices[deviceID];
-// Validates a browser type.
-const isBrowserID = exports.isBrowserID = type => ['chromium', 'firefox', 'webkit'].includes(type);
 // Validates a load state.
 const isState = string => ['loaded', 'idle'].includes(string);
 // Validates a URL.
