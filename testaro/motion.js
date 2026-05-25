@@ -16,18 +16,13 @@
 
 const {getXPathCatalogIndex} = require('../procs/xPath');
 const fs = require('fs/promises');
-const os = require('os');
 const blazediff = require('@blazediff/core').diff;
 const {PNG} = require('pngjs');
-
-// CONSTANTS
-
-const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (_, catalog) => {
+exports.reporter = async (_, catalog, _, tmpDir) => {
   // Initialize the totals and standard instances.
   const data = {};
   const totals = [0, 0, 0, 0];

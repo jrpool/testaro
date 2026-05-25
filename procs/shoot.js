@@ -13,13 +13,8 @@
 // Shared configuration for timeout multiplier.
 const {applyMultiplier} = require('./config');
 const fs = require('fs/promises');
-const os = require('os');
 const path = require('path');
 const {PNG} = require('pngjs');
-
-// CONSTANTS
-
-const tmpDir = os.tmpdir();
 
 // FUNCTIONS
 
@@ -40,7 +35,7 @@ const screenShot = async (page, exclusion = null) => {
     return '';
   });
 };
-exports.shoot = async (page, index) => {
+exports.shoot = async (page, index, tmpDir) => {
   // Make and get a screenshot as a buffer.
   let shot = await screenShot(page);
   // If it succeeded:

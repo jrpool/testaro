@@ -19,10 +19,10 @@ const {addError} = require('./error');
 const {getNonce, goTo, launch, wait} = require('./launch');
 const {tools} = require('./job');
 const {fork} = require('child_process');
-const os = require('os');
 const {pruneCatalog} = require('./catalog');
-const {applyMultiplier, getTmpDir} = require('./config');
+const {applyMultiplier} = require('./config');
 const fs = require('fs/promises');
+const path = require('path');
 
 // CONSTANTS
 
@@ -232,20 +232,10 @@ exports.doActs = async report => {
   // Get the standardization specification.
   const standard = tempReport.standard || 'only';
   // Get the path to a writable temporary directory.
-  const tmpDir = await getTmpDir();
+  const {tmpDir} = report.jobData;
   let reportPath;
-  // If it was found:
-  if (tmpDir) {
-    // Get a path for temporary reports.
-    reportPath = `${tmpDir}/${tempReport.id}.json`;
-  }
-  // Otherwise, i.e. if it was not found:
-  else {
-    // Report this.
-    console.log('ERROR: No writable temporary directory was found; quitting');
-    // Quit.
-    process.exit(1);
-  }
+  // Get a path for temporary reports.
+  reportPath = path.join(tmpDir, `${tempReport.id}.json`);
   // Initialize the count of completed acts.
   let actCount = 0;
   // For each act in the temporary report:

@@ -16,19 +16,12 @@
 
 // IMPORTS
 
-// Module to perform acts.
 const {doActs} = require('./procs/doActs');
-// Module to keep secrets.
 require('dotenv').config({quiet: true});
-// Function to validate jobs.
 const {isValidJob} = require('./procs/job');
-// Module to create catalogs.
 const {getCatalog} = require('./procs/catalog');
-// Module to process dates and times.
 const {nowString} = require('./procs/dateTime');
-// Module to create browsers.
 const {chromium, webkit, firefox} = require('playwright-extra');
-// Module to evade automation detection.
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 webkit.use(StealthPlugin());
@@ -36,11 +29,51 @@ firefox.use(StealthPlugin());
 
 // FUNCTIONS
 
+// Returns an operating-system-compatible absolute path to a temporary directory.
+const getTmpDirPath = async jobName => {
+  let jobTmpDir = `${__dirname}/tmp/${jobName}`;
+  try {
+    // Ensure that a temporary directory exists.
+    await fs.mkdir(jobTmpDir, {recursive: true});
+  }
+  catch (error) {
+    console.log(`ERROR: Could not create temporary directory (${error.message})`);
+    jobTmpDir = null;
+  }
+  const tmpDirs = [os.tmpdir(), '/tmp'];
+  if (jobTmpDir) {
+    tmpDirs.unshift(jobTmpDir);
+  }
+  let tmpDir = null;
+  // For each potential temporary directory:
+  for (const tmpDirAlternative of tmpDirs) {
+    try {
+      // Verify that it is writable.
+      await fs.access(tmpDirAlternative, fs.constants.W_OK);
+      tmpDir = tmpDirAlternative;
+      // If it is, stop checking alternatives.
+      break;
+    }
+    // If it is not:
+    catch(error) {
+      // Report this and continue checking alternatives.
+      console.log(`ERROR: ${tmpDirAlternative} not writable for temporary files`);
+    }
+  }
+  // If no writable temporary directory was found:
+  if (! tmpDir) {
+    // Report this.
+    console.log('ERROR: No writable temporary directory was found');
+  }
+  // Return the directory path or a failure.
+  return tmpDir;
+};
 // Runs a job and returns a report.
 exports.doJob = async (job, opts = {}) => {
   // Initialize a report as a copy of the job.
   let report = JSON.parse(JSON.stringify(job));
-  const jobData = report.jobData = {};
+  report.jobData ??= {};
+  const {jobData} = report;
   // Get whether the job is valid and, if not, why not.
   const jobInvalidity = isValidJob(job);
   // If it is invalid:
@@ -55,9 +88,11 @@ exports.doJob = async (job, opts = {}) => {
   else {
     // Report this.
     console.log(`Starting job ${job.id} (${job.target.what})`);
+    const tmpDir = await getTmpDirPath(job.id);
     // Add initialized job data to the report.
     const startTime = new Date();
     report.jobData = {
+      tmpDir,
       startTime: nowString(),
       endTime: '',
       elapsedSeconds: 0,

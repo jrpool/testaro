@@ -28,6 +28,7 @@ const allRules = [
     what: 'first page screenshot',
     contaminates: false,
     needsAccessibleName: false,
+    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -332,6 +333,7 @@ const allRules = [
     what: 'second page screenshot',
     contaminates: false,
     needsAccessibleName: false,
+    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -340,6 +342,7 @@ const allRules = [
     what: 'motion without user request, measured across tests',
     contaminates: false,
     needsAccessibleName: false,
+    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
@@ -569,6 +572,11 @@ exports.reporter = async (page, report, actIndex) => {
       }
       // Initialize an argument array for the reporter.
       const ruleArgs = [page, report.catalog, withItems];
+      // If the rule needs a temporary directory:
+      if (rule.needsTmpDir) {
+        // Add its path to the argument array.
+        ruleArgs.push(report.jobData.tmpDir);
+      }
       // If the rule has extra arguments:
       if (argRules?.includes(ruleResult.id)) {
         // Add them to the argument array.

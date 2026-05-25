@@ -181,7 +181,8 @@ exports.isValidJob = job => {
       executionTimeStamp,
       target,
       sources,
-      acts
+      acts,
+      jobData
     } = job;
     // Return an error for the first missing or invalid property.
     if (! id || typeof id !== 'string') {
@@ -258,6 +259,12 @@ exports.isValidJob = job => {
       return {
         isValid: false,
         error: `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`
+      };
+    }
+    if (jobData && typeof jobData !== 'object') {
+      return {
+        isValid: false,
+        error: 'Bad job jobData'
       };
     }
     return {
