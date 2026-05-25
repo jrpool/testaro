@@ -13,6 +13,7 @@ node_modules/
 scratch/*
 !scratch/README.md
 temp/
+tmp/
 validation/tests/old
 
 # Secrets
