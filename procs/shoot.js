@@ -6,6 +6,17 @@
 /*
   shoot
   Makes and saves as a PNG buffer file a full-page screenshot and returns the file path.
+
+  Call shape:
+    shoot(page, label, options?)
+      label:   string|number used in the saved filename. Sanitized to
+               testaro-shoot-<safe>.png — characters outside [A-Za-z0-9._-]
+               collapse to '_', leading/trailing dots and underscores are
+               stripped, length is capped at 100, and an empty result becomes
+               'unnamed'.
+      options: optional object:
+        exclusion: a Playwright Locator to mask in the screenshot.
+        dir:       output directory (defaults to the OS temp dir).
 */
 
 // IMPORTS
@@ -17,6 +28,22 @@ const path = require('path');
 const {PNG} = require('pngjs');
 
 // FUNCTIONS
+
+// Coerces a label into a filesystem-safe string. Runs of any character outside
+// [A-Za-z0-9._-] collapse to one underscore; leading and trailing dots and
+// underscores are stripped (no hidden files, no traversal); capped at 100
+// characters; falls back to 'unnamed' if nothing usable remains.
+const sanitizeLabel = (label) => {
+  const raw = String(label);
+  const cleaned = raw
+    .replace(/[^A-Za-z0-9._-]+/g, '_')
+    .replace(/^[._]+|[._]+$/g, '')
+    .slice(0, 100) || 'unnamed';
+  if (cleaned !== raw) {
+    console.log(`>> shoot: label sanitized from "${raw}" to "${cleaned}"`);
+  }
+  return cleaned;
+};
 
 // Creates and returns a screenshot.
 const screenShot = async (page, exclusion = null) => {
@@ -35,9 +62,11 @@ const screenShot = async (page, exclusion = null) => {
     return '';
   });
 };
-exports.shoot = async (page, index, tmpDir) => {
+exports.shoot = async (page, label, tmpDir, options = {}) => {
+  const exclusion = options.exclusion || null;
+  const dir = options.dir || tmpDir;
   // Make and get a screenshot as a buffer.
-  let shot = await screenShot(page);
+  let shot = await screenShot(page, exclusion);
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
@@ -49,8 +78,8 @@ exports.shoot = async (page, index, tmpDir) => {
     if (global.gc) {
       global.gc();
     }
-    const fileName = `testaro-shoot-${index}.png`;
-    const pngPath = path.join(tmpDir, fileName);
+    const fileName = `testaro-shoot-${sanitizeLabel(label)}.png`;
+    const pngPath = path.join(dir, fileName);
     // Save the PNG buffer.
     await fs.writeFile(pngPath, pngBuffer);
     // Return the result.
