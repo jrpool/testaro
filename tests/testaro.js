@@ -504,7 +504,14 @@ exports.reporter = async (page, report, actIndex) => {
     && ['y', 'n'].includes(ruleSpec[0])
     && ruleSpec.slice(1).every(ruleID => allRuleIDs.includes(ruleID))
   ) {
-    // Get the rules to be (y) or not to be (n) tested for and their execution order.
+    // Get the rules to be tested for and their execution order.
+    // 'y' = include-list: run exactly the rules in ruleSpec.slice(1).
+    // 'n' = exclude-list: run all defaultOn rules EXCEPT those in
+    //       ruleSpec.slice(1). (The prior implementation was a no-op:
+    //       it checked against `allRuleIDs` — which is every rule's id —
+    //       so the predicate was never true, and it returned rule
+    //       objects rather than IDs, which then never matched the
+    //       string comparison on the next line.)
     const excludeIDs = ruleSpec.slice(1);
     const jobRuleIDs = ruleSpec[0] === 'y'
     ? excludeIDs
