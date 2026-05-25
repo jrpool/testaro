@@ -22,13 +22,9 @@
 
 // IMPORTS
 
-// Module to keep secrets.
 require('dotenv').config();
-// Module to process files.
 const fs = require('fs/promises');
-// Function to process a testing request.
 const {doJob} = require('./run');
-// Function to watch for jobs.
 const {dirWatch} = require('./dirWatch');
 const {netWatch} = require('./netWatch');
 

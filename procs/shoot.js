@@ -1,4 +1,5 @@
 /*
+  © 2026 Jeff Witt.
   © 2025–2026 Jonathan Robert Pool.
   Licensed under the MIT License. See LICENSE file for details.
 */
@@ -29,10 +30,12 @@ const {PNG} = require('pngjs');
 
 // FUNCTIONS
 
-// Coerces a label into a filesystem-safe string. Runs of any character outside
-// [A-Za-z0-9._-] collapse to one underscore; leading and trailing dots and
-// underscores are stripped (no hidden files, no traversal); capped at 100
-// characters; falls back to 'unnamed' if nothing usable remains.
+/*
+  Coerces a label into a filesystem-safe string. Runs of any character outside
+  [A-Za-z0-9._-] collapse to one underscore; leading and trailing dots and
+  underscores are stripped (no hidden files, no traversal); capped at 100
+  characters; falls back to 'unnamed' if nothing usable remains.
+*/
 const sanitizeLabel = (label) => {
   const raw = String(label);
   const cleaned = raw
