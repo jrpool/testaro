@@ -10,8 +10,6 @@
 node_modules/
 
 # Temporary files
-scratch/*
-!scratch/README.md
 temp/
 tmp/
 validation/tests/old
