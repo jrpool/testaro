@@ -59,8 +59,8 @@ exports.curate = async (data, nuData, rules) => {
     result = nuDataClean;
   }
   // Guarantee result.messages is always an iterable. The W3C API returns
-  // {messages: [...]} on success, but on HTTP errors (e.g. 502 for bodies
-  // >~80 kB) or fetch failures nuVal leaves nuData={}, so result becomes {}
+  // {messages: [...]} on success, but on HTTP errors (e.g. 502) or fetch
+  // failures nuVal leaves nuData={}, so result becomes {}
   // and `result.messages.filter(...)` below throws
   // "Cannot read properties of undefined (reading 'filter')".
   if (result && ! Array.isArray(result.messages)) {

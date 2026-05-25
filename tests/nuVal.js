@@ -11,7 +11,7 @@
 /*
   nuVal
   This tool subjects a page and its source to the Nu Html Checker, thereby testing scripted content found only in the loaded page and erroneous content before the browser corrects it. The API erratically replaces left and right double quotation marks with invalid UTF-8, which appears as 2 or 3 successive instances of the replacement character (U+fffd). Therefore, this test removes all such quotation marks and the replacement character. That causes 'Bad value “” for' to become 'Bad value  for'. Since the corruption of quotation marks is erratic, no better solution is known.
-  This tool is the API version of the Nu Html Checker. It is an alternative to the nuVnu tool, which uses the same validator as an installed dependency. Each tool has advantages and disadvantages. The main advantage of nuVal is that it does not require the Testaro host to provide a Java virtual machine. The main disadvantage of nuVal is that it returns 502 status errors when the content being uploaded is larger than about 80,000 bytes. The main advantage of the nuVnu tool is that it can evaluate pages larger than about 80,000 bytes and pages reachable from the host that Testaro runs on even if not reachable from the public Internet.
+  This tool is the API version of the Nu Html Checker. It is an alternative to the nuVnu tool, which uses the same validator as an installed dependency. Each tool has advantages and disadvantages. The main advantage of nuVal is that it does not require the Testaro host to provide a Java virtual machine. The main advantage of the nuVnu tool is that it can evaluate pages reachable from the host that Testaro runs on even if not reachable from the public Internet.
 */
 
 // IMPORTS
