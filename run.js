@@ -21,16 +21,15 @@ require('dotenv').config({quiet: true});
 const {isValidJob} = require('./procs/job');
 const {getCatalog} = require('./procs/catalog');
 const {nowString} = require('./procs/dateTime');
-// Module to create browsers.
-const {chromium} = require('playwright-extra');
+const {chromium, webkit, firefox} = require('playwright-extra');
 const fs = require('fs').promises;
 const os = require('os');
-// Module to evade automation detection.
-// Stealth is Chromium-specific: its evasions inject Chromium-only launch
-// flags (e.g. `--disable-blink-features=AutomationControlled`) and patch
-// Blink-only DOM globals. WebKit and Firefox reject the unknown args at
-// startup, so registering stealth on them breaks every launch. Job-level
-// opt-out for Chromium happens in procs/launch.js via the `stealth` field.
+/*
+  Module to evade detection of Chromium automation. Injects launch flags
+  (e.g., `--disable-blink-features=AutomationControlled`) and patches
+  Blink-only DOM globals. Job-level opt-out for Chromium happens in
+  procs/launch.js via the `stealth` field.
+*/
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 
