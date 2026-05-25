@@ -1,5 +1,6 @@
 /*
   © 2022–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jeff Witt.
   © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
@@ -11,7 +12,8 @@
 /*
   nuVal
   This tool subjects a page and its source to the Nu Html Checker, thereby testing scripted content found only in the loaded page and erroneous content before the browser corrects it. The API erratically replaces left and right double quotation marks with invalid UTF-8, which appears as 2 or 3 successive instances of the replacement character (U+fffd). Therefore, this test removes all such quotation marks and the replacement character. That causes 'Bad value “” for' to become 'Bad value  for'. Since the corruption of quotation marks is erratic, no better solution is known.
-  This tool is the API version of the Nu Html Checker. It is an alternative to the nuVnu tool, which uses the same validator as an installed dependency. Each tool has advantages and disadvantages. The main advantage of nuVal is that it does not require the Testaro host to provide a Java virtual machine. The main disadvantage of nuVal is that it returns 502 status errors when the content being uploaded is larger than about 80,000 bytes. The main advantage of the nuVnu tool is that it can evaluate pages larger than about 80,000 bytes and pages reachable from the host that Testaro runs on even if not reachable from the public Internet.
+  This tool is the API version of the Nu Html Checker. It is an alternative to the nuVnu tool, which uses the same validator as an installed dependency. Each tool has advantages and disadvantages. The main advantage of nuVal is that it does not require the Testaro host to provide a Java virtual machine. The main advantage of the nuVnu tool is that it can evaluate pages reachable from the host that Testaro runs on even if not reachable from the public Internet.
+  This tool calls the W3C validation service unless a TESTARO_NU_URL environment variable is defined with the URL of another instance of the API.
 */
 
 // IMPORTS
@@ -55,7 +57,11 @@ exports.reporter = async (page, report, actIndex) => {
       },
       body: testTarget
     };
-    const nuURL = 'https://validator.w3.org/nu/?parser=html&out=json';
+    // Override target for self-hosted Nu Html Checker instances (Docker
+    // image ghcr.io/validator/validator or equivalent). Defaults to the
+    // public W3C service, which 502s on bodies >~80 kB.
+    const nuURL = process.env.TESTARO_NU_URL
+      || 'https://validator.w3.org/nu/?parser=html&out=json';
     let nuData = {};
     let nuResponse = new Response();
     try {

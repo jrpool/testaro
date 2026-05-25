@@ -1,5 +1,6 @@
 /*
   © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jeff Witt.
   © 2025–2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
@@ -18,15 +19,22 @@
 // Module to handle errors.
 const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
-const {chromium, webkit, firefox} = require('playwright-extra');
+// Two flavors of Playwright:
+// - `playwrightCore`: the upstream Playwright SDK with no plugins attached.
+// - `playwrightExtra`: the playwright-extra wrapper. `run.js` registers
+//   puppeteer-extra-plugin-stealth on its `chromium` only (the plugin is
+//   Chromium-specific by design — see comment in run.js).
+// At launch time we pick the flavor per call: Chromium with stealth enabled
+// goes through playwright-extra, every other case (Chromium with stealth
+// disabled, WebKit, Firefox) goes through plain Playwright.
+const playwrightCore = require('playwright');
+const playwrightExtra = require('playwright-extra');
 const {isBrowserID, isDeviceID, isURL, isValidJob} = require('./job');
 
 // CONSTANTS
 
 // Whether to log page-context log messages.
 const debug = process.env.DEBUG === 'true';
-// Playwright browser types.
-const playwrightBrowsers = {chromium, webkit, firefox};
 // Strings in log messages indicating errors.
 const errorWords = [
   'but not used',
@@ -50,6 +58,7 @@ const errorWords = [
 ];
 // Seconds to wait between actions.
 const waits = Number(process.env.WAITS) ?? 0;
+const abortAssertively = process.env.ABORT_ASSERTIVELY === 'true';
 
 // FUNCTIONS
 
@@ -80,6 +89,29 @@ const browserClose = exports.browserClose = async page => {
     }
   }
 };
+// Normalizes a file URL in case it has the Windows path format.
+const normalizeURL = url => {
+  // If a URL was provided:
+  if (url) {
+    // If it is that of a local file:
+    if (url.toLowerCase().startsWith('file:')) {
+      let path = url.replace(/^file:\/+/i, '');
+      path = path.replace(/\\/g, '/');
+      // Return the URL normalized.
+      return 'file:///' + path.replace(/^\//, '');
+    }
+    // Otherwise, i.e. if it is not that of a local file:
+    else {
+      // Return it.
+      return url;
+    }
+  }
+  // Otherwise, i.e. if no URL was provided:
+  else {
+    // Return this.
+    return undefined;
+  }
+};
 // Visits a URL and returns the response of the server.
 const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
   // If the URL is a file path relative to the project root:
@@ -96,11 +128,11 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     });
     report.jobData.visitLatency += Math.round((Date.now() - startTime) / 1000);
     const httpStatus = response.status();
-    // If the response status was normal:
+    // If the response status was normal or the URL points to a local file:
     if ([200, 304].includes(httpStatus) || url.startsWith('file:')) {
       const actualURL = page.url();
-      const actualNorm = actualURL.startsWith('file:') ? normalizeFile(actualURL) : actualURL;
-      const urlNorm = url.startsWith('file:') ? normalizeFile(url) : url;
+      const actualNorm = actualURL.startsWith('file:') ? normalizeURL(actualURL) : actualURL;
+      const urlNorm = url.startsWith('file:') ? normalizeURL(url) : url;
       // If the browser was redirected in violation of a strictness requirement:
       if (report.strict && deSlash(actualNorm) !== deSlash(urlNorm)) {
         // Return an error.
@@ -151,11 +183,10 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     // Otherwise, i.e. if the response status was otherwise abnormal:
     else {
       // Return an error.
-      console.log(`ERROR: Visit to ${url} got status ${httpStatus}`);
       report.jobData.visitRejectionCount++;
       return {
         success: false,
-        error: 'badStatus'
+        error: `ERROR: Visit to ${url} got status ${httpStatus}`
       };
     }
   }
@@ -165,7 +196,7 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     }
     return {
       success: false,
-      error: 'noVisit'
+      error: `ERROR visiting ${url} (${error.message.slice(0, 200)})`
     };
   }
 };
@@ -208,20 +239,33 @@ const launchOnce = async opts => {
   const {device} = report;
   const deviceID = device?.id;
   const browserID = tempBrowserID || report.browserID || '';
-  const url = tempURL || report.target?.url || '';
+  const url = normalizeURL(tempURL || report.target?.url || '');
   let page;
   // If the specified browser and device types and URL are valid:
   if (isBrowserID(browserID) && isDeviceID(deviceID) && isURL(url)) {
-    // Replace the report target URL with this URL.
+    // Replace the report target URL with the specified URL.
     report.target.url = url;
+    // Resolve whether to run with stealth evasions. Defaults to true (the
+    // historical behavior). `report.stealth === false` opts out — useful
+    // for sites whose anti-bot heuristics react badly to stealth's patches,
+    // or when reproducing a real user agent's exact JS environment matters.
+    // Stealth only ever applies to Chromium; WebKit and Firefox always use
+    // plain Playwright regardless of the `stealth` field.
+    const useStealth = browserID === 'chromium' && report.stealth !== false;
+    const playwright = useStealth ? playwrightExtra : playwrightCore;
     // Create a browser of the specified or default type.
-    const browserType = playwrightBrowsers[browserID];
+    const browserType = playwright[browserID];
     // Define the browser-option args, depending on the browser type and head-emulation level.
     const browserOptionArgs = [];
     if (browserID === 'chromium') {
-      browserOptionArgs.push(
-        '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'
-      );
+      browserOptionArgs.push('--disable-dev-shm-usage');
+      // `--disable-blink-features=AutomationControlled` is a stealth-only
+      // arg: it hides the automation flag that stealth's other evasions
+      // assume is hidden. When stealth is opted out, leave the flag off
+      // so the browser presents an honest automation profile.
+      if (useStealth) {
+        browserOptionArgs.push('--disable-blink-features=AutomationControlled');
+      }
       if (headEmulation === 'high') {
         browserOptionArgs.push(
           '--disable-gpu',
@@ -244,7 +288,7 @@ const launchOnce = async opts => {
         );
       }
     }
-    // Define the browser options.
+    // Get the browser options.
     const browserOptions = {
       logger: {
         isEnabled: () => false,
@@ -462,33 +506,30 @@ const launchOnce = async opts => {
         throw new Error(`Navigation failed (${navResult.error})`);
       }
     }
-    // If an error occurred:
+    // If the browser and page creation and navigation threw an error:
     catch(error) {
-      // Report this.
-      console.log(`ERROR launching or navigating (${error.message})`);
       // Close the browser and its context, if they exist.
       await browserClose(page);
-      // Return a failure.
+      // Return the error.
       return {
         success: false,
         error: error.message
       };
     }
   }
-  // If the launch and navigation succeeded, return the page.
+  // Otherwise, i.e. if the specified browser or device type or URL is invalid:
+  else {
+    // Return this.
+    return {
+      success: false,
+      error: 'Invalid browser, device type, or URL'
+    };
+  }
+  // If the browser and page creation and navigation succeeded, return the page.
   return {
     success: true,
     page
   };
-};
-// Normalizes a file URL in case it has the Windows path format.
-const normalizeFile = u => {
-  if (!u) return u;
-  if (!u.toLowerCase().startsWith('file:')) return u;
-  // Ensure forward slashes and three slashes after file:
-  let path = u.replace(/^file:\/+/i, '');
-  path = path.replace(/\\/g, '/');
-  return 'file:///' + path.replace(/^\//, '');
 };
 // Manages browser launching and navigating and returns a page.
 exports.launch = async (opts = {}) => {
@@ -527,9 +568,9 @@ exports.launch = async (opts = {}) => {
     // Otherwise, i.e. if the launch or navigation failed:
     else {
       let retriesLeft = retries;
+      let {error} = launchResult;
       // As long as retries remain, decrement the allowed retry count and:
-      while (retriesLeft--) {
-        const {error} = launchResult;
+      while (retriesLeft) {
         // Prepare to wait 1 second before a retry.
         let waitSeconds = 1;
         // If the error was a visit failure due to rate limiting:
@@ -543,7 +584,7 @@ exports.launch = async (opts = {}) => {
         }
         // Report the wait.
         console.log(
-          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retries})`
+          `WARNING: Waiting ${waitSeconds} sec. before retrying (retries left: ${retriesLeft--})`
         );
         // Wait as specified.
         await wait(1000 * waitSeconds);
@@ -567,14 +608,17 @@ exports.launch = async (opts = {}) => {
         }
         // Otherwise, i.e. if the launch or navigation failed:
         else {
+          error = launchResult.error;
           // Report this.
-          console.log(`WARNING: Retry failed; retries left: ${retries}`);
+          console.log(`WARNING: Retry failed (${error})`);
         }
       }
       // If the retries were exhausted:
-      if (retriesLeft === -1) {
-        // Report this.
-        addError(true, false, report, actIndex, 'ERROR: No retries left');
+      if (! retriesLeft) {
+        // Report this and, if so configured, that the job was aborted.
+        addError(
+          true, abortAssertively, report, actIndex, `Launch or navigation failed; retries exhausted`
+        );
       }
       // Return a failure.
       return null;
@@ -582,13 +626,13 @@ exports.launch = async (opts = {}) => {
   }
   // Otherwise, i.e. if the report is invalid:
   else {
-    // Report this.
+    // Report this and that the job was aborted.
     addError(
       true,
-      false,
+      true,
       report,
       actIndex,
-      `ERROR: Cannot launch browser for invalid job (${jobValidation.error})`
+      `ERROR: Job invalid (${jobValidation.error})`
     );
     // Return a failure.
     return null;

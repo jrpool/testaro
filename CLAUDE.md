@@ -82,7 +82,7 @@ Key variables:
 - `WAVE_KEY` — API key for the WAVE subscription API
 - `JOBDIR` / `REPORTDIR` — root directories for job files and report output
 - `AGENT` — instance name used in network-watch mode
-- `NETWATCH_URL_<N>_JOB/OBSERVE/REPORT/AUTH`, `NETWATCH_URLS` — server polling configuration
+- `NETWATCH_URL_<N>_JOB/REPORT/AUTH`, `NETWATCH_URLS` — server polling configuration
 - `TIMEOUT_MULTIPLIER` — scales all per-tool time limits (default 1)
 
 ## Code style
@@ -114,3 +114,12 @@ Long comments are not broken into multiple lines per paragraph.
 | `tests/testaro.js` | `allRules` registry for the testaro tool |
 | `testaro/<ruleID>.js` | One file per Testaro rule |
 | `validation/validateTest.js` | Core validation harness |
+
+## License
+
+© 2026 Jonathan Robert Pool.
+
+Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
+at the project root for details.
+
+SPDX-License-Identifier: MIT
