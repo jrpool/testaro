@@ -23,6 +23,8 @@ const {getCatalog} = require('./procs/catalog');
 const {nowString} = require('./procs/dateTime');
 // Module to create browsers.
 const {chromium} = require('playwright-extra');
+const fs = require('fs').promises;
+const os = require('os');
 // Module to evade automation detection.
 // Stealth is Chromium-specific: its evasions inject Chromium-only launch
 // flags (e.g. `--disable-blink-features=AutomationControlled`) and patch
