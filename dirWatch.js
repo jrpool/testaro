@@ -100,9 +100,6 @@ exports.dirWatch = async (isForever, intervalInSeconds) => {
           try {
             const job = JSON.parse(jobJSON);
             let report = JSON.parse(jobJSON);
-            // Ensure it has no server properties.
-            job.observe = false;
-            report.observe = false;
             const {id} = job;
             console.log(`\n\nDirectory job ${id} ready to do (${nowString()})`);
             // Perform it and get a report.

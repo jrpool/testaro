@@ -73,9 +73,9 @@ const sendMessage = message => {
     );
   }
 };
-// Performs the tests of an act.
+// Performs tests of a test act.
 const doTestAct = async (reportPath, actIndex) => {
-  // Get the report from the temporary directory.
+  // Get the temporary report.
   const reportJSON = await fs.readFile(reportPath, 'utf8');
   const report = JSON.parse(reportJSON);
   // Get a reference to the act in the report.

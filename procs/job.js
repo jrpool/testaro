@@ -40,6 +40,8 @@ const tools = exports.tools = {
 
 // FUNCTIONS
 
+// Validates a browser type.
+const isBrowserID = exports.isBrowserID = type => ['chromium', 'firefox', 'webkit'].includes(type);
 // Returns whether a variable has a specified type.
 const hasType = (variable, type) => {
   if (type === 'string') {
@@ -105,8 +107,6 @@ const hasSubtype = (variable, subtype) => {
 };
 // Validates a device ID.
 const isDeviceID = exports.isDeviceID = deviceID => deviceID === 'default' || !! devices[deviceID];
-// Validates a browser type.
-const isBrowserID = exports.isBrowserID = type => ['chromium', 'firefox', 'webkit'].includes(type);
 // Validates a load state.
 const isState = string => ['loaded', 'idle'].includes(string);
 // Validates a URL.
@@ -175,7 +175,6 @@ exports.isValidJob = job => {
       id,
       strict,
       standard,
-      observe,
       device,
       browserID,
       stealth,
@@ -183,7 +182,8 @@ exports.isValidJob = job => {
       executionTimeStamp,
       target,
       sources,
-      acts
+      acts,
+      jobData
     } = job;
     // Return an error for the first missing or invalid property.
     if (! id || typeof id !== 'string') {
@@ -203,12 +203,6 @@ exports.isValidJob = job => {
         isValid: false,
         error: 'Bad job standard'
       };
-    }
-    if (typeof observe !== 'boolean') {
-      return {
-        isValid: false,
-        error: 'Bad job observe'
-      }
     }
     if (! isDeviceID(device.id)) {
       return {
@@ -275,6 +269,12 @@ exports.isValidJob = job => {
       return {
         isValid: false,
         error: `Invalid act:\n${JSON.stringify(invalidAct, null, 2)}`
+      };
+    }
+    if (jobData && typeof jobData !== 'object') {
+      return {
+        isValid: false,
+        error: 'Bad job jobData'
       };
     }
     return {

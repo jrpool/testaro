@@ -51,3 +51,12 @@ The validity criterion named in item 2 may be any of these:
 - `'isTest'`: is the name of a tool
 - `'isWaitable'`: is `'url'`, `'title'`, or `'body'`
 - `'areStrings'`: is an array of strings
+
+## License
+
+© 2026 Jonathan Robert Pool.
+
+Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file
+at the project root for details.
+
+SPDX-License-Identifier: MIT
