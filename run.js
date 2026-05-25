@@ -127,6 +127,8 @@ exports.doJob = async (job, opts = {}) => {
     }
     // Perform the acts and revise the report.
     report = await doActs(report, opts);
+    // Delete the temporary directory.
+    await fs.rm(tmpDir, {recursive: true, force: true});
     // Add the end time and duration to the report.
     const endTime = new Date();
     report.jobData.endTime = nowString();
