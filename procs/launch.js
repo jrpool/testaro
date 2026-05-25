@@ -19,15 +19,22 @@
 // Module to handle errors.
 const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
-const {chromium, webkit, firefox} = require('playwright-extra');
+// Two flavors of Playwright:
+// - `playwrightCore`: the upstream Playwright SDK with no plugins attached.
+// - `playwrightExtra`: the playwright-extra wrapper. `run.js` registers
+//   puppeteer-extra-plugin-stealth on its `chromium` only (the plugin is
+//   Chromium-specific by design — see comment in run.js).
+// At launch time we pick the flavor per call: Chromium with stealth enabled
+// goes through playwright-extra, every other case (Chromium with stealth
+// disabled, WebKit, Firefox) goes through plain Playwright.
+const playwrightCore = require('playwright');
+const playwrightExtra = require('playwright-extra');
 const {isBrowserID, isDeviceID, isURL, isValidJob} = require('./job');
 
 // CONSTANTS
 
 // Whether to log page-context log messages.
 const debug = process.env.DEBUG === 'true';
-// Playwright browser types.
-const playwrightBrowsers = {chromium, webkit, firefox};
 // Strings in log messages indicating errors.
 const errorWords = [
   'but not used',
@@ -238,12 +245,27 @@ const launchOnce = async opts => {
   if (isBrowserID(browserID) && isDeviceID(deviceID) && isURL(url)) {
     // Replace the report target URL with the specified URL.
     report.target.url = url;
-    const browserType = playwrightBrowsers[browserID];
+    // Resolve whether to run with stealth evasions. Defaults to true (the
+    // historical behavior). `report.stealth === false` opts out — useful
+    // for sites whose anti-bot heuristics react badly to stealth's patches,
+    // or when reproducing a real user agent's exact JS environment matters.
+    // Stealth only ever applies to Chromium; WebKit and Firefox always use
+    // plain Playwright regardless of the `stealth` field.
+    const useStealth = browserID === 'chromium' && report.stealth !== false;
+    const playwright = useStealth ? playwrightExtra : playwrightCore;
+    // Create a browser of the specified or default type.
+    const browserType = playwright[browserID];
+    // Define the browser-option args, depending on the browser type and head-emulation level.
     const browserOptionArgs = [];
     if (browserID === 'chromium') {
-      browserOptionArgs.push(
-        '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'
-      );
+      browserOptionArgs.push('--disable-dev-shm-usage');
+      // `--disable-blink-features=AutomationControlled` is a stealth-only
+      // arg: it hides the automation flag that stealth's other evasions
+      // assume is hidden. When stealth is opted out, leave the flag off
+      // so the browser presents an honest automation profile.
+      if (useStealth) {
+        browserOptionArgs.push('--disable-blink-features=AutomationControlled');
+      }
       if (headEmulation === 'high') {
         browserOptionArgs.push(
           '--disable-gpu',

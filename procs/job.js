@@ -177,6 +177,7 @@ exports.isValidJob = job => {
       standard,
       device,
       browserID,
+      stealth,
       creationTimeStamp,
       executionTimeStamp,
       target,
@@ -213,6 +214,15 @@ exports.isValidJob = job => {
       return {
         isValid: false,
         error: 'Bad job browserID'
+      };
+    }
+    // `stealth` is optional. When omitted, Testaro defaults to enabling the
+    // puppeteer-extra-plugin-stealth evasions on Chromium (historical
+    // behavior). When present, it must be a boolean.
+    if (stealth !== undefined && typeof stealth !== 'boolean') {
+      return {
+        isValid: false,
+        error: 'Bad job stealth (must be boolean if present)'
       };
     }
     if (
