@@ -8360,3 +8360,351 @@ pool@jpdev testaro % claude
 
 claude --resume bb937c34-19d9-4fd5-b04b-1356fb39b355
 ```
+
+## Initial modal dialogs
+
+
+
+
+
+
+
+
+Playwright provides several methods to detect modal dialogs, ranging from native browser dialogs to custom modal components.
+
+## Modal Detection Methods
+
+### 1. Native Browser Dialogs (alert, confirm, prompt)
+```javascript
+// Handle native dialogs that block execution
+page.on('dialog', async dialog => {
+  console.log('Dialog type:', dialog.type());
+  console.log('Dialog message:', dialog.message());
+  await dialog.accept(); // or dialog.dismiss()
+});
+
+// Check if dialog handler was triggered
+let dialogAppeared = false;
+page.on('dialog', () => { dialogAppeared = true; });
+await someAction(); // Action that might trigger dialog
+if (dialogAppeared) {
+  // Handle modal
+}
+```
+
+### 2. ARIA-Based Modal Detection
+```javascript
+// Detect modals by ARIA role and attributes
+async function detectAriaModal(page) {
+  const modalSelectors = [
+    '[role="dialog"]',
+    '[role="alertdialog"]',
+    '[aria-modal="true"]'
+  ];
+
+  for (const selector of modalSelectors) {
+    const modal = page.locator(selector);
+    if (await modal.isVisible()) {
+      return modal;
+    }
+  }
+  return null;
+}
+
+// Usage
+const modal = await detectAriaModal(page);
+if (modal) {
+  console.log('ARIA modal detected');
+  // Test modal accessibility
+}
+```
+
+### 3. CSS-Based Modal Detection
+```javascript
+// Detect modals by common CSS patterns
+async function detectCssModal(page) {
+  const modalSelectors = [
+    '.modal:visible',
+    '.modal-dialog:visible',
+    '.modal-overlay:visible',
+    '.popup:visible',
+    '.dialog:visible',
+    '[style*="display: block"][style*="position: fixed"]'
+  ];
+
+  for (const selector of modalSelectors) {
+    try {
+      const modal = page.locator(selector);
+      if (await modal.isVisible({ timeout: 1000 })) {
+        return modal;
+      }
+    } catch (e) {
+      // Element not found, continue
+    }
+  }
+  return null;
+}
+```
+
+### 4. Comprehensive Modal Detection
+```javascript
+async function detectAnyModal(page) {
+  // Check native dialogs first
+  let dialogAppeared = false;
+  const dialogHandler = () => { dialogAppeared = true; };
+  page.on('dialog', dialogHandler);
+
+  // Check ARIA modals
+  const ariaModal = await detectAriaModal(page);
+  if (ariaModal) return { type: 'aria', element: ariaModal };
+
+  // Check CSS modals
+  const cssModal = await detectCssModal(page);
+  if (cssModal) return { type: 'css', element: cssModal };
+
+  // Check native dialog
+  if (dialogAppeared) return { type: 'native', element: null };
+
+  return null;
+}
+```
+
+### 5. Accessibility-Focused Modal Testing
+```javascript
+async function testModalAccessibility(page) {
+  const modal = await detectAnyModal(page);
+  if (!modal) return null;
+
+  const element = modal.element;
+  const accessibilityTests = {
+    hasAccessibleName: await element.getAttribute('aria-label') ||
+                      await element.getAttribute('aria-labelledby'),
+    hasModalRole: await element.getAttribute('role') === 'dialog' ||
+                 await element.getAttribute('aria-modal') === 'true',
+    isFocusTrapped: await testFocusTrap(page, element),
+    hasCloseMethod: await page.locator('[aria-label="Close"], .close, button[title="Close"]').isVisible()
+  };
+
+  return {
+    detected: modal,
+    accessibility: accessibilityTests
+  };
+}
+
+async function testFocusTrap(page, modalElement) {
+  // Test Tab key stays within modal
+  await page.keyboard.press('Tab');
+  const focusedElement = await page.locator(':focus');
+  const modalContainsFocus = await modalElement.contains(focusedElement);
+  return modalContainsFocus;
+}
+```
+
+## Implementation for Testaro
+
+```javascript
+// Modal detection workflow for accessibility testing
+async function checkPageModals(page) {
+  const modalInfo = await testModalAccessibility(page);
+
+  if (modalInfo) {
+    console.log(`Modal detected: ${modalInfo.detected.type}`);
+
+    // Test focus management
+    await testFocusManagement(page, modalInfo.detected.element);
+
+    // Test keyboard dismissability
+    await testKeyboardDismiss(page, modalInfo.detected.element);
+
+    return modalInfo;
+  }
+
+  return null;
+}
+
+async function testFocusManagement(page, modal) {
+  // Check if focus is properly managed
+  const initialFocus = await page.locator(':focus');
+  await page.keyboard.press('Tab');
+  const afterTabFocus = await page.locator(':focus');
+
+  return {
+    focusInitiallyInModal: await modal.contains(initialFocus),
+    focusRemainsInModal: await modal.contains(afterTabFocus)
+  };
+}
+```
+
+This comprehensive approach allows Testaro to detect and test accessibility of various modal types across different implementations.
+
+## State cleaning before each page load
+
+
+
+
+
+
+
+
+
+
+Yes, Playwright provides comprehensive state reset capabilities that are consistent across Chromium, WebKit, and Firefox.
+
+## Complete State Reset Capabilities
+
+### Available Methods
+Playwright's `BrowserContext` class provides these state management methods:
+
+**Cookies:**
+```javascript
+await context.clearCookies(); // Clear all cookies
+await context.clearCookies({ domain: 'example.com' }); // Clear specific domain
+```
+
+**Storage State:**
+```javascript
+// Clear and reset all storage
+await context.setStorageState({ cookies: [], origins: [] });
+
+// Save current state
+await context.storageState({ path: 'state.json' });
+
+// Load clean state (effectively a reset)
+await context.setStorageState('clean-state.json');
+```
+
+### Complete Reset Implementation
+For the "Complete State Reset" I listed earlier:
+
+```javascript
+// Universal state reset across all browsers
+async function resetBrowserState(context) {
+  await context.clearCookies();           // Clear all cookies
+  await context.clearPermissions();       // Clear permission overrides
+  await context.setStorageState({         // Clear localStorage, sessionStorage, IndexedDB
+    cookies: [],
+    origins: []
+  });
+
+  // Alternative: Create fresh context
+  const freshContext = await browser.newContext();
+  return freshContext;
+}
+```
+
+## Cross-Browser Compatibility
+
+**Yes, the methods are identical across all three browsers:**
+
+- **Chromium**: Full support for all state management APIs
+- **WebKit**: Full support for all state management APIs
+- **Firefox**: Full support for all state management APIs
+
+### Key Points:
+
+1. **API Consistency**: The same `BrowserContext` methods work identically across all browsers
+2. **Storage Coverage**: Methods handle cookies, localStorage, sessionStorage, and IndexedDB uniformly
+3. **No Browser-Specific Code**: No conditional logic needed for different browsers
+
+### Implementation for Testaro
+
+```javascript
+// Browser-agnostic state reset
+async function ensureCleanState(browser, testUrl) {
+  const context = await browser.newContext();
+  await context.clearCookies();
+  await context.setStorageState({ cookies: [], origins: [] });
+
+  const page = await context.newPage();
+  await page.goto(testUrl);
+
+  return { context, page };
+}
+```
+
+## Multi-State Testing Strategy
+
+With Playwright's consistent APIs, Testaro can implement:
+
+1. **First Load Test**: Fresh context → no cookies → test initial page
+2. **Dialog State Test**: Interact with dialogs → retest
+3. **Post-Interaction Test**: Dismiss dialogs → retest clean state
+
+All using the same codebase across Chromium, WebKit, and Firefox.
+
+## Code-hygiene-based testing
+
+
+Your investigation reveals critical flaws in current accessibility testing methodology that go far beyond the initial SVG issue.
+
+## (1) Test Isolation and State Management Problems
+
+### The Cookie State Issue
+Your discovery demonstrates that **page state fundamentally affects accessibility testing**:
+
+- **First load (no cookies)**: Cookie banner appears, SVG becomes visible without accessible name
+- **Subsequent loads (with cookies)**: Cookie banner suppressed, SVG remains hidden
+- **Current testing**: May capture only one state, missing violations in the other
+
+### Required Testaro Improvements
+
+**Complete State Reset**:
+- Clear all site cookies before each page load
+- Clear localStorage, sessionStorage, IndexedDB
+- Reset browser state to truly "first visit" conditions
+
+**Multi-State Testing**:
+1. **First Load Test**: Test page with no stored state
+2. **Dialog Dismissal Test**: Dismiss initial dialogs, then retest
+3. **State Change Test**: Test after common user interactions
+
+**Modal Dialog Testing**:
+- Identify modal dialogs on first load
+- Test focus trapping behavior
+- Verify keyboard dismissability
+- Check ARIA attributes in visible state
+
+## (2) Rule Definition Philosophy: Momentary vs. Hygiene
+
+### Current Problem: Momentary Correctness
+Rules that test "is this accessible right now?" fail because:
+- They miss conditional violations
+- They don't account for state changes
+- They create false negatives/positives
+
+### Better Approach: Coding Hygiene Rules
+
+Your SVG example illustrates this perfectly:
+**Poor hygiene**: SVG lacks accessible name, relies on ancestor being hidden
+**Good hygiene**: SVG has accessible name regardless of visibility state
+
+### Hygiene-Based Rule Examples
+
+1. **SVG Naming Rule**: All SVG elements must have accessible names, regardless of ancestor visibility
+2. **State Independence Rule**: Element accessibility must not depend on CSS display properties
+3. **Consistency Rule**: If an element can become visible, it must be accessible in all states
+
+## Benefits of Hygiene-Based Rules
+
+1. **Prevention-focused**: Catch issues before they cause accessibility problems
+2. **State-agnostic**: Don't depend on specific page states during testing
+3. **Developer-friendly**: Clear coding standards rather than conditional requirements
+4. **Reduced false positives**: Rules apply consistently regardless of testing conditions
+
+## Implementation Strategy
+
+**Testaro Enhancement**:
+- Add state isolation procedures
+- Implement multi-state testing workflows
+- Develop hygiene-focused rule sets
+- Create modal dialog detection and testing
+
+**AI Agent Evolution**:
+- Recognize state-dependent patterns
+- Test elements across multiple states
+- Apply hygiene-based rule evaluation
+- Predict potential accessibility failures
+
+## Conclusion
+
+Your investigation reveals that **current accessibility testing is fundamentally incomplete**. The solution requires both technical improvements (state management) and philosophical shifts (hygiene-based rules). This significantly raises the complexity bar but also the potential effectiveness of automated accessibility testing.
