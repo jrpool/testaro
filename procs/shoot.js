@@ -6,7 +6,7 @@
 
 /*
   shoot
-  Makes and saves as a PNG buffer file a full-page screenshot and returns the file path.
+  Manages the production of screenshots of a page.
 
   Call shape:
     shoot(page, label, options?)
@@ -32,7 +32,7 @@ const {PNG} = require('pngjs');
 // FUNCTIONS
 
 // Returns a filename-includable string.
-const fileNameSubstring = string => {
+const fileNameClean = string => {
   // If a string was provided:
   if (typeof string === 'string' && string.length) {
     const cleanSubstring = string
@@ -55,14 +55,14 @@ const probablyUniqueString = (randomLength = 3) => {
 };
 
 // Creates and returns a screenshot.
-const screenShot = async (page, exclusion = null) => {
+const screenShot = async (page, exclusionLocator = null) => {
   const options = {
     fullPage: true,
     omitBackground: true,
     timeout: applyMultiplier(4000)
   };
-  if (exclusion) {
-    options.mask = [exclusion];
+  if (exclusionLocator) {
+    options.mask = [exclusionLocator];
   }
   // Make and return a screenshot as a buffer.
   return await page.screenshot(options)
@@ -71,15 +71,17 @@ const screenShot = async (page, exclusion = null) => {
     return '';
   });
 };
-// Creates a screenshot and returns it or the path to a file containing it.
+// Creates a screenshot and returns a PNG buffer or the path to a file containing it.
 exports.shoot = async (page, {
-  exclusion = null,
+  // Playwright locator of a mask.
+  exclusionLocator = null,
+  // 0 (grayscale), 2 (RGB), 4 (grayscale alpha), 6 (RGBA).
   colorType = 0,
-  // Return the PNG or {dirPath, fileNameSuffix} to save it in a file.
+  // Return the PNG if 'return' or omitted, or save it in a file if an object.
   action = 'return'
 } = {}) => {
   // Make and get a screenshot as a buffer.
-  let shot = await screenShot(page, exclusion);
+  let shot = await screenShot(page, exclusionLocator);
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
@@ -94,15 +96,14 @@ exports.shoot = async (page, {
     }
     // If the PNG is to be saved in a file:
     if (typeof action === 'object') {
+      // Get the path from the object argument, or apply defaults.
       let {dirPath = tmpDir, fileNameSuffix} = action;
-      // If no file name suffix was provided, use a probably unique string.
-      fileNameSuffix = fileNameSuffix ? fileNameSubstring(fileNameSuffix) : probablyUniqueString(4);
+      fileNameSuffix = fileNameSuffix ? fileNameClean(fileNameSuffix) : probablyUniqueString(4);
       const fileName = `screenshot-${fileNameSuffix}.png`;
-      // Get the path for the file.
       const pngPath = path.join(dirPath, fileName);
-      // Save the PNG buffer there.
+      // Save the PNG buffer in a file.
       await fs.writeFile(pngPath, pngBuffer);
-      // Return the path to the file.
+      // Return the file path.
       return pngPath;
     }
     // Otherwise, i.e. if the PNG is not to be saved in a file, return it.

@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the IDs in the aria-describedby attribute of the element.
     const IDs = element.getAttribute('aria-describedby').trim().split(/\s+/).filter(Boolean);
@@ -57,6 +57,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements have aria-describedby attributes with missing or invalid id values';
   return await doTest(
-    page, catalog, withItems, 'adbID', 'body [aria-describedby]', whats, 3, getBadWhat.toString()
+    page, report.catalog, withItems, 'adbID', 'body [aria-describedby]', whats, 3, getBadWhat.toString()
   );
 };

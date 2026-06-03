@@ -459,14 +459,6 @@ process.on('unhandledRejection', reason => {
 
 // FUNCTIONS
 
-// Waits.
-const wait = ms => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve('');
-    }, ms);
-  });
-};
 // Conducts and reports Testaro tests.
 exports.reporter = async (page, report, actIndex) => {
   const act = report.acts[actIndex];
@@ -578,13 +570,13 @@ exports.reporter = async (page, report, actIndex) => {
         browser.on('disconnected', disconnectHandler);
       }
       // Initialize an argument array for the reporter.
-      const ruleArgs = [page, report.catalog, withItems];
+      const ruleArgs = [page, report, actIndex, withItems];
       // If the rule needs a temporary directory:
       if (rule.needsTmpDir) {
         // Add its path to the argument array.
         ruleArgs.push(report.jobData.tmpDir);
       }
-      // If the rule has extra arguments:
+      // If the testaro test act specifies extra arguments for this rule:
       if (argRules?.includes(ruleResult.id)) {
         // Add them to the argument array.
         ruleArgs.push(... args[ruleResult.id]);

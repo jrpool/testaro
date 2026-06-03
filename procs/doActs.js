@@ -641,8 +641,15 @@ exports.doActs = async report => {
           }
           // Otherwise, if the act is a screenshot:
           else if (type === 'shoot') {
-            const exclusion = act.exclusion ? page.locator(act.exclusion) : null;
-            const pngPath = await shoot(page, act.which, {exclusion});
+            const {exclusionSelector, colorType, dirPath, fileNameSuffix} = act;
+            const pngPath = await shoot(page, {
+              exclusion: page.locator(exclusionSelector) || null,
+              colorType: colorType || 0,
+              action: {
+                dirPath: dirPath || tmpDir,
+                fileNameSuffix: fileNameSuffix || act.which
+              }
+            });
             act.result = pngPath
               ? {success: true, path: pngPath}
               : {success: false, prevented: true};
