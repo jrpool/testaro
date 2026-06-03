@@ -233,7 +233,8 @@ const launchOnce = async opts => {
     tempURL = '',
     headEmulation = 'high',// low, high
     xPathNeed = 'script',// own, script, attribute, none
-    needsAccessibleName = false
+    needsAccessibleName = false,
+    shoot = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
   const {device} = report;
@@ -477,6 +478,10 @@ const launchOnce = async opts => {
       const navResult = await goTo(report, page, url, 10000, waitUntil);
       // If the navigation succeeded:
       if (navResult.success) {
+        // If a screenshot is required, make it.
+        if (shoot) {
+          await page.screenshot({path: 'screenshot.png'});
+        }
         // If XPath attributes are needed:
         if (xPathNeed === 'attribute') {
           // Use the added script to add them.
@@ -541,7 +546,8 @@ exports.launch = async (opts = {}) => {
     headEmulation = 'high',
     xPathNeed = 'script',
     needsAccessibleName = false,
-    retries = 2
+    retries = 2,
+    shoot = false
   } = opts;
   // If the report is valid:
   const jobValidation = isValidJob(report);
@@ -598,7 +604,8 @@ exports.launch = async (opts = {}) => {
             tempURL,
             headEmulation,
             xPathNeed,
-            needsAccessibleName
+            needsAccessibleName,
+            shoot
           }
         );
         // If the launch and navigation succeeded:

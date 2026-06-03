@@ -25,7 +25,6 @@
 
 // Module to close and launch browsers.
 const {browserClose, launch} = require('./launch');
-const {getXPathCatalogIndex} = require('./xPath');
 
 // FUNCTIONS
 
