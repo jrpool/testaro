@@ -134,6 +134,45 @@ exports.reporter = async (page, report, actIndex) => {
       });
       // If standard results are to be reported and there are any suspicions:
       if (standard && (totals.rulesViolated || totals.rulesWarned)) {
+        // Resolve each suspected element's FULL data-xpath from the live DOM,
+        // keyed by its axe target. axe-core truncates node.html (~300 chars,
+        // appends '...'), so parsing data-xpath out of node.html yields a
+        // truncated XPath for elements with long attribute lists. node.target
+        // is a reliable CSS selector; read the injected data-xpath directly off
+        // the element instead. Falls back to the node.html parse on any failure.
+        const fullXPathByTargetKey = {};
+        try {
+          const suspectNodes = ['incomplete', 'violations']
+          .filter(certainty => nativeResult?.details?.[certainty])
+          .flatMap(certainty => nativeResult.details[certainty].flatMap(rule => rule.nodes));
+          const targets = suspectNodes.map(node => node.target);
+          const resolvedXPaths = await page.evaluate(targetList => targetList.map(target => {
+            try {
+              // axe target is an array of selectors (nested arrays for frames/
+              // shadow roots). Use the deepest plain-string selector for the
+              // common, non-framed case; skip otherwise.
+              const selector = Array.isArray(target)
+                ? (typeof target[target.length - 1] === 'string' ? target[target.length - 1] : null)
+                : (typeof target === 'string' ? target : null);
+              if (! selector) {
+                return null;
+              }
+              const element = document.querySelector(selector);
+              return element ? element.getAttribute('data-xpath') : null;
+            }
+            catch(error) {
+              return null;
+            }
+          }), targets);
+          suspectNodes.forEach((node, index) => {
+            if (resolvedXPaths[index]) {
+              fullXPathByTargetKey[JSON.stringify(node.target)] = resolvedXPaths[index];
+            }
+          });
+        }
+        catch(error) {
+          // Leave the map empty; every instance falls back to node.html below.
+        }
         // For each certainty type:
         ['incomplete', 'violations'].forEach(certainty => {
           // If there are any suspicions of this type:
@@ -153,8 +192,12 @@ exports.reporter = async (page, report, actIndex) => {
                 + (certainty === 'violations' ? 2 : 0);
                 // Increment the standard total.
                 standardResult.totals[ordinalSeverity]++;
-                // Get the XPath of the suspected element from its data-xpath attribute.
-                const xPath = getAttributeXPath(node.html);
+                // Get the XPath of the suspected element from its data-xpath
+                // attribute. Prefer the full value resolved from the live DOM
+                // (above); fall back to parsing it out of axe's node.html,
+                // which axe truncates and can corrupt the XPath.
+                const xPath = fullXPathByTargetKey[JSON.stringify(node.target)]
+                || getAttributeXPath(node.html);
                 const instance = {
                   ruleID: rule.id,
                   what: Array.from(whatSet.values()).join('; '),
