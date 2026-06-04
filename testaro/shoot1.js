@@ -16,13 +16,20 @@ const {shoot} = require('../procs/shoot');
 // FUNCTIONS
 
 // Make and save the second screenshot.
-exports.reporter = async (page, _0, _1, _2, tmpDir) => {
-  const tempFileNames = await fs.readdir(tmpDir);
+exports.reporter = async (page, report) => {
+  const tempFileNames = await fs.readdir(report.jobData.tmpDir);
   let pngPath = '';
   // If there is a shoot0 file:
   if (tempFileNames.includes('testaro-shoot-0.png')) {
     // Make and save the screenshot.
-    pngPath = await shoot(page, 1, tmpDir);
+    pngPath = await shoot(page, {
+      exclusionSelector: null,
+      colorType: 0,
+      action: {
+        dirPath: report.jobData.tmpDir,
+        fileNameSuffix: `${report.id}-1`
+      }
+    });
   }
   // Return whether the screenshot was prevented.
   return {
