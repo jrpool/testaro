@@ -641,18 +641,14 @@ exports.doActs = async report => {
           }
           // Otherwise, if the act is a screenshot:
           else if (type === 'shoot') {
-            const {exclusionSelector, colorType, dirPath, fileNameSuffix} = act;
-            const pngPath = await shoot(page, {
+            const {exclusionSelector, colorType} = act;
+            // Make a full-page screenshot and add a base-64 encoding of its PNG to the report.
+            const imageIndex = await shoot(page, {
               exclusion: page.locator(exclusionSelector) || null,
               colorType: colorType || 0,
-              action: {
-                dirPath,
-                fileNameSuffix: fileNameSuffix || act.which
-              }
+              action: 'report'
             });
-            act.result = pngPath
-              ? {success: true, path: pngPath}
-              : {success: false, prevented: true};
+            act.result = pngPath ? {success: true, imageIndex} : {success: false, prevented: true};
           }
           // Otherwise, if the act is a move:
           else if (moves[type]) {

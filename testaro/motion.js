@@ -31,11 +31,11 @@ exports.reporter = async (_0, report, _1, _2, tmpDir) => {
   let ordinalSeverity = 0;
   try {
     // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
-    let shoot0PNGBuffer = await fs.readFile(`${tmpDir}/screenshot-${report.id}-0.png`);
-    let shoot1PNGBuffer = await fs.readFile(`${tmpDir}/screenshot-${report.id}-1.png`);
+    let shoot0PNGBuffer = await fs.readFile(report.jobData.testaroShoot0);
+    let shoot1PNGBuffer = await fs.readFile(report.jobData.testaroShoot1);
     // Delete the buffer files.
-    await fs.unlink(`${tmpDir}/screenshot-${report.id}-0.png`);
-    await fs.unlink(`${tmpDir}/screenshot-${report.id}-1.png`);
+    await fs.unlink(report.jobData.testaroShoot0);
+    await fs.unlink(report.jobData.testaroShoot1);
     // If both buffers exist:
     if (shoot0PNGBuffer && shoot1PNGBuffer) {
       // Parse them into PNG objects.

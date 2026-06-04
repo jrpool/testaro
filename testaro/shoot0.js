@@ -20,11 +20,13 @@ exports.reporter = async (page, report) => {
   const pngPath = await shoot(page, {
     exclusionSelector: null,
     colorType: 0,
-    action: {
-      dirPath: report.jobData.tmpDir,
-      fileNameSuffix: `${report.id}-0`
-    }
+    action: 'file'
   });
+  // If this succeeded:
+  if (pngPath) {
+    // Add the file path to the report.
+    report.jobData.testaroShoot0 = pngPath;
+  }
   // Return whether the screenshot was prevented.
   return {
     data: {
