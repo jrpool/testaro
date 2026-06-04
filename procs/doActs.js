@@ -646,7 +646,7 @@ exports.doActs = async report => {
               exclusion: page.locator(exclusionSelector) || null,
               colorType: colorType || 0,
               action: {
-                dirPath: dirPath || tmpDir,
+                dirPath,
                 fileNameSuffix: fileNameSuffix || act.which
               }
             });

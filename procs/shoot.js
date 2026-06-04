@@ -6,18 +6,7 @@
 
 /*
   shoot
-  Manages the production of screenshots of a page.
-
-  Call shape:
-    shoot(page, label, options?)
-      label:   string|number used in the saved filename. Sanitized to
-               testaro-shoot-<safe>.png — characters outside [A-Za-z0-9._-]
-               collapse to '_', leading/trailing dots and underscores are
-               stripped, length is capped at 100, and an empty result becomes
-               'unnamed'.
-      options: optional object:
-        exclusion: a Playwright Locator to mask in the screenshot.
-        dir:       output directory (defaults to the OS temp dir).
+  Manages the production and disposition of screenshots of a page.
 */
 
 // IMPORTS
@@ -31,29 +20,11 @@ const {PNG} = require('pngjs');
 
 // FUNCTIONS
 
-// Returns a filename-includable string.
-const fileNameClean = string => {
-  // If a string was provided:
-  if (typeof string === 'string' && string.length) {
-    const cleanSubstring = string
-    // Replace unsafe character substrings with single underscores.
-    .replace(/[^\w.-]+/g, '_')
-    // Remove leading and trailing non-alphanumeric characters.
-    .replace(/^[._-]+|[._-]+$/g, '')
-    // Remove any characters after the first 100.
-    .slice(0, 100);
-    // Return the resulting string, which may be empty.
-    return cleanSubstring;
-  }
-  // Otherwise, i.e. if no string was provided, return an empty string.
-  return '';
-};
-// Returns a probably unique string.
-const probablyUniqueString = (randomLength = 3) => {
-  const string = `${nowStamp()}-${Math.random().toString(36).slice(2, 2 + randomLength)}`;
+// Returns a probably unique file name.
+const randomFileName = (suffixLength = 3) => {
+  const fileName = `${nowStamp()}-${Math.random().toString(36).slice(2, 2 + suffixLength)}`;
   return string;
 };
-
 // Creates and returns a screenshot.
 const screenShot = async (page, exclusionLocator = null) => {
   const options = {
@@ -72,13 +43,13 @@ const screenShot = async (page, exclusionLocator = null) => {
     return '';
   });
 };
-// Creates a screenshot and returns a PNG buffer or the path to a file containing it.
-exports.shoot = async (page, {
+// Creates and disposes of the PNG of a screenshot.
+exports.shoot = async (page, report, {
   // Playwright locator of a mask.
   exclusionLocator = null,
-  // 0 (grayscale), 2 (RGB), 4 (grayscale alpha), 6 (RGBA).
+  // Color fidelity: 0 (grayscale), 2 (RGB), 4 (grayscale alpha), 6 (RGBA).
   colorType = 0,
-  // Return the PNG if 'return' or omitted, or save it in a file if an object.
+  // Disposition: return, report, file.
   action = 'return'
 } = {}) => {
   // Make and get a screenshot as a buffer.
@@ -95,20 +66,29 @@ exports.shoot = async (page, {
     if (global.gc) {
       global.gc();
     }
-    // If the PNG is to be saved in a file:
-    if (typeof action === 'object') {
-      // Get the path from the object argument, or apply defaults.
-      let {dirPath = tmpDir, fileNameSuffix} = action;
-      fileNameSuffix = fileNameSuffix ? fileNameClean(fileNameSuffix) : probablyUniqueString(4);
-      const fileName = `screenshot-${fileNameSuffix}.png`;
-      const pngPath = path.join(dirPath, fileName);
-      // Save the PNG buffer in a file.
-      await fs.writeFile(pngPath, pngBuffer);
-      // Return the file path.
-      return pngPath;
+    // If the PNG is to be returned:
+    if (action === 'return') {
+      // Return it.
+      return pngBuffer;
     }
-    // Otherwise, i.e. if the PNG is not to be saved in a file, return it.
-    return pngBuffer;
+    // Otherwise, if it is to be appended to the report:
+    if (action === 'report') {
+      report.images ??= [];
+      // Append it, encoded as base64, to the report.
+      report.images.push(pngBuffer.toString('base64'));
+      // Return the index of the added image
+      return report.images.length - 1;
+    }
+    // Otherwise, if it is to be saved in a file:
+    if (action === 'file') {
+      const filePath = path.join(tmpDir, randomFileName(4));
+      // Save the PNG buffer in a file.
+      await fs.writeFile(filePath, pngBuffer);
+      // Return the file path.
+      return filePath;
+    }
+    // Otherwise, i.e. if the action is unknown, return this.
+    return '';
   }
   // Otherwise, i.e. if it failed:
   else {
