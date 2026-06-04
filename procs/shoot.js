@@ -59,6 +59,7 @@ const screenShot = async (page, exclusionLocator = null) => {
   const options = {
     fullPage: true,
     omitBackground: true,
+    scale: 'css',
     timeout: applyMultiplier(4000)
   };
   if (exclusionLocator) {
