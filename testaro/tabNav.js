@@ -286,7 +286,7 @@ const testTabLists = async (tabLists, withItems, page) => {
   }
 };
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   // Initialize the results.
   data.totals = {
     navigations: {
@@ -374,7 +374,7 @@ exports.reporter = async (page, catalog, withItems) => {
         what: `Tab responds nonstandardly to ${item.navigationErrors.join(', ')}`,
         ordinalSeverity: 1,
         count: 1,
-        catalogIndex: getXPathCatalogIndex(catalog, item.xPath)
+        catalogIndex: getXPathCatalogIndex(report.catalog, item.xPath)
       });
     });
   }

@@ -20,7 +20,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog) => {
+exports.reporter = async (page, report) => {
   // Get a count of elements deemed visible by Playwright.
   const visibleElementCount = await page.locator('body :visible').count();
   // Convert the count to a severity level, treating up to 400 as non-reportable.
@@ -38,7 +38,7 @@ exports.reporter = async (page, catalog) => {
         what: `Page contains ${visibleElementCount} visible elements`,
         ordinalSeverity: severity,
         count: 1,
-        catalogIndex: getXPathCatalogIndex(catalog, '/html')
+        catalogIndex: getXPathCatalogIndex(report.catalog, '/html')
       }]
     };
   }

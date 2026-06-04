@@ -19,7 +19,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog) => {
+exports.reporter = async (page, report) => {
   // Get a count of elements deemed visible by Playwright.
   const visibleElementCount = await page.locator('body :visible').count();
   // If no element is visible:
@@ -33,7 +33,7 @@ exports.reporter = async (page, catalog) => {
         what: 'The entire page body is hidden or empty',
         ordinalSeverity: 3,
         count: 1,
-        catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+        catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
       }]
     };
   }

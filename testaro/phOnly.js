@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the accessible name of the element.
     const accessibleName = window.getAccessibleName(element);
@@ -34,6 +34,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'input elements have placeholders but no accessible names';
   return await doTest(
-    page, catalog, withItems, 'phOnly', 'body input[placeholder]', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'phOnly', 'body input[placeholder]', whats, 2, getBadWhat.toString()
   );
 };

@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const rawText = element.textContent || '';
     // If the element has text content with any non-whitespace:
@@ -59,6 +59,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Visible elements have font sizes smaller than 11 pixels';
   return await doTest(
-    page, catalog, withItems, 'miniText', 'body, body *:not(script, style)', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'miniText', 'body, body *:not(script, style)', whats, 2, getBadWhat.toString()
   );
 };

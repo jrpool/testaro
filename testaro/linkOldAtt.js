@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const attNames = element.getAttributeNames();
     const allBadAttNames = ['charset', 'coords', 'name', 'rev', 'shape'];
@@ -39,6 +39,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'body a[charset], body a[coords], body a[name], body a[rev], body a[shape]';
   const whats = 'Links have deprecated attributes';
   return await doTest(
-    page, catalog, withItems, 'linkOldAtt', selector, whats, 1, getBadWhat.toString()
+    page, report.catalog, withItems, 'linkOldAtt', selector, whats, 1, getBadWhat.toString()
   );
 };

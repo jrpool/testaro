@@ -18,7 +18,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the node before the element node.
     const previousNode = element.previousSibling;
@@ -49,6 +49,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'br elements follow other br elements, possibly constituting pseudo-paragraphs';
   return await doTest(
-    page, catalog, withItems, 'pseudoP', 'body br', whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'pseudoP', 'body br', whats, 0, getBadWhat.toString()
   );
 };

@@ -18,7 +18,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const isVisible = element.checkVisibility({
       contentVisibilityAuto: true,
@@ -33,6 +33,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Links are missing href attributes';
   return await doTest(
-    page, catalog, withItems, 'linkTo', 'body a:not([href]', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'linkTo', 'body a:not([href]', whats, 2, getBadWhat.toString()
   );
 };

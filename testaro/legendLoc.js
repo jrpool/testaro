@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const parent = element.parentElement;
     // If the element violates the rule:
@@ -33,6 +33,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Legend elements are not the first children of fieldset elements';
   return await doTest(
-    page, catalog, withItems, 'legendLoc', 'body legend', whats, 3, getBadWhat.toString()
+    page, report.catalog, withItems, 'legendLoc', 'body legend', whats, 3, getBadWhat.toString()
   );
 };

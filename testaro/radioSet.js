@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the name of the element.
     const elName = element.name;
@@ -69,6 +69,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Radio buttons are not validly grouped in fieldsets with legends';
   return await doTest(
-    page, catalog, withItems, 'radioSet', 'body input[type=radio]', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'radioSet', 'body input[type=radio]', whats, 2, getBadWhat.toString()
   );
 };

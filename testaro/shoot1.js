@@ -16,7 +16,7 @@ const {shoot} = require('../procs/shoot');
 // FUNCTIONS
 
 // Make and save the second screenshot.
-exports.reporter = async (page, _0, _1, tmpDir) => {
+exports.reporter = async (page, _0, _1, _2, tmpDir) => {
   const tempFileNames = await fs.readdir(tmpDir);
   let pngPath = '';
   // If there is a shoot0 file:

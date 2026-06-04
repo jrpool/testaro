@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const isVisible = element.checkVisibility({
       contentVisibilityAuto: true,
@@ -38,6 +38,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'body i, body b, body small';
   const whats = 'Semantically vague elements i, b, and/or small are used';
   return await doTest(
-    page, catalog, withItems, 'textSem', selector, whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'textSem', selector, whats, 0, getBadWhat.toString()
   );
 };

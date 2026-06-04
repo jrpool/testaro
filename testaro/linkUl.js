@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     let {display, textDecorationLine} = window.getComputedStyle(element);
     // If the element is not underlined:
@@ -44,6 +44,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Links with adjacent text are not underlined';
   return await doTest(
-    page, catalog, withItems, 'linkUl', 'body a', whats, 1, getBadWhat.toString()
+    page, report.catalog, withItems, 'linkUl', 'body a', whats, 1, getBadWhat.toString()
   );
 };

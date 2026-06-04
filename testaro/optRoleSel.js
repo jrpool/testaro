@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // If the element has no aria-selected attribute:
     if (! element.hasAttribute('aria-selected')) {
@@ -32,6 +32,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements with role=option have no aria-selected attributes';
   return await doTest(
-    page, catalog, withItems, 'optRoleSel', 'body [role="option"]', whats, 1, getBadWhat.toString()
+    page, report.catalog, withItems, 'optRoleSel', 'body [role="option"]', whats, 1, getBadWhat.toString()
   );
 };

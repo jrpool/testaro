@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get whether the embedding element is a link or a button.
     const embedder = element.parentElement.closest('a, button');
@@ -32,5 +32,5 @@ exports.reporter = async (page, catalog, withItems) => {
   .map(tag => `a ${tag}, button ${tag}`)
   .join(', ');
   const whats = 'interactive elements are embedded in links or buttons';
-  return await doTest(page, catalog, withItems, 'embAc', selector, whats, 2, getBadWhat.toString());
+  return await doTest(page, report.catalog, withItems, 'embAc', selector, whats, 2, getBadWhat.toString());
 };

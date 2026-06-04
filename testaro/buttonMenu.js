@@ -180,7 +180,7 @@ const focusSuccess = async (miLocsDir, priorIndex, key, isPseudo) => {
   return result;
 };
 // Performs the test and reports the result.
-exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
+exports.reporter = async (page, report, _0, withItems, trialKeySpecs = []) => {
   // Initialize the result.
   const data = {};
   const totals = [0, 0, 0, 0];
@@ -304,7 +304,7 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
                     what: `Menu responds nonstandardly to the ${key} key`,
                     ordinalSeverity: 2,
                     count: 1,
-                    catalogIndex: getXPathCatalogIndex(catalog, mbXPath)
+                    catalogIndex: getXPathCatalogIndex(report.catalog, mbXPath)
                   });
                 }
                 // Stop testing the menu button.
@@ -339,7 +339,7 @@ exports.reporter = async (page, catalog, withItems, trialKeySpecs = []) => {
           what: 'Menu button does not control exactly 1 menu',
           ordinalSeverity: 2,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(catalog, mbXPath)
+          catalogIndex: getXPathCatalogIndex(report.catalog, mbXPath)
         });
       }
     }

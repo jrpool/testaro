@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const elementType = element.tagName.toLowerCase();
     // Return a violation description.
@@ -29,6 +29,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'body [title]:not(iframe, link, style)';
   const whats = 'title attributes are used on elements they are likely ineffective on';
   return await doTest(
-    page, catalog, withItems, 'titledEl', selector, whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'titledEl', selector, whats, 0, getBadWhat.toString()
   );
 };

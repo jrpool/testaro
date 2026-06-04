@@ -22,7 +22,8 @@ const {doTest} = require('../procs/testaro');
 // Runs the test and returns the result.
 exports.reporter = async (
   page,
-  catalog,
+  report,
+  _0,
   withItems,
   labels = {
     name: ['your name', 'full name', 'first and last name'],
@@ -85,5 +86,5 @@ exports.reporter = async (
   [0, 1, 2, 3].forEach(index => {
     getBadWhatString = getBadWhatString.replace(placeHolders[index], replacers[index]);
   });
-  return doTest(page, catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString);
+  return doTest(page, report.catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString);
 };

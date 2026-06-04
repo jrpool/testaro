@@ -20,7 +20,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog) => {
+exports.reporter = async (page, report) => {
   // Initialize the data and standard result.
   const data = {
     total: 0,
@@ -65,7 +65,7 @@ exports.reporter = async (page, catalog) => {
       what: `Invalid elements within the head: ${data.badTagNames.join(', ')}`,
       ordinalSeverity: 2,
       count: data.total,
-      catalogIndex: getXPathCatalogIndex(catalog, '/html/head')
+      catalogIndex: getXPathCatalogIndex(report.catalog, '/html/head')
     });
   }
   totals = [0, 0, data.total, 0];

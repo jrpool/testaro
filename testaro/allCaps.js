@@ -110,12 +110,12 @@ const classifyWithAI = entries => new Promise((resolve, reject) => {
 });
 
 // Runs the test and returns the result.
-exports.reporter = async (_, catalog, withItems) => {
+exports.reporter = async (_0, report, _1, withItems) => {
   const data = {};
   const totals = [0, 0, 0, 0];
   const standardInstances = [];
   // Get data on the catalog entries whose text values contain 2+ consecutive capital letters.
-  const qualifying = Object.entries(catalog)
+  const qualifying = Object.entries(report.catalog)
   .filter(([, entry]) => entry.text && /\p{Lu}{2,}/u.test(entry.text))
   .map(([index, entry]) => ({
     index: Number(index),
@@ -163,7 +163,7 @@ exports.reporter = async (_, catalog, withItems) => {
   }
   catch(error) {
     data.aiError = error.message;
-    violations = getRuleBasedViolations(catalog);
+    violations = getRuleBasedViolations(report.catalog);
   }
   const estimatedLeftOut = data.leftOut?.estimatedViolations ?? 0;
   // Add the estimated violation count to the totals.

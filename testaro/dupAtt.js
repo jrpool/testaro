@@ -20,7 +20,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   // Initialize the data and standard result.
   const data = {total: 0};
   if (withItems) {
@@ -96,7 +96,7 @@ exports.reporter = async (page, catalog, withItems) => {
           what: `${item.tagName} element has 2 attributes named ${item.duplicatedAttribute}`,
           ordinalSeverity: 2,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+          catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
         });
       });
     }

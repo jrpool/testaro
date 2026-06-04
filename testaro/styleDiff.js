@@ -81,10 +81,10 @@ const linksByType = async page => await page.evaluateHandle(() => {
   };
 });
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   // Get an object with arrays of list links and adjacent links as properties.
   const linkTypes = await linksByType(page);
-  const catalogIndex = getXPathCatalogIndex(catalog, '/html/body');
+  const catalogIndex = getXPathCatalogIndex(report.catalog, '/html/body');
   return await page.evaluate(args => {
     const [linkTypes, withItems, catalogIndex] = args;
     const {body} = document;

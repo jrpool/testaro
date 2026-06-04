@@ -25,7 +25,7 @@ const implicitRoles = new Set(Array.from(elementRoles.values()).flat());
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   // Get locators for the elements with explicit roles.
   const loc = page.locator('[role]');
   const locs = await loc.all();
@@ -44,5 +44,5 @@ exports.reporter = async (page, catalog, withItems) => {
   }
   // Get and return a result.
   const whats = 'Elements have roles assigned that are also implicit HTML element roles';
-  return await getBasicResult(catalog, withItems, 'role', 0, whats, {}, violations);
+  return await getBasicResult(report.catalog, withItems, 'role', 0, whats, {}, violations);
 };

@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the style declaration of the element.
     const styleDec = window.getComputedStyle(element);
@@ -46,6 +46,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'body, body *:not(style, script, svg)';
   const whats = 'Elements have an all-capital text transformation style';
   return await doTest(
-    page, catalog, withItems, 'allCapStyle', selector, whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'allCapStyle', selector, whats, 0, getBadWhat.toString()
   );
 };

@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const isVisible = element.checkVisibility({
       contentVisibilityAuto: true,
@@ -42,6 +42,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Visible links are above or to the left of the display';
   return await doTest(
-    page, catalog, withItems, 'focVis', 'body a', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'focVis', 'body a', whats, 2, getBadWhat.toString()
   );
 };

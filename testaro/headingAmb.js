@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // ########## FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const {tagName} = element;
     const level = tagName[1];
@@ -70,6 +70,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = headingLevels.map(level => `body h${level}`).join(', ');
   const whats = 'Adjacent sibling same-level headings have the same text';
   return await doTest(
-    page, catalog, withItems, 'headingAmb', selector, whats, 1, getBadWhat.toString()
+    page, report.catalog, withItems, 'headingAmb', selector, whats, 1, getBadWhat.toString()
   );
 };

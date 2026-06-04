@@ -15,7 +15,7 @@
 */
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog) => {
+exports.reporter = async (page, report) => {
   // Returns whether the page declares a document type.
   const docHasType = await page.evaluate(() => {
     const docType = document.doctype;

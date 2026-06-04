@@ -19,13 +19,13 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Return a violation description.
     return `Link has a target=_blank attribute`;
   };
   const whats = 'Links have target=_blank attributes';
   return await doTest(
-    page, catalog, withItems, 'linkExt', 'body a[target=_blank]', whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'linkExt', 'body a[target=_blank]', whats, 0, getBadWhat.toString()
   );
 };

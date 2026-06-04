@@ -20,7 +20,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   // Return totals and standard instances for the rule.
   const protoResult = await page.evaluate(withItems => {
     // Get all pointer targets.
@@ -142,7 +142,7 @@ exports.reporter = async (page, catalog, withItems) => {
   }, withItems);
   // Convert the XPaths of the proto-instances to catalog indexes.
   protoResult.standardInstances = protoResult.standardInstances.map(instance => {
-    instance.catalogIndex = getXPathCatalogIndex(catalog, instance.xPath);
+    instance.catalogIndex = getXPathCatalogIndex(report.catalog, instance.xPath);
     delete instance.xPath;
     return instance;
   });

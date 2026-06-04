@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const styleDec = window.getComputedStyle(element);
     const {transform} = styleDec;
@@ -38,6 +38,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements distort their texts';
   return await doTest(
-    page, catalog, withItems, 'distortion', 'body, body *', whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'distortion', 'body, body *', whats, 0, getBadWhat.toString()
   );
 };

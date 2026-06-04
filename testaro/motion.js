@@ -22,7 +22,7 @@ const {PNG} = require('pngjs');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (_0, catalog, _1, tmpDir) => {
+exports.reporter = async (_0, report, _1, _2, tmpDir) => {
   // Initialize the totals and standard instances.
   const data = {};
   const totals = [0, 0, 0, 0];
@@ -75,7 +75,7 @@ exports.reporter = async (_0, catalog, _1, tmpDir) => {
           what: violationWhat,
           ordinalSeverity,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+          catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
         });
       }
     }

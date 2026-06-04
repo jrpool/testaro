@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the label types of the element.
     const labelTypes = [];
@@ -44,6 +44,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'body button, body input:not([type=hidden]), body select, body textarea';
   const whats = 'Elements have inconsistent label types';
   return await doTest(
-    page, catalog, withItems, 'labClash', selector, whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'labClash', selector, whats, 2, getBadWhat.toString()
   );
 };

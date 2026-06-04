@@ -21,7 +21,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the value of the alt attribute of the element.
     const alt = (element.getAttribute('alt') || '').trim();
@@ -41,6 +41,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'img elements have alt attributes with URL or filename values';
   return await doTest(
-    page, catalog, withItems, 'altScheme', 'body img[alt]', whats, 1, getBadWhat.toString()
+    page, report.catalog, withItems, 'altScheme', 'body img[alt]', whats, 1, getBadWhat.toString()
   );
 };

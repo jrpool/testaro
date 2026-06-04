@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const parent = element.parentElement;
     // If the element is not the first child of a table element:
@@ -31,6 +31,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'caption elements are not the first children of table elements';
   return await doTest(
-    page, catalog, withItems, 'captionLoc', 'body caption', whats, 3, getBadWhat.toString()
+    page, report.catalog, withItems, 'captionLoc', 'body caption', whats, 3, getBadWhat.toString()
   );
 };

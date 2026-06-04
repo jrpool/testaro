@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems, attributeName, areLicit, values) => {
+exports.reporter = async (page, report, _0, withItems, attributeName, areLicit, values) => {
   const getBadWhat = element => {
     // Get the value of the attribute.
     const value = element.getAttribute(attributeName);
@@ -31,6 +31,6 @@ exports.reporter = async (page, catalog, withItems, attributeName, areLicit, val
   };
   const whats = `Elements have attribute ${attributeName} with illicit values`;
   return await doTest(
-    page, catalog, withItems, 'attVal', `body [${attributeName}]`, whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'attVal', `body [${attributeName}]`, whats, 2, getBadWhat.toString()
   );
 };

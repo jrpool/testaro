@@ -19,7 +19,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog) => {
+exports.reporter = async (page, report) => {
   // Get locators of visible elements.
   const locAll = await page.locator('body *:visible');
   // Get the count of focusable elements.
@@ -74,7 +74,7 @@ exports.reporter = async (page, catalog) => {
       what: 'Some focusable elements are not Tab-focusable or vice versa',
       ordinalSeverity: 2,
       count,
-      catalogIndex: getXPathCatalogIndex(catalog, '/html/body')
+      catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
     }] : []
   };
 };

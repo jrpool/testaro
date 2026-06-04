@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get whether the element is visible.
     const isVisible = element.checkVisibility({
@@ -118,6 +118,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements are Tab-focusable but not operable or vice versa';
   return await doTest(
-    page, catalog, withItems, 'focAndOp', 'body, body *', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'focAndOp', 'body, body *', whats, 2, getBadWhat.toString()
   );
 };

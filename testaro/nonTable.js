@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // If the element contains another table:
     if (element.querySelector('table')) {
@@ -56,6 +56,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'table elements are misused for non-table content';
   return await doTest(
-    page, catalog, withItems, 'nonTable', 'body table', whats, 2, getBadWhat.toString()
+    page, report.catalog, withItems, 'nonTable', 'body table', whats, 2, getBadWhat.toString()
   );
 };

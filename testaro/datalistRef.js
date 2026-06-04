@@ -19,7 +19,7 @@ const {doTest} = require('../procs/testaro');
 
 // FUNCTIONS
 
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get the ID of the datalist element referenced by the list attribute of the element.
     const listID = element.getAttribute('list');
@@ -46,6 +46,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'list attributes of input elements are empty or IDs of no or non-datalist elements';
   return await doTest(
-    page, catalog, withItems, 'datalistRef', 'body input[list]', whats, 3, getBadWhat.toString()
+    page, report.catalog, withItems, 'datalistRef', 'body input[list]', whats, 3, getBadWhat.toString()
   );
 };

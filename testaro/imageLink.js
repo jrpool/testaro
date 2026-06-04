@@ -22,7 +22,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const href = element.getAttribute('href') || '';
     // If the destination of the element is an image file:
@@ -33,6 +33,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Links have image files as their destinations';
   return await doTest(
-    page, catalog, withItems, 'imageLink', 'body  a[href]', whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'imageLink', 'body  a[href]', whats, 0, getBadWhat.toString()
   );
 };

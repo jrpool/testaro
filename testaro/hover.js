@@ -64,7 +64,7 @@ const getVisibleCountChange = async (
 const getViolationDescription = (change, elapsedTime) =>
   `Hovering over the element changes the related visible element count by ${change} in ${elapsedTime}ms`;
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   // Initialize the locators and result.
   const candidateLocs = await page.locator([
    '[aria-controls]:visible',
@@ -141,5 +141,5 @@ exports.reporter = async (page, catalog, withItems) => {
   }
   // Get and return a result.
   const whats = 'Hovering over elements changes the number of related visible elements';
-  return await getBasicResult(catalog, withItems, 'hover', 0, whats, data, violations);
+  return await getBasicResult(report.catalog, withItems, 'hover', 0, whats, data, violations);
 };

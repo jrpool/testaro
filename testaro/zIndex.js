@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     // Get whether the element violates the rule.
     const styleDec = window.getComputedStyle(element);
@@ -33,6 +33,6 @@ exports.reporter = async (page, catalog, withItems) => {
   };
   const whats = 'Elements have non-default Z indexes';
   return await doTest(
-    page, catalog, withItems, 'zIndex', 'body, body *', whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'zIndex', 'body, body *', whats, 0, getBadWhat.toString()
   );
 };

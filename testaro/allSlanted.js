@@ -20,7 +20,7 @@ const {doTest} = require('../procs/testaro');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (page, catalog, withItems) => {
+exports.reporter = async (page, report, _, withItems) => {
   const getBadWhat = element => {
     const styleDec = window.getComputedStyle(element);
     const {textContent} = element;
@@ -45,6 +45,6 @@ exports.reporter = async (page, catalog, withItems) => {
   const selector = 'body, body *:not(style, script, svg)';
   const whats = 'Elements contain all-slanted text';
   return await doTest(
-    page, catalog, withItems, 'allSlanted', selector, whats, 0, getBadWhat.toString()
+    page, report.catalog, withItems, 'allSlanted', selector, whats, 0, getBadWhat.toString()
   );
 };
