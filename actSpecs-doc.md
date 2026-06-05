@@ -55,6 +55,14 @@ The validity criterion named in item 2 may be any of these:
 - `'isWaitable'`: is `'url'`, `'title'`, or `'body'`
 - `'areStrings'`: is an array of strings
 
+## testaro tool
+
+The `tools.testaro` object has an `args` property specifying that a `testaro` test act may include an `args` property with an object value.
+
+If it does, the property names of the object value must be `testaro` rule IDs. Any property value must be an array of the positional arguments to be concatenated to the four default arguments (`page`, `report`, `actIndex`, and `withItems`) in the signature of the `reporter` function of each `testaro` rule.
+
+The rules of `testaro` that accept additional arguments are `autocomplete`, `buttonMenu`, `focInd`, and `hover`.
+
 ## License
 
 © 2026 Jonathan Robert Pool.

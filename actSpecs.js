@@ -209,7 +209,7 @@ exports.actSpecs = {
       {
         withItems: [true, 'boolean', '', 'itemize'],
         stopOnFail: [true, 'boolean', '', 'whether testing is to stop after first failure'],
-        args: [false, 'object', 'areArrays', 'extra args (object; property names are rule IDs and values are arrays of additional argument values ({autocomplete: [["first name", "forename", "given name"], ["last name", "surname", "family name"], ["email"]], buttonMenu: [], focInd: [false, 250], hover: [20]}) by default'],
+        args: [false, 'object', 'areArrays', 'extra arguments of rules taking any']
       }
     ],
     wave: [
