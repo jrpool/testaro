@@ -45,6 +45,7 @@ exports.actSpecs = {
       {
         target: [false, 'object', '', 'target different from target of the job'],
         browserID: [false, 'string', 'isBrowserID', 'browser type different from browserID of the job'],
+        shoot: [false, 'object', '', 'if screenshot to be made, exclusionSelector, colorType, and action'],
         what: [false, 'string', 'hasLength', 'comment']
       }
     ],

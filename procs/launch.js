@@ -19,6 +19,7 @@
 // Module to handle errors.
 const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
+const {shoot} = require('./shoot');
 // Two flavors of Playwright:
 // - `playwrightCore`: the upstream Playwright SDK with no plugins attached.
 // - `playwrightExtra`: the playwright-extra wrapper. `run.js` registers
@@ -234,7 +235,7 @@ const launchOnce = async opts => {
     headEmulation = 'high',// low, high
     xPathNeed = 'script',// own, script, attribute, none
     needsAccessibleName = false,
-    shoot = false
+    shoot = null
   } = opts;
   const act = report.acts[actIndex] ?? {};
   const {device} = report;
@@ -478,9 +479,20 @@ const launchOnce = async opts => {
       const navResult = await goTo(report, page, url, 10000, waitUntil);
       // If the navigation succeeded:
       if (navResult.success) {
-        // If a screenshot is required, make it.
+        // If a screenshot is required:
         if (shoot) {
-          await page.screenshot({path: 'screenshot.png'});
+          const {exclusionSelector, colorType, action} = shoot;
+          // Make it and dispose of it as specified.
+          const screenShotInfo = await shoot(page, report, {
+            exclusionSelector,
+            colorType,
+            action
+          });
+          // If the launch was for an act:
+          if (act) {
+            // Add information about the screenshot to the act.
+            act.screenshot = screenShotInfo;
+          }
         }
         // If XPath attributes are needed:
         if (xPathNeed === 'attribute') {
@@ -547,7 +559,7 @@ exports.launch = async (opts = {}) => {
     xPathNeed = 'script',
     needsAccessibleName = false,
     retries = 2,
-    shoot = false
+    shoot = null
   } = opts;
   // If the report is valid:
   const jobValidation = isValidJob(report);

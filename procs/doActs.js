@@ -289,13 +289,14 @@ exports.doActs = async report => {
       }
       // Otherwise, if the act is a launch:
       else if (type === 'launch') {
-        // Launch a browser, navigate to a page, and add the result to the act.
+        // Launch a browser, navigate, optionally make a screenshot, and add the result to the act.
         page = await launch({
           tempReport,
           actIndex,
           tempBrowserID: getActBrowserID(tempReport, actIndex),
           tempURL: getActTargetURL(tempReport, actIndex),
-          xPathNeed: 'none'
+          xPathNeed: 'none',
+          shoot: act.shoot
         });
         // If this failed:
         if (! page) {
