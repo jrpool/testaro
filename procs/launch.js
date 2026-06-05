@@ -16,10 +16,8 @@
 
 // IMPORTS
 
-// Module to handle errors.
 const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
-const {shoot} = require('./shoot');
 // Two flavors of Playwright:
 // - `playwrightCore`: the upstream Playwright SDK with no plugins attached.
 // - `playwrightExtra`: the playwright-extra wrapper. `run.js` registers
@@ -234,8 +232,7 @@ const launchOnce = async opts => {
     tempURL = '',
     headEmulation = 'high',// low, high
     xPathNeed = 'script',// own, script, attribute, none
-    needsAccessibleName = false,
-    shoot = null
+    needsAccessibleName = false
   } = opts;
   const act = report.acts[actIndex] ?? {};
   const {device} = report;
@@ -479,21 +476,6 @@ const launchOnce = async opts => {
       const navResult = await goTo(report, page, url, 10000, waitUntil);
       // If the navigation succeeded:
       if (navResult.success) {
-        // If a screenshot is required:
-        if (shoot) {
-          const {exclusionSelector, colorType, action} = shoot;
-          // Make it and dispose of it as specified.
-          const screenShotInfo = await shoot(page, report, {
-            exclusionSelector,
-            colorType,
-            action
-          });
-          // If the launch was for an act:
-          if (act) {
-            // Add information about the screenshot to the act.
-            act.screenshot = screenShotInfo;
-          }
-        }
         // If XPath attributes are needed:
         if (xPathNeed === 'attribute') {
           // Use the added script to add them.
@@ -558,8 +540,7 @@ exports.launch = async (opts = {}) => {
     headEmulation = 'high',
     xPathNeed = 'script',
     needsAccessibleName = false,
-    retries = 2,
-    shoot = null
+    retries = 2
   } = opts;
   // If the report is valid:
   const jobValidation = isValidJob(report);
@@ -616,8 +597,7 @@ exports.launch = async (opts = {}) => {
             tempURL,
             headEmulation,
             xPathNeed,
-            needsAccessibleName,
-            shoot
+            needsAccessibleName
           }
         );
         // If the launch and navigation succeeded:
