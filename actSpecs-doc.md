@@ -30,7 +30,10 @@ link: [
 ]
 ```
 
-The rule is an array with two elements: a string ('Click a link') describing the act and an object containing requirements for any act of type `link`.
+The rule is an array with two elements:
+
+- a string ('Click a link' in this case) describing the act
+- an object containing requirements for any act of the type identified by the key (`link` in this case).
 
 The requirement `which: [true, 'string', 'hasLength', 'substring of the link text']` specifies what is required for the `which` property of a `link`-type act. The requirement is an array.
 

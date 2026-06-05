@@ -23,7 +23,7 @@ const {PNG} = require('pngjs');
 // Returns a probably unique file name.
 const randomFileName = (suffixLength = 3) => {
   const fileName = `${nowStamp()}-${Math.random().toString(36).slice(2, 2 + suffixLength)}`;
-  return string;
+  return fileName;
 };
 // Creates and returns a screenshot.
 const screenShot = async (page, exclusionLocator = null) => {
@@ -46,14 +46,14 @@ const screenShot = async (page, exclusionLocator = null) => {
 // Creates and disposes of the PNG of a screenshot.
 exports.shoot = async (page, report, {
   // Playwright locator of a mask.
-  exclusionLocator = null,
+  exclusionSelector = null,
   // Color fidelity: 0 (grayscale), 2 (RGB), 4 (grayscale alpha), 6 (RGBA).
   colorType = 0,
   // Disposition: return, report, file.
   action = 'return'
 } = {}) => {
   // Make and get a screenshot as a buffer.
-  let shot = await screenShot(page, exclusionLocator);
+  let shot = await screenShot(page, page.locator(exclusionSelector));
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.
@@ -87,7 +87,7 @@ exports.shoot = async (page, report, {
       // Return the file path.
       return filePath;
     }
-    // Otherwise, i.e. if the action is unknown, return this.
+    // Otherwise, i.e. if the action is invalid, return this.
     return '';
   }
   // Otherwise, i.e. if it failed:
