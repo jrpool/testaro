@@ -33,6 +33,6 @@ exports.dateOf = timeStamp => {
   }
 };
 // Returns a human-friendly representation of the current date and time.
-exports.nowString = () => (new Date()).toISOString().slice(2, 16);
+const nowString = exports.nowString = () => (new Date()).toISOString().slice(2, 16);
 // Returns a compact representation of the current date and time.
 exports.nowStamp = () => nowString().replace(/[:-]/g, '');
