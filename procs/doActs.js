@@ -643,12 +643,13 @@ exports.doActs = async report => {
           // Otherwise, if the act is a screenshot:
           else if (type === 'shoot') {
             const {exclusionSelector, colorType, action} = act;
-            // Make a full-page screenshot and add a base-64 encoding of its PNG to the report.
+            // Make and dispose of a full-page screenshot.
             const shotInfo = await shoot(page, report, {
               exclusion: exclusionSelector ? page.locator(exclusionSelector) : null,
               colorType: [0, 2, 4, 6].includes(colorType) ? colorType : null,
               action: ['return', 'report', 'file'].includes(action) ? action : 'report'
             });
+            // Add the PNG base-64 encoding, image index, or file path to the act result.
             act.result = shotInfo ? {success: true, shotInfo} : {success: false, prevented: true};
           }
           // Otherwise, if the act is a move:

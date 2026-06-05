@@ -66,26 +66,29 @@ exports.shoot = async (page, report, {
     if (global.gc) {
       global.gc();
     }
-    // If the PNG is to be returned:
+    // Convert the buffer to a base64 string.
+    const base64 = pngBuffer.toString('base64');
+    // If the string is to be returned:
     if (action === 'return') {
       // Return it.
-      return pngBuffer;
+      return base64;
     }
     // Otherwise, if it is to be appended to the report:
     if (action === 'report') {
       report.images ??= [];
-      // Append it, encoded as base64, to the report.
-      report.images.push(pngBuffer.toString('base64'));
-      // Return the index of the added image
+      // Append it to the images array in the report.
+      report.images.push(base64);
+      // Return the index of the added image in the array.
       return report.images.length - 1;
     }
     // Otherwise, if it is to be saved in a file:
     if (action === 'file') {
-      const filePath = path.join(report.jobData.tmpDir, randomFileName(4));
-      // Save the PNG buffer in a file.
-      await fs.writeFile(filePath, pngBuffer);
-      // Return the file path.
-      return filePath;
+      const fileName = randomFileName(4);
+      const filePath = path.join(report.jobData.tmpDir, fileName);
+      // Save it in a file.
+      await fs.writeFile(filePath, base64);
+      // Return the file name.
+      return fileName;
     }
     // Otherwise, i.e. if the action is invalid, return this.
     return '';
