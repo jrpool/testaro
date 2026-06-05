@@ -21,7 +21,7 @@ exports.reporter = async (page, report) => {
   // If there is a shoot0 file:
   if (report.jobData.testaroShoot0) {
     // Make and save the screenshot.
-    pngPath = await shoot(page, {
+    pngPath = await shoot(page, report, {
       exclusionSelector: null,
       colorType: 0,
       action: 'file'

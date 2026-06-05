@@ -644,7 +644,7 @@ exports.doActs = async report => {
           else if (type === 'shoot') {
             const {exclusionSelector, colorType, action} = act;
             // Make a full-page screenshot and add a base-64 encoding of its PNG to the report.
-            const shotInfo = await shoot(page, {
+            const shotInfo = await shoot(page, report, {
               exclusion: exclusionSelector ? page.locator(exclusionSelector) : null,
               colorType: [0, 2, 4, 6].includes(colorType) ? colorType : null,
               action: ['return', 'report', 'file'].includes(action) ? action : 'report'

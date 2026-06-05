@@ -81,7 +81,7 @@ exports.shoot = async (page, report, {
     }
     // Otherwise, if it is to be saved in a file:
     if (action === 'file') {
-      const filePath = path.join(tmpDir, randomFileName(4));
+      const filePath = path.join(report.jobData.tmpDir, randomFileName(4));
       // Save the PNG buffer in a file.
       await fs.writeFile(filePath, pngBuffer);
       // Return the file path.
