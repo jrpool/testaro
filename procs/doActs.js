@@ -291,7 +291,7 @@ exports.doActs = async report => {
       else if (type === 'launch') {
         // Launch a browser, navigate, optionally make a screenshot, and add the result to the act.
         page = await launch({
-          tempReport,
+          report: tempReport,
           actIndex,
           tempBrowserID: getActBrowserID(tempReport, actIndex),
           tempURL: getActTargetURL(tempReport, actIndex),
