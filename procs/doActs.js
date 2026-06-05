@@ -644,7 +644,7 @@ exports.doActs = async report => {
           else if (type === 'shoot') {
             const {exclusionSelector, colorType, action} = act;
             // Make and dispose of a full-page screenshot.
-            const shotInfo = await shoot(page, report, {
+            const shotInfo = await shoot(page, tempReport, {
               exclusion: exclusionSelector ? page.locator(exclusionSelector) : null,
               colorType: [0, 2, 4, 6].includes(colorType) ? colorType : null,
               action: ['return', 'report', 'file'].includes(action) ? action : 'report'
