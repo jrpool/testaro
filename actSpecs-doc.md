@@ -63,6 +63,19 @@ If it does, the property names of the object value must be `testaro` rule IDs. A
 
 The rules of `testaro` that accept additional arguments are `autocomplete`, `buttonMenu`, `focInd`, and `hover`.
 
+## Screenshots
+
+An act of type `shoot` creates a full-page screenshot and converts it to a base64 encoding of a PNG image. With its arguments, you can decide:
+
+- Whether to mask certain elements (using a CSS selector)
+- The color type (grayscale, RGB, grayscale alpha, or RGBA)
+- What action to take to dispose of the base64 string:
+  - return it to the `shoot` act and save it in the result of the act (`return`)
+  - concatenate it to an `images` array in the report and return its index in the array (`report`)
+  - save it as a file in the temporary directory and return the file path (`file`)
+
+  Both the `return` and the `report` actions save the base64 string in the report, but in different places. The `file` action would permit you to create a custom act that retrieves and uses the image without the image being added to the report.
+
 ## License
 
 © 2026 Jonathan Robert Pool.
