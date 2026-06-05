@@ -650,7 +650,9 @@ exports.doActs = async report => {
               action: ['return', 'report', 'file'].includes(action) ? action : 'report'
             });
             // Add the PNG base-64 encoding, image index, or file path to the act result.
-            act.result = shotInfo ? {success: true, shotInfo} : {success: false, prevented: true};
+            act.result = shotInfo !== ''
+            ? {success: true, shotInfo}
+            : {success: false, prevented: true};
           }
           // Otherwise, if the act is a move:
           else if (moves[type]) {
