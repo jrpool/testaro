@@ -22,7 +22,7 @@ const {PNG} = require('pngjs');
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (_, report) => {
+exports.reporter = async (page, report) => {
   // Initialize the totals and standard instances.
   const data = {};
   const totals = [0, 0, 0, 0];
