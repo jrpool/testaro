@@ -31,7 +31,7 @@ exports.reporter = async (page, report) => {
   if (report.images?.length) {
     let violationWhat = '';
     let ordinalSeverity = 0;
-    // Make an image with the same color type as the initial one.
+    // Make an image with the same color type as the initial one and get its base64 encoding.
     const png = await shoot(page, report, {
       exclusionSelector: null,
       colorType: report.imageColor,
@@ -39,22 +39,26 @@ exports.reporter = async (page, report) => {
     });
     // If this succeeded:
     if (png) {
-      // Parse the base64-encoded initial image into a PNG object.
+      // Parse both base64 encodings into PNG objects.
       const initialPNG = PNG.sync.read(Buffer.from(report.images[0], 'base64'));
-      const {width, height} = initialPNG;
+      const finalPNG = PNG.sync.read(Buffer.from(png, 'base64'));
       // If their dimensions differ:
-      if (png.width !== width || png.height !== height) {
-        const fromSize = `${width}×${height}`;
-        const toSize = `${png.width}×${png.height}`;
+      if (finalPNG.width !== initialPNG.width || finalPNG.height !== initialPNG.height) {
+        const fromSize = `${initialPNG.width}×${initialPNG.height}`;
+        const toSize = `${finalPNG.width}×${finalPNG.height}`;
         // Describe the violation.
         violationWhat = `Page size changes spontaneously (from ${fromSize} to ${toSize})`;
       }
       // Otherwise, i.e. if their dimensions are identical:
       else {
         // Get the count of differing pixels between the images.
-        const pixelChanges = blazediff(initialPNG.data, png.data, null, width, height);
+        const pixelChanges = blazediff(
+          initialPNG.data, finalPNG.data, null, initialPNG.width, initialPNG.height
+        );
         // Get the ratio of differing to all pixels as a percentage.
-        const changePercent = Math.round(100 * pixelChanges / (width * height));
+        const changePercent = Math.round(
+          100 * pixelChanges / (initialPNG.width * initialPNG.height)
+        );
         // If any pixels were changed:
         if (pixelChanges) {
           // Describe the violation.
