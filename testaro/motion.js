@@ -23,12 +23,12 @@ const {PNG} = require('pngjs');
 
 // Runs the test and returns the result.
 exports.reporter = async (_, report) => {
+  // Initialize the totals and standard instances.
+  const data = {};
+  const totals = [0, 0, 0, 0];
+  const standardInstances = [];
   // If the initial image exists:
   if (report.images?.length) {
-    // Initialize the totals and standard instances.
-    const data = {};
-    const totals = [0, 0, 0, 0];
-    const standardInstances = [];
     let violationWhat = '';
     let ordinalSeverity = 0;
     // Make an image with the same color type as the initial one.

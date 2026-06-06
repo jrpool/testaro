@@ -45,11 +45,11 @@ exports.getCatalog = async report => {
     // If the launch and navigation succeeded:
     if (page) {
       // If a page image is required:
-      if ([0, 2, 4, 6].includes(report.pageImage)) {
+      if ([0, 2, 4, 6].includes(report.pageColor)) {
         // Create one and add it to the report.
         await shoot(page, report, {
           exclusionSelector: '',
-          colorType: report.pageImage,
+          colorType: report.pageColor,
           action: 'report'
         });
       }
