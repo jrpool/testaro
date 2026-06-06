@@ -5,7 +5,7 @@
 
 /*
   motion
-  This test reports motion in a page by comparing the first and last of the screenshots previously made by the shoot0 and shoot1 tests.
+  This test reports motion in a page by making a page image and comparing it with the initial one, i.e. the one made by the catalog proc.
 
   For minimal accessibility, standards require motion to be brief, or else stoppable by the user. But stopping motion can be difficult or impossible, and, by the time a user manages to stop motion, the motion may have caused annoyance or harm. For superior accessibility, a page contains no motion until and unless the user authorizes it. The test reports a rule violation if any pixels differ between the screenshots. The larger the change fraction, the greater the ordinal severity.
 
@@ -15,48 +15,46 @@
 // IMPORTS
 
 const {getXPathCatalogIndex} = require('../procs/xPath');
-const fs = require('fs/promises');
+const {shoot} = require('../procs/shoot');
 const blazediff = require('@blazediff/core').diff;
 const {PNG} = require('pngjs');
 
 // FUNCTIONS
 
 // Runs the test and returns the result.
-exports.reporter = async (_0, report, _1, _2, tmpDir) => {
-  // Initialize the totals and standard instances.
-  const data = {};
-  const totals = [0, 0, 0, 0];
-  const standardInstances = [];
-  let violationWhat = '';
-  let ordinalSeverity = 0;
-  try {
-    // Get the screenshot PNG buffers made by the shoot0 and shoot1 tests.
-    let shoot0PNGBuffer = await fs.readFile(report.jobData.testaroShoot0);
-    let shoot1PNGBuffer = await fs.readFile(report.jobData.testaroShoot1);
-    // Delete the buffer files.
-    await fs.unlink(report.jobData.testaroShoot0);
-    await fs.unlink(report.jobData.testaroShoot1);
-    // If both buffers exist:
-    if (shoot0PNGBuffer && shoot1PNGBuffer) {
-      // Parse them into PNG objects.
-      let shoot0PNG = PNG.sync.read(shoot0PNGBuffer);
-      let shoot1PNG = PNG.sync.read(shoot1PNGBuffer);
-      const {width, height} = shoot0PNG;
+exports.reporter = async (_, report) => {
+  // If the initial image exists:
+  if (report.images?.length) {
+    // Initialize the totals and standard instances.
+    const data = {};
+    const totals = [0, 0, 0, 0];
+    const standardInstances = [];
+    let violationWhat = '';
+    let ordinalSeverity = 0;
+    // Make an image with the same color type as the initial one.
+    const png = await shoot(page, report, {
+      exclusionSelector: null,
+      colorType: report.imageColor,
+      action: 'return'
+    });
+    // If this succeeded:
+    if (png) {
+      // Parse the base64-encoded initial image into a PNG object.
+      const initialPNG = PNG.sync.read(Buffer.from(report.images[0], 'base64'));
+      const {width, height} = initialPNG;
       // If their dimensions differ:
-      if (shoot1PNG.width !== width || shoot1PNG.height !== height) {
+      if (png.width !== width || png.height !== height) {
         const fromSize = `${width}×${height}`;
-        const toSize = `${shoot1PNG.width}×${shoot1PNG.height}`;
+        const toSize = `${png.width}×${png.height}`;
         // Describe the violation.
         violationWhat = `Page size changes spontaneously (from ${fromSize} to ${toSize})`;
       }
       // Otherwise, i.e. if their dimensions are identical:
       else {
-        // Get the count of differing pixels between the shots.
-        const pixelChanges = blazediff(shoot0PNG.data, shoot1PNG.data, null, width, height);
+        // Get the count of differing pixels between the images.
+        const pixelChanges = blazediff(initialPNG.data, png.data, null, width, height);
         // Get the ratio of differing to all pixels as a percentage.
         const changePercent = Math.round(100 * pixelChanges / (width * height));
-        // Free the memory used by screenshots.
-        shoot0PNG = shoot1PNG = shoot0PNGBuffer = shoot1PNGBuffer = null;
         // If any pixels were changed:
         if (pixelChanges) {
           // Describe the violation.
@@ -79,18 +77,18 @@ exports.reporter = async (_0, report, _1, _2, tmpDir) => {
         });
       }
     }
-    // Otherwise, i.e. if they do not both exist:
+    // Otherwise, i.e. if it failed:
     else {
       // Report this.
       data.prevented = true;
-      data.error = 'At least 1 screenshot missing';
+      data.error = 'Image creation failed';
     }
   }
-  // If getting or deleting either buffer file failed:
-  catch(error) {
+  // Otherwise, i.e. if the initial image does not exist:
+  else {
     // Report this.
     data.prevented = true;
-    data.error = `Screenshot file error (${error.message})`;
+    data.error = 'Initial image missing';
   }
   // Return the result.
   return {

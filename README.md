@@ -344,7 +344,9 @@ In some cases no catalog entry can be found. The reasons may include:
 
 #### `images`
 
-Testaro inserts an `images` array property if necessary to store at least one page image in the report. If the job has an `imageColor` property with `0`, `2`, `4`, or `6` as its value and Testaro will insert a `catalog` property, then Testaro also creates a page image with that color type and makes its base64-encoded PNG the first item in the `images` array.
+Testaro inserts an `images` array property if necessary to store page images in the report. If the job has an `imageColor` property with `0`, `2`, `4`, or `6` as its value and Testaro will insert a `catalog` property, then Testaro also creates a page image with that color type and makes its base64-encoded PNG the first item in the `images` array.
+
+There is a `shoot` act type that can be used to make additional page images during a job.
 
 ### Act data
 

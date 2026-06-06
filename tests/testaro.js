@@ -24,15 +24,6 @@ const {launch} = require('../procs/launch');
 // Metadata of all rules in default execution order.
 const allRules = [
   {
-    id: 'shoot0',
-    what: 'first page screenshot',
-    contaminates: false,
-    needsAccessibleName: false,
-    needsTmpDir: true,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
     id: 'adbID',
     what: 'elements with ambiguous or missing referenced descriptions',
     contaminates: false,
@@ -329,20 +320,10 @@ const allRules = [
     defaultOn: true
   },
   {
-    id: 'shoot1',
-    what: 'second page screenshot',
-    contaminates: false,
-    needsAccessibleName: false,
-    needsTmpDir: true,
-    timeOut: 5,
-    defaultOn: true
-  },
-  {
     id: 'motion',
-    what: 'motion without user request, measured across tests',
+    what: 'motion without user request',
     contaminates: false,
     needsAccessibleName: false,
-    needsTmpDir: true,
     timeOut: 5,
     defaultOn: true
   },
