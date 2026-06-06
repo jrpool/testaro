@@ -16,7 +16,7 @@
 
 const {getXPathCatalogIndex} = require('../procs/xPath');
 const {shoot} = require('../procs/shoot');
-const blazediff = require('@blazediff/core').diff;
+const pixelmatch = require('pixelmatch').default;
 const {PNG} = require('pngjs');
 
 // FUNCTIONS
@@ -51,20 +51,33 @@ exports.reporter = async (page, report) => {
       }
       // Otherwise, i.e. if their dimensions are identical:
       else {
-        // Get the count of differing pixels between the images.
-        const pixelChanges = blazediff(
-          initialPNG.data, finalPNG.data, null, initialPNG.width, initialPNG.height
-        );
-        // Get the ratio of differing to all pixels as a percentage.
-        const changePercent = Math.round(
-          100 * pixelChanges / (initialPNG.width * initialPNG.height)
-        );
-        // If any pixels were changed:
-        if (pixelChanges) {
-          // Describe the violation.
-          violationWhat = `Content changes spontaneously (${changePercent}% of pixels changed)`;
-          // Get the ordinal severity from the fractional pixel change.
-          ordinalSeverity = Math.floor(Math.min(3, 0.4 * Math.sqrt(changePercent)));
+        // Get the count of differing pixels between the images, using the default sensitivity.
+        try {
+          const pixelChanges = pixelmatch(
+            initialPNG.data,
+            finalPNG.data,
+            null,
+            initialPNG.width,
+            initialPNG.height,
+            {
+              threshold: 0.1
+            }
+          );
+          // Get the ratio of differing to all pixels as a percentage.
+          const changePercent = Math.round(
+            100 * pixelChanges / (initialPNG.width * initialPNG.height)
+          );
+          // If any pixels were changed:
+          if (pixelChanges) {
+            // Describe the violation.
+            violationWhat = `Content changes spontaneously (${changePercent}% of pixels changed)`;
+            // Get the ordinal severity from the fractional pixel change.
+            ordinalSeverity = Math.floor(Math.min(3, 0.4 * Math.sqrt(changePercent)));
+          }
+        } catch (err) {
+          console.log(`pixelmatch error: ${err.message}, ${err.stack}`);
+          data.prevented = true;
+          data.error = `Pixel comparison failed: ${err.message}`;
         }
       }
       // If there was a violation:

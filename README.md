@@ -41,7 +41,7 @@ Testaro uses:
 - [Playwright](https://playwright.dev/) to launch browsers, perform user actions in them, and perform tests
 - [playwright-extra](https://www.npmjs.com/package/playwright-extra) and [puppeteer-extra-plugin-stealth](https://www.npmjs.com/package/puppeteer-extra-plugin-stealth) to make a Playwright-controlled browser more indistinguishable from a human-operated browser and thus make its requests more likely to succeed
 - [playwright-dompath](https://www.npmjs.com/package/playwright-dompath) to retrieve XPaths of elements
-- [BlazeDiff](https://blazediff.dev/) to measure motion
+- [pixelmatch](https://www.npmjs.com/package/pixelmatch) to measure motion
 - [dotenv](https://www.npmjs.com/package/dotenv) to load environment variables
 
 Testaro can perform tests of these _tools_:
@@ -553,6 +553,8 @@ The Playwright “Receives Events” actionability check does **not** check whet
 Test targets employ mechanisms to prevent scraping, multiple requests within a short time, automated form submission, and other automated actions. These mechanisms may interfere with testing. When a test act is prevented, Testaro reports this prevention.
 
 Some targets prohibit the execution of alien scripts unless the client can demonstrate that it is the requester of the page. Failure to provide that evidence results in the script being blocked and an error message being logged, saying “Refused to execute a script because its hash, its nonce, or unsafe-inline does not appear in the script-src directive of the Content Security Policy”. This mechanism affects tools that insert scripts into a target in order to test it. To comply with this requirement, Testaro obtains a _nonce_ from the response that serves the target. Then the file that runs the tool adds that nonce to the script as the value of a `nonce` attribute when it inserts its script into the target.
+
+Some targets have been found erratically to prevent the creation of page images. When page images have been created, during the `motion` test in `testaro` some targets have been found to prevent their comparison by BlazeDiff, but comparison by `pixelmatch` has succeeded. For this reason, although reportedly slower, `pixelmatch` is the library used for image comparison.
 
 ### Tool duplicativity
 

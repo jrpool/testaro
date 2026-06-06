@@ -30,7 +30,6 @@
   },
   "homepage": "https://github.com/jrpool/testaro#readme",
   "dependencies": {
-    "@blazediff/core": "*",
     "@qualweb/core": "*",
     "@qualweb/act-rules": "*",
     "@qualweb/wcag-techniques": "*",
@@ -43,6 +42,7 @@
     "aslint-testaro": "*",
     "axe-playwright": "*",
     "dotenv": "*",
+    "pixelmatch": "*",
     "playwright": "*",
     "playwright-dompath": "*",
     "playwright-extra": "*",

@@ -47,6 +47,7 @@ exports.getCatalog = async report => {
       // If a page image is required:
       if ([0, 2, 4, 6].includes(report.imageColor)) {
         // Create one and add it to the report.
+        console.log('Creating page image');
         await shoot(page, report, {
           exclusionSelector: '',
           colorType: report.imageColor,
@@ -54,6 +55,7 @@ exports.getCatalog = async report => {
         });
       }
       // Get a catalog of the elements in the page.
+      console.log('Creating catalog');
       const catalog = await page.evaluate(() => {
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
