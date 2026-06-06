@@ -142,7 +142,8 @@ Here is a sample job, showing properties that you can set:
   id: 'healthcheck2611', // Job identifier
   what: 'monthly health check', // Job description
   strict: true, // Whether to reject redirections from the target URL
-  standard: 'also', // or 'only' or 'no' (whether to report a standard result)
+  standard: 'only', // Report native (no), standard (only), or both (also) results
+  imageColor: 0, // Color type (0, 2, 4, 6) of the page image, if one is to be created along with a catalog
   device: { // Device to emulate
     id: 'iPhone 8',
     windowOptions: {
@@ -288,12 +289,17 @@ A report is a job with information about the results of the performance of the j
 
 ### Whole-job data
 
-As Testaro performs a job, information about the job as a whole is inserted into the job. That information is organized into one or two properties:
+As Testaro performs a job, information about the job as a whole is inserted into the job. That information is organized into one, two, or three properties:
 
 - `jobData`: Facts about the performance of the job
 - `catalog`: A collection of data about the HTML elements of the target that are relevant to any test failures
+- `images`: A collection of page images captured during the job
+
+#### `jobData`
 
 Testaro inserts the `jobData` property into every job.
+
+#### `catalog`
 
 Testaro inserts the `catalog` property only into jobs that instruct Testaro to produce standard results. The catalog is an inventory of HTML elements in the DOM of the target.
 
@@ -335,6 +341,10 @@ In some cases no catalog entry can be found. The reasons may include:
 - The element was dynamically created after the catalog was created.
 - The element is inside a `noscript` element and therefore not considered an element in the DOM.
 - The violation is not ascribed to a single element.
+
+#### `images`
+
+Testaro inserts an `images` array property if necessary to store at least one page image in the report. If the job has an `imageColor` property with `0`, `2`, `4`, or `6` as its value and Testaro will insert a `catalog` property, then Testaro also creates a page image with that color type and makes its base64-encoded PNG the first item in the `images` array.
 
 ### Act data
 

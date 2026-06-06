@@ -126,7 +126,9 @@ exports.doJob = async (job, opts = {}) => {
     });
     // If the job specifies a browser ID and a target and requires standardization:
     if (job.browserID && job.target && job.standard !== 'no') {
-      // Create a catalog of the target and add it to the report.
+      // Initialize a catalog so it precedes any page images in the report.
+      report.catalog = {};
+      // Add a catalog of the target, and a page image if required, to the report.
       report.catalog = await getCatalog(report);
     }
     // Perform the acts and revise the report.

@@ -25,6 +25,7 @@
 
 // Module to close and launch browsers.
 const {browserClose, launch} = require('./launch');
+const {shoot} = require('./shoot');
 
 // FUNCTIONS
 
@@ -43,6 +44,15 @@ exports.getCatalog = async report => {
     });
     // If the launch and navigation succeeded:
     if (page) {
+      // If a page image is required:
+      if ([0, 2, 4, 6].includes(report.pageImage)) {
+        // Create one and add it to the report.
+        await shoot(page, report, {
+          exclusionSelector: '',
+          colorType: report.pageImage,
+          action: 'report'
+        });
+      }
       // Get a catalog of the elements in the page.
       const catalog = await page.evaluate(() => {
         const elements = Array.from(document.querySelectorAll('*'));
