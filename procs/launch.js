@@ -132,6 +132,7 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
       const actualURL = page.url();
       const actualNorm = actualURL.startsWith('file:') ? normalizeURL(actualURL) : actualURL;
       const urlNorm = url.startsWith('file:') ? normalizeURL(url) : url;
+      const title = await page.title();
       // If the browser was redirected in violation of a strictness requirement:
       if (report.strict && deSlash(actualNorm) !== deSlash(urlNorm)) {
         // Return an error.
@@ -139,6 +140,15 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
         return {
           success: false,
           error: 'badRedirection'
+        };
+      }
+      // Otherwise, if the browser was redirected to a CAPTCHA barrier:
+      else if ([urlNorm, title].some(identifier => identifier.includes('captcha'))) {
+        // Return this.
+        console.log(`ERROR: Visit to ${url} redirected to CAPTCHA barrier (${actualURL})`);
+        return {
+          success: false,
+          error: 'captchaBarrier'
         };
       }
       // Otherwise, i.e. if no prohibited redirection occurred:
@@ -177,6 +187,15 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
       return {
         success: false,
         error: `status429/retryAfterSeconds=${waitSeconds}`
+      };
+    }
+    // Otherwise, if the response status was a suspension:
+    else if (httpStatus === 202) {
+      // Return this.
+      console.log(`ERROR: Visit to ${url} suspended (status 202)`);
+      return {
+        success: false,
+        error: 'status202'
       };
     }
     // Otherwise, i.e. if the response status was otherwise abnormal:
@@ -626,7 +645,7 @@ exports.launch = async (opts = {}) => {
         // Report this and, if so configured, that the job was aborted.
         addError(
           true,
-          abortAssertively,
+          actIndex === null ? true : abortAssertively,
           report,
           actIndex,
           `Launch or navigation failed; retries and browser types exhausted`

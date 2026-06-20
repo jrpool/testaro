@@ -35,7 +35,7 @@ exports.getCatalog = async report => {
   const targetURL = report.target?.url;
   // If the report specifies a global browser ID and a global target URL:
   if (browserID && targetURL) {
-    // Launch a browser, navigate to the target, and get the resulting page.
+    // Launch a browser and visit the target, or abort the job on failure.
     const page = await launch({
       report,
       actIndex: null,
@@ -159,7 +159,7 @@ exports.getCatalog = async report => {
       return catalog;
     }
     // Otherwise, i.e. if the launch or navigation failed, report and return this.
-    console.log('ERROR: Launch or navigation failure prevented catalog creation');
+    console.log('ERROR: Launch or navigation failure prevented cataloguing and aborted job');
     return {};
   }
   // Otherwise, i.e. if the report specification is incomplete, report and return this.
