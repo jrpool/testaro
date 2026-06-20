@@ -566,7 +566,7 @@ exports.launch = async (opts = {}) => {
     }
     // Otherwise, i.e. if the launch or navigation failed:
     else {
-      let unusedBrowserIDs = ['chromium', 'firefox', 'webkit'].filter(id => id !== tempBrowserID);
+      let unusedBrowserIDs = ['chromium', 'webkit', 'firefox'].filter(id => id !== tempBrowserID);
       let retriesLeft = retries;
       let {error} = launchResult;
       // As long as retries remain, decrement the allowed retry count and:
@@ -615,6 +615,7 @@ exports.launch = async (opts = {}) => {
           if (tempBrowserID && unusedBrowserIDs.length && ! retriesLeft) {
             // Change the browser type.
             tempBrowserID = unusedBrowserIDs.shift();
+            console.log(`NOTICE: Changing browser type to ${tempBrowserID}`);
             // Reset the retries.
             retriesLeft = retries;
           }
