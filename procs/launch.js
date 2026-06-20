@@ -532,10 +532,10 @@ const launchOnce = async opts => {
 };
 // Manages browser launching and navigating and returns a page.
 exports.launch = async (opts = {}) => {
+  let {tempBrowserID = ''} = opts;
   const {
     report = {},
     actIndex = 0,
-    tempBrowserID = '',
     tempURL = '',
     headEmulation = 'high',
     xPathNeed = 'script',
@@ -566,6 +566,7 @@ exports.launch = async (opts = {}) => {
     }
     // Otherwise, i.e. if the launch or navigation failed:
     else {
+      let unusedBrowserIDs = ['chromium', 'firefox', 'webkit'].filter(id => id !== tempBrowserID);
       let retriesLeft = retries;
       let {error} = launchResult;
       // As long as retries remain, decrement the allowed retry count and:
@@ -610,13 +611,24 @@ exports.launch = async (opts = {}) => {
           error = launchResult.error;
           // Report this.
           console.log(`WARNING: Retry failed (${error})`);
+          // If a browser type was specified, retries are exhausted, and browser types are not:
+          if (tempBrowserID && unusedBrowserIDs.length && ! retriesLeft) {
+            // Change the browser type.
+            tempBrowserID = unusedBrowserIDs.shift();
+            // Reset the retries.
+            retriesLeft = retries;
+          }
         }
       }
-      // If the retries were exhausted:
+      // If the retries were finally exhausted:
       if (! retriesLeft) {
         // Report this and, if so configured, that the job was aborted.
         addError(
-          true, abortAssertively, report, actIndex, `Launch or navigation failed; retries exhausted`
+          true,
+          abortAssertively,
+          report,
+          actIndex,
+          `Launch or navigation failed; retries and browser types exhausted`
         );
       }
       // Return a failure.
