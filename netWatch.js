@@ -29,10 +29,21 @@ const {nowString} = require('./procs/dateTime');
 
 // CONSTANTS
 
-const jobURL = new URL(process.env.NETWATCH_URL_JOB);
-const jobHost = jobURL.host;
-const reportURL = new URL(process.env.NETWATCH_URL_REPORT);
-const reportHost = reportURL.host;
+// The netWatch environment variables are required only for network watching,
+// but call.js loads this module for every command, so their absence or
+// invalidity must not throw here; netWatch reports it if netWatch is used.
+const toURL = urlString => {
+  try {
+    return new URL(urlString);
+  }
+  catch(error) {
+    return null;
+  }
+};
+const jobURL = toURL(process.env.NETWATCH_URL_JOB);
+const jobHost = jobURL && jobURL.host;
+const reportURL = toURL(process.env.NETWATCH_URL_REPORT);
+const reportHost = reportURL && reportURL.host;
 const agentPW = process.env.NETWATCH_URL_AUTH;
 
 // FUNCTIONS
