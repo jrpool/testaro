@@ -577,6 +577,8 @@ The behavior of Testaro as a dependency of an application deployed on a virtual 
 
 Experimental deployments of Testaro as a dependency in a containerized application has sometimes resulted in thrown errors that are not thrown when the same application is deployed without containerization.
 
+A reference container image for stand-alone deployment, in which all tools run, is defined by the `Dockerfile` and `docker-compose.yml` files at the project root and documented in [CONTAINERS.md](CONTAINERS.md).
+
 ### Headless browser fidelity
 
 Testaro normally performs tests with headless browsers. Some experiments appear to have shown that some test results are inaccurate with headless browsers, but this has not been replicated. The `launch` function in the `run` module accepts a `headEmulation` argument with `'high'` and `'low'` values. Its purpose is to permit optimizations of headless browsers to be turned off, so browsers behave and appear more similar to headed browsers. Observation has failed to show any performance cost, so `'high'` is the default value.

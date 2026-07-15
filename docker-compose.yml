@@ -1,0 +1,45 @@
+# © 2026 Jeff Witt.
+#
+# Licensed under the MIT License. See LICENSE file at the project root or
+# https://opensource.org/license/mit/ for details.
+#
+# SPDX-License-Identifier: MIT
+
+# Reference Compose stack for Testaro: the Testaro image watching a job
+# directory, plus a self-hosted Nu Html Checker as a sidecar so the nuVal
+# test does not depend on the public W3C service (which is rate-limited and
+# rejects large documents). See CONTAINERS.md for usage.
+services:
+  testaro:
+    build: .
+    # Reap zombie processes from forked test acts and browser relaunches.
+    init: true
+    environment:
+      # Disable the Chromium sandbox (default seccomp blocks the user
+      # namespaces it needs). Alternative: set this to "false" and run with
+      # a seccomp profile that permits user-namespace cloning, e.g.
+      #   security_opt:
+      #     - seccomp:seccomp_profile.json
+      # using the profile published by Playwright:
+      # https://github.com/microsoft/playwright/blob/main/utils/docker/seccomp_profile.json
+      TESTARO_CHROMIUM_NO_SANDBOX: "true"
+      # Send nuVal requests to the sidecar instead of the W3C service.
+      TESTARO_NU_URL: "http://nu:8888/?parser=html&out=json"
+      AGENT: docker-example
+    volumes:
+      # Host directories for jobs and reports. The container runs as the
+      # unprivileged pwuser; the host directories must be writable by it
+      # (see CONTAINERS.md).
+      - ./watch/jobs:/home/pwuser/testaro/watch/jobs
+      - ./watch/reports:/home/pwuser/testaro/watch/reports
+    depends_on:
+      - nu
+    # Headroom for browser relaunch spikes: multiple tools' browsers can
+    # briefly coexist with the catalog pass.
+    mem_limit: 4g
+
+  nu:
+    image: ghcr.io/validator/validator:latest
+    # Uncomment to also reach the checker from the host:
+    # ports:
+    #   - "8888:8888"

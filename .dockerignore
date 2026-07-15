@@ -1,0 +1,12 @@
+.git
+node_modules
+temp
+tmp
+watch
+.env
+.npmrc
+.DS_Store
+.vscode
+validation/tests/old
+Dockerfile
+docker-compose.yml
