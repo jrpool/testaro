@@ -72,11 +72,19 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       instances: []
     };
   }
+  // Specify the options for the Puppeteer browser launched by QualWeb.
+  const puppeteerOptions = {
+    headless: true
+  };
+  // If launching Chromium without its sandbox was specified (e.g., in a
+  // container or on a host that restricts unprivileged user namespaces):
+  if (process.env.TESTARO_CHROMIUM_NO_SANDBOX === 'true') {
+    // Disable the sandbox of the QualWeb browser, too.
+    puppeteerOptions.args = ['--no-sandbox'];
+  }
   try {
     // Start the QualWeb core engine.
-    await qualWeb.start(clusterOptions, {
-      headless: true
-    });
+    await qualWeb.start(clusterOptions, puppeteerOptions);
   }
   // If the start fails:
   catch(error) {
