@@ -258,7 +258,7 @@ In both cases, the first argument of `dirWatch` tells Testaro whether to continu
 
 Testaro can poll a server for jobs to be performed. The server can act as the “controller” described in [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3). The server is responsible for preparing Testaro jobs, assigning them to Testaro agents, receiving reports back from those agents, and performing any further processing of the reports, including enhancement, storage, and disclosure to audiences. It can be any server reachable with a URL. That includes a server running on the same host as Testaro, with a URL such as `localhost:3000`.
 
-To make Testaro poll a server for jobs, define the following environment variables:
+To allow Testaro to poll a server for jobs, define the following environment variables:
 
 - `NETWATCH_URL_JOB`: which URL to poll (the URL must contain the value of the `AGENT` environment variable)
 - `NETWATCH_URL_REPORT`: which URL to send job reports to

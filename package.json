@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "75.2.1",
+  "version": "75.2.2",
   "description": "Run 1300 web accessibility tests from 10 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
