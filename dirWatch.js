@@ -92,11 +92,12 @@ exports.dirWatch = async (isForever, intervalInSeconds) => {
       const toDoFileNames = await fs.readdir(`${jobDir}/todo`);
       const jobFileNames = toDoFileNames.filter(fileName => fileName.endsWith('.json'));
       if (jobFileNames.length) {
+        const jobFileName = jobFileNames[0];
         // If the first one is ready to do:
-        const firstJobTimeStamp = jobFileNames[0].replace(/-.+$/, '');
+        const firstJobTimeStamp = jobFileName.replace(/-.+$/, '');
         if (Date.now() > dateOf(firstJobTimeStamp)) {
           // Get it.
-          const jobJSON = await fs.readFile(`${jobDir}/todo/${jobFileNames[0]}`, 'utf8');
+          const jobJSON = await fs.readFile(`${jobDir}/todo/${jobFileName}`, 'utf8');
           try {
             const job = JSON.parse(jobJSON);
             let report = JSON.parse(jobJSON);
@@ -108,7 +109,7 @@ exports.dirWatch = async (isForever, intervalInSeconds) => {
             // Save the report.
             await writeDirReport(report);
             // Archive the job.
-            await archiveJob(job, true);
+            await archiveJob(job, jobFileName);
           }
           catch(error) {
             console.log(`ERROR processing directory job (${error.message})`);
