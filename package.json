@@ -32,6 +32,7 @@
   "dependencies": {
     "@qualweb/core": "*",
     "@qualweb/act-rules": "*",
+    "@qualweb/playwright-driver": "*",
     "@qualweb/wcag-techniques": "*",
     "@qualweb/best-practices": "*",
     "@siteimprove/alfa-act": "*",
