@@ -19,14 +19,15 @@ const {QualWeb} = require('@qualweb/core');
 const {ACTRules} = require('@qualweb/act-rules');
 const {WCAGTechniques} = require('@qualweb/wcag-techniques');
 const {BestPractices} = require('@qualweb/best-practices');
+const {PlaywrightDriver} = require('@qualweb/playwright-driver');
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
 // CONSTANTS
 
-const qualWeb = new QualWeb({
+const qualWeb = new QualWeb(undefined, new PlaywrightDriver({
   adBlock: true,
   stealth: true
-});
+}));
 const actRulesModule = new ACTRules({});
 const wcagModule = new WCAGTechniques({});
 const bpModule = new BestPractices({});
