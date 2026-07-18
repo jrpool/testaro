@@ -575,8 +575,6 @@ The behavior of Testaro as a dependency of an application deployed on a virtual 
 
 ### Containerized deployment
 
-Experimental deployments of Testaro as a dependency in a containerized application has sometimes resulted in thrown errors that are not thrown when the same application is deployed without containerization.
-
 A reference container image for stand-alone deployment, in which all tools run, is defined by the `Dockerfile` and `docker-compose.yml` files at the project root and documented in [CONTAINERS.md](CONTAINERS.md).
 
 ### Headless browser fidelity
