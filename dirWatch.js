@@ -64,7 +64,7 @@ const archiveJob = async (job, todoFileName) => {
     // Delete the file.
     await fs.rm(`${jobDir}/todo/${todoFileName}`);
   }
-  console.log(`Job ${id} archived in ${doneDir} (${nowString()})`);
+  console.log(`Job ${id} from ${todoFileName} archived in ${doneDir} (${nowString()})`);
 };
 // Waits.
 const wait = ms => {
