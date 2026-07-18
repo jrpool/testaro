@@ -52,7 +52,7 @@ const writeDirReport = async report => {
   }
 };
 // Archives a job.
-const archiveJob = async (job, isFile) => {
+const archiveJob = async (job, todoFileName) => {
   // Save the job in the done subdirectory.
   const {id} = job;
   const jobJSON = JSON.stringify(job, null, 2);
@@ -60,9 +60,9 @@ const archiveJob = async (job, isFile) => {
   await fs.mkdir(doneDir, {recursive: true});
   await fs.writeFile(`${doneDir}/${id}.json`, `${jobJSON}\n`);
   // If the job had been saved as a file in the todo subdirectory:
-  if (isFile) {
+  if (todoFileName) {
     // Delete the file.
-    await fs.rm(`${jobDir}/todo/${id}.json`);
+    await fs.rm(`${jobDir}/todo/${todoFileName}`);
   }
   console.log(`Job ${id} archived in ${doneDir} (${nowString()})`);
 };

@@ -25,7 +25,11 @@ services:
       TESTARO_CHROMIUM_NO_SANDBOX: "true"
       # Send nuVal requests to the sidecar instead of the W3C service.
       TESTARO_NU_URL: "http://nu:8888/?parser=html&out=json"
-      AGENT: docker-example
+      # JODBIR and REPORTDIR from Dockerfile override those from .env.
+      # Import other specific environment variables from .env file.
+      AGENT: ${AGENT}
+      WAVE_KEY: ${WAVE_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
     volumes:
       # Host directories for jobs and reports. The container runs as the
       # unprivileged pwuser; the host directories must be writable by it

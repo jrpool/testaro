@@ -25,6 +25,11 @@
 - **Error handling**: Try-catch blocks, report failures via `prevented: true` in results
 - **Comments**: Explain complex logic, but keep concise
 
+## Assistant Mode Behavior
+
+- The user deliberately selects Code, Ask, or Plan mode for each session; do not suggest or invite switching modes (e.g., “switch to Code mode so I can…”).
+- In Ask mode, propose exact changes/commands for the user to apply without prompting a mode change.
+
 ## License
 
 © 2025–2026 Jonathan Robert Pool.
