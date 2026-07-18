@@ -55,5 +55,16 @@
     "dom-accessibility-api": "*",
     "esbuild": "*",
     "eslint": "*"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0"
+  },
+  "allowScripts": {
+    "accessibility-checker": true,
+    "puppeteer": true,
+    "chromedriver": true,
+    "esbuild": true,
+    "fsevents": true,
+    "vnu-jar": true
   }
 }
