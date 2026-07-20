@@ -601,6 +601,18 @@ exports.launch = async (opts = {}) => {
       let unusedBrowserIDs = ['chromium', 'webkit', 'firefox'].filter(id => id !== tempBrowserID);
       let retriesLeft = retries;
       let {error} = launchResult;
+      // A 4xx client-error navigation status is a definitive server refusal (a
+      // WAF block or auth wall); retrying it — and switching browser type for a
+      // full extra round of retries — cannot change the outcome. Under the
+      // testaro tool's per-rule relaunch this compounds into a multi-minute (up
+      // to job-timeout) stall on a single target. Fail fast on 4xx, except 408
+      // (Request Timeout) and 429 (Rate Limited), which are legitimately
+      // transient (429 is handled below).
+      const navStatus = Number((/status(\d{3})/.exec(error) || [])[1]);
+      if (navStatus >= 400 && navStatus < 500 && navStatus !== 408 && navStatus !== 429) {
+        retriesLeft = 0;
+        unusedBrowserIDs = [];
+      }
       // As long as retries remain, decrement the allowed retry count and:
       while (retriesLeft) {
         // Prepare to wait 1 second before a retry.
