@@ -76,12 +76,9 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     };
   }
   try {
-    // Start the QualWeb core engine.
+    // Start the QualWeb core engine, which launches a Playwright browser.
     await qualWeb.start(clusterOptions);
-    console.log('XXX QW pool:', typeof qualWeb.pool);
-    console.log('XXX QW pool.browser:', typeof qualWeb.pool?.browser);
-    console.log('XXX QW pool.browser.process:', typeof qualWeb.pool?.browser?.process);
-    console.log('XXX QW process() result:', qualWeb.pool?.browser?.process?.());  }
+  }
   // If the start fails:
   catch(error) {
     return {
@@ -110,8 +107,8 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     },
     modules: []
   };
-  // Provide the content, including the data-xpath attributes.
   try {
+    // Provide the page content, including the data-xpath attributes.
     qualWebOptions.html = await page.content();
     // Specify which rules to test for, adding a custom execute property for report processing.
     const actSpec = rules ? rules.find(typeRules => typeRules.startsWith('act:')) : null;
@@ -292,7 +289,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     }
     catch(error) {
       data.prevented = true;
-      data.error = `qualWeb result cannot be made JSON (${error.message})`;
+      data.error = `QualWeb result cannot be made JSON (${error.message})`;
     }
   }
   catch(error) {
