@@ -22,6 +22,13 @@ const {BestPractices} = require('@qualweb/best-practices');
 const {PlaywrightDriver} = require('@qualweb/playwright-driver');
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
+// XXX
+const {spawn: origSpawn} = require('child_process');
+require('child_process').spawn = (...spawnArgs) => {
+  console.log('XXX SPAWN:', JSON.stringify(spawnArgs[0]), JSON.stringify(spawnArgs[1]));
+  return origSpawn(...spawnArgs);
+};
+
 // CONSTANTS
 
 const qualWeb = new QualWeb(undefined, new PlaywrightDriver({
@@ -51,7 +58,7 @@ const ordinalSeverities = {
 // Conducts and reports the QualWeb tests.
 exports.reporter = async (page, report, actIndex, timeLimit) => {
   const act = report.acts[actIndex];
-  const {withNewContent, rules} = act;
+  const {rules} = act;
   const clusterOptions = {
     maxConcurrency: 1,
     timeout: timeLimit * 1000,
@@ -73,20 +80,13 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       instances: []
     };
   }
-  // Specify the options for the Puppeteer browser launched by QualWeb.
-  const puppeteerOptions = {
-    headless: true
-  };
-  // If launching Chromium without its sandbox was specified (e.g., in a
-  // container or on a host that restricts unprivileged user namespaces):
-  if (process.env.TESTARO_CHROMIUM_NO_SANDBOX === 'true') {
-    // Disable the sandbox of the QualWeb browser, too.
-    puppeteerOptions.args = ['--no-sandbox'];
-  }
   try {
     // Start the QualWeb core engine.
-    await qualWeb.start(clusterOptions, puppeteerOptions);
-  }
+    await qualWeb.start(clusterOptions);
+    console.log('XXX QW pool:', typeof qualWeb.pool);
+    console.log('XXX QW pool.browser:', typeof qualWeb.pool?.browser);
+    console.log('XXX QW pool.browser.process:', typeof qualWeb.pool?.browser?.process);
+    console.log('XXX QW process() result:', qualWeb.pool?.browser?.process?.());  }
   // If the start fails:
   catch(error) {
     return {
@@ -115,14 +115,9 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
     },
     modules: []
   };
-  // Specify a URL or provide the content.
+  // Provide the content, including the data-xpath attributes.
   try {
-    if (withNewContent) {
-      qualWebOptions.url = page.url();
-    }
-    else {
-      qualWebOptions.html = await page.content();
-    }
+    qualWebOptions.html = await page.content();
     // Specify which rules to test for, adding a custom execute property for report processing.
     const actSpec = rules ? rules.find(typeRules => typeRules.startsWith('act:')) : null;
     const wcagSpec = rules ? rules.find(typeRules => typeRules.startsWith('wcag:')) : null;
@@ -196,7 +191,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
       };
     }
     // Add the report to the result.
-    result.nativeResult = qwReport[withNewContent ? qualWebOptions.url : 'customHtml'];
+    result.nativeResult = qwReport.customHtml;
     const {nativeResult, standardResult} = result;
     // If the report contains, as it should, a copy of the DOM:
     if (nativeResult?.system?.page?.dom) {

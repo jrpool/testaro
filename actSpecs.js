@@ -181,16 +181,7 @@ exports.actSpecs = {
     ibm: [
       'Perform IBM Equal Access tests',
       {
-        withItems: [true, 'boolean', '', 'itemize'],
-        withNewContent: [
-          true, 'boolean', '', 'true: use a URL; false: use page content (risky)'
-        ]
-      }
-    ],
-    qualWeb: [
-      'Perform QualWeb tests',
-      {
-        withNewContent: [true, 'boolean', '', 'whether to use a URL instead of page content']
+        withItems: [true, 'boolean', '', 'itemize']
       }
     ],
     nuVal: [

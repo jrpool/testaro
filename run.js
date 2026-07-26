@@ -21,7 +21,7 @@ require('dotenv').config({quiet: true});
 const {isValidJob} = require('./procs/job');
 const {getCatalog} = require('./procs/catalog');
 const {nowString} = require('./procs/dateTime');
-const {chromium, webkit, firefox} = require('playwright-extra');
+const {chromium} = require('playwright-extra');
 const fs = require('fs').promises;
 const os = require('os');
 /*

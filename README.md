@@ -14,8 +14,8 @@ Testaro is an application that performs ensemble testing of web pages for access
 
 The purposes of Testaro are to:
 
-- provide programmatic access to tests defined by multiple tools
-- standardize and integrate the reports of the tools
+- provide programmatic access to tests defined by multiple rule engines
+- standardize and integrate the reports of the rule engines
 
 The need for ensemble testing of web accessibility, and the obstacles to it, are discussed in [Accessibility Metatesting: Comparing Nine Testing Tools](https://arxiv.org/abs/2304.07591).
 
@@ -26,7 +26,7 @@ Testaro is described in two papers:
 
 ## Functionality
 
-Testaro performs tasks defined by a _job_. Typically, a job identifies the URL of a web page and asks Testaro to call an ensemble of tools to test the page. Testaro adds the results of the testing to the job, thereby converting the job to a _report_.
+Testaro performs tasks defined by a _job_. Typically, a job identifies the URL of a web page and asks Testaro to call an ensemble of rule engines to test the page. Testaro adds the results of the testing to the job, thereby converting the job to a _report_.
 
 Testaro can be given a job to perform, in which case it performs the job, delivers the report, and quits.
 
@@ -44,7 +44,7 @@ Testaro uses:
 - [pixelmatch](https://www.npmjs.com/package/pixelmatch) to measure motion
 - [dotenv](https://www.npmjs.com/package/dotenv) to load environment variables
 
-Testaro can perform tests of these _tools_:
+Testaro can perform tests of these _rule engines_:
 
 - [Accessibility Checker](https://www.npmjs.com/package/accessibility-checker) (IBM)
 - [Alfa](https://alfa.siteimprove.com/) (Siteimprove)
@@ -57,9 +57,9 @@ Testaro can perform tests of these _tools_:
 - [Testaro](https://www.npmjs.com/package/testaro) (CVS Health)
 - [WAVE](https://wave.webaim.org/api/) (WebAIM)
 
-For the tools that are open-source, the identified organizations are their principal or original sponsors.
+For the rule engines that are open-source, the identified organizations are their principal or original sponsors.
 
-As shown, Testaro is not only an integrator but also one of the integrated tools. That is because it provides about 50 tests of its own, mostly to complement tests provided by the other tools. Some of those Testaro tests are designed to act as approximate alternatives to tests of vulnerable, restricted, or no longer available tools. In all such cases the Testaro tests are independently designed and implemented, without reference to the code of the tests that inspired them.
+As shown, Testaro is not only an integrator but also one of the integrated rule engines. That is because it provides about 50 tests of its own, mostly to complement tests provided by the other rule engines. Some of those Testaro tests are designed to act as approximate alternatives to tests of vulnerable, restricted, or no longer available rule engines. In all such cases the Testaro tests are independently designed and implemented, without reference to the code of the tests that inspired them.
 
 ## Concepts and terms
 
@@ -68,13 +68,13 @@ The main concepts of Testaro are:
 - `job`: a document that tells Testaro what to do.
 - `act`: one step in a job.
 - `report`: a job that Testaro has added results to.
-- `tool`: one of the testing applications in the ensemble assembled by Testaro.
-- `rule`: a success or failure criterion defined by a tool (currently about 1300 across all tools).
-- `test`: the software that a tool uses to apply a rule.
+- `rule engine`: one of the testing applications in the ensemble assembled by Testaro.
+- `rule`: a success or failure criterion defined by a rule engine (currently about 1300 across all rule engines).
+- `test`: the software that a rule engine uses to apply a rule.
 - `target`: a web page that a job tells Testaro to test.
-- `result`: the information that Testaro adds to a job to describe the outcomes of the tests of a tool.
-- `native result`: the outcomes of the tests of a tool in exactly or approximately the original form.
-- `standard result`: the outcomes of the tests of a tool in a uniform Testaro-defined form.
+- `result`: the information that Testaro adds to a job to describe the outcomes of the tests of a rule engine.
+- `native result`: the outcomes of the tests of a rule engine in exactly or approximately the original form.
+- `standard result`: the outcomes of the tests of a rule engine in a uniform Testaro-defined form.
 - `catalog`: a collection of data on the HTML elements of a target relevant to one or more tests.
 
 ## System requirements
@@ -85,17 +85,15 @@ Testaro can be installed under a MacOS, Windows, Debian, or Ubuntu operating sys
 
 ### Browser security
 
-Testaro is configured so that, when Playwright or Puppeteer (a dependency of Playwright and of some tools, including QualWeb) launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright and Puppeteer, and Testaro does not override that default. The host must therefore permit sandboxed browsers. If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
+Testaro is configured so that, when Playwright launches a `chromium` browser, the browser is [sandboxed](https://www.geeksforgeeks.org/ethical-hacking/what-is-browser-sandboxing/) for improved security. That is the default for Playwright, and Testaro does not override that default. The host must therefore permit sandboxed browsers. If you try to run Testaro on a host that prohibits sandboxed browsers, each attempted launch of a `chromium` browser will throw an error with a message complaining about the unavailability of a sandbox.
 
 In some operating systems a sandboxed browser requires an [unprivileged user namespace](https://ubuntu.com/blog/ubuntu-23-10-restricted-unprivileged-user-namespaces). In one case, a `…userns.conf` file in the `/etc/sysctl.d` directory with the content `kernel.apparmor_restrict_unprivileged_userns = 1` prohibits unprivileged user namespaces and thereby makes sandboxed browsers unlaunchable.
 
 #### Option A
 
-One way to cope with this prohibition is to configure Playwright and Puppeteer to launch `chromium` non-sandboxed. In both cases, launch arguments `'--no-sandbox'` and `'--disable-setuid-sandbox'` are available to specify this.
+One way to cope with this prohibition is to configure Playwright to launch `chromium` non-sandboxed. Launch arguments `'--no-sandbox'` and `'--disable-setuid-sandbox'` are available to specify this. They are added to the arguments of `browserOptionArgs.push` in the Testaro `run.js` file.
 
-- For Playwright, `'--no-sandbox'` and `'--disable-setuid-sandbox'` are added to the arguments of `browserOptionArgs.push` in the Testaro `run.js` file.
-- For the `qualWeb` tool, this is done in the Testaro `tests/qualweb.js` file, where the `qualWeb.start` method is called with an options argument. Its `args` array property is modified to include `'--no-sandbox'` and `'--disable-setuid-sandbox'`.
-- The `ibm` tool, too, can launch a Puppeteer `chromium` browser, if page content instead of a Playwright page is passed to the `accessibilityChecker.getCompliance` method, or if the implementation of the tool is changed in the future. For anticipation of such a case, the Testaro `aceconfig.js` file is modified. That file defines a `module.exports` object with a `puppeteerArgs` property, and, `--no-sandbox` and `--disable-setuid-sandbox` are added to its array value.
+This option is **not available for the Playwright `chromium` browser launched by QualWeb**.
 
 Non-sandboxed browsers are less secure than sandboxed ones, particularly when there is no restriction on who can use Testaro and what targets (web pages) they can test with it.
 
@@ -115,7 +113,7 @@ sudo sysctl --system
 
 This application implements option B.
 
-## Installation an independent application
+## Installation as an independent application
 
 To install Testaro as an independent application, rather than a dependency, clone the [Testaro repository](https://github.com/jrpool/testaro). To ensure that the binary browsers of its Playwright dependency get installed, execute `(p)npx playwright install` after executing `(p)npm install`.
 
@@ -179,11 +177,11 @@ Here is a sample job, showing properties that you can set:
   },
   acts: [ // Steps in this job
     {
-      type: 'test', // Act type (the 'test' type performs tests of a tool)
+      type: 'test', // Act type (the 'test' type performs tests of a rule engine)
       launch: {}, // Act-specific overrides for the browserID and/or target
-      which: 'axe', // ID of the tool
-      detailLevel: 2, // An argument required by this tool
-      rules: ['landmark-complementary-is-top-level'], // Which rules of the tool to test for
+      which: 'axe', // ID of the rule engine
+      detailLevel: 2, // An argument required by this rule engine
+      rules: ['landmark-complementary-is-top-level'], // Which rules of the rule engine to test for
     },
     {
       type: 'test',
@@ -195,8 +193,7 @@ Here is a sample job, showing properties that you can set:
         }
       },
       which: 'qualWeb',
-      withNewContent: false, // An argument required by this tool
-      rules: ['QW-BP25', 'QW-BP26'] // Which rules of the tool to test for
+      rules: ['QW-BP25', 'QW-BP26'] // Which rules of the rule engine to test for
     }
   ]
 }
@@ -323,18 +320,18 @@ The `textLinkable` property has a true value whenever `text` is non-empty and ca
 
 The segments of `boxID` are `x`, `y`, `width`, and `height`.
 
-The catalog is a mechanism for the integration of the tools. Most rule violations that tools report are blamed on particular HTML elements. A tool typically reports that an element violated a rule by having some defect in its configuration or behavior. But tools describe elements differently. Testaro makes the tools identify the XPaths of the elements they report as violators. Testaro then finds, for each XPath, the correct catalog entry.
+The catalog is a mechanism for the integration of the rule engines. Most rule violations that rule engines report are blamed on particular HTML elements. A rule engine typically reports that an element violated a rule by having some defect in its configuration or behavior. But rule engines describe elements differently. Testaro makes the rule engines identify the XPaths of the elements they report as violators. Testaro then finds, for each XPath, the correct catalog entry.
 
-Testaro uses the following techniques to make the tools calculate XPaths:
+Testaro uses the following techniques to make the rule engines calculate XPaths:
 
 - `alfa` and `aslint`: They report XPaths, so Testaro needs only to normalize them.
-- `ed11y`: Testaro adds it and a `window.getXPath` method to the page. When the tool reports an element, Testaro computes its XPath.
+- `ed11y`: Testaro adds it and a `window.getXPath` method to the page. When the rule engine reports an element, Testaro computes its XPath.
 - `wave`: It reports a selector for each element; Testaro finds each element in the page via its selector and executes `window.getXPath` on the element.
-- `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`: Testaro adds `data-xpath` attributes to all elements. The tools include code excerpts, with the `data-xpath` attributes, in the reported violations.
+- `htmlcs`, `ibm`, `nuVal`, `nuVnu`, `qualWeb`: Testaro adds `data-xpath` attributes to all elements. The rule engines include code excerpts, with the `data-xpath` attributes, in the reported violations.
 - `axe`: It reports a selector for each element, and Testaro adds `data-xpath` attributes to all elements. Testaro finds each element in the page via its selector and uses the `data-xpath` attribute. When this fails, Testaro uses the `data-xpath` attribute if its complete value is included in the reported `node.html` value.
 - `testaro`: Testaro designs each of its own tests to report element XPaths.
 
-By attaching a catalog entry to each reported element, Testaro allows an application that uses Testaro to tell users, for any particular HTML element, which tools ascribed violations of which rules to that element. An application could, for example, use a screenshot or a text-fragment link or could ask the user to paste the XPath into a browser developer tool.
+By attaching a catalog entry to each reported element, Testaro allows an application that uses Testaro to tell users, for any particular HTML element, which rule engines ascribed violations of which rules to that element. An application could, for example, use a screenshot or a text-fragment link or could ask the user to paste the XPath into a browser developer tool.
 
 In some cases no catalog entry can be found. The reasons may include:
 
@@ -354,12 +351,12 @@ As Testaro performs the acts of a job, information about the result of each act 
 
 - `startTime`: When Testaro began to perform the act
 - `actualURL`: The tested URL (different from the target URL if the request was redirected)
-- `data`: Data generated by the tool
-- `result`: Result of the testing by the tool
+- `data`: Data generated by the rule engine
+- `result`: Result of the testing by the rule engine
 
 The `result` property is an object with one or two (depending on the value of `standard`, as described above) subproperties:
 
-- `nativeResult`: The result (or a compact version of the result) natively produced by the tool
+- `nativeResult`: The result (or a compact version of the result) natively produced by the rule engine
 - `standardResult`: A Testaro-standardized version of the result
 
 If an act of type `test` contains an `expect` property (specifying expectations about the result), then Testaro also inserts these properties into the act:
@@ -373,13 +370,13 @@ Details about these expectation properties are documened in the `VALIDATION.md` 
 
 If the job instructs Testaro to include standard results, then the `result.standardResult` property of each act of type `test` will have three properties:
 
-- `prevented`: Whether the tool was prevented from performing the act
+- `prevented`: Whether the rule engine was prevented from performing the act
 - `totals`: An array of 4 integers, counting the rule violations at 4 severity levels
-- `instances`: An array of data about the violations reported by the tool
+- `instances`: An array of data about the violations reported by the rule engine
 
 More specifically:
 
-- The `totals` value is an array like this: `[3, 0, 87, 4]`. This example would mean that the tool reported 3 failures at severity 0 (the least severe level), none at severity 1, 87 at severity 2, and 4 at severity 3. These four severities are conceptually ordinal, not metric.
+- The `totals` value is an array like this: `[3, 0, 87, 4]`. This example would mean that the rule engine reported 3 failures at severity 0 (the least severe level), none at severity 1, 87 at severity 2, and 4 at severity 3. These four severities are conceptually ordinal, not metric.
 - The `instances` value is an array of objects, each having these properties:
   - `ruleId`: The ID of the rule that was violated
   - `what`: A description of the rule or of the violation
@@ -389,17 +386,17 @@ More specifically:
 
 If no catalog entry was found for the instance, then instead of a `catalogIndex` property Testaro tries to insert a `pathID` property, whose value is a normalized XPath of the offending HTML element.
 
-## Tool details
+## Rule-engine details
 
-The tools whose tests Testaro performs have particularities described below.
+The rule engines whose tests Testaro performs have particularities described below.
 
 ### ASLint
 
-The `aslint` tool makes use of the [`aslint-testaro` fork](https://www.npmjs.com/package/aslint-testaro) of the [`aslint` repository](https://github.com/essentialaccessibility/aslint), which, unlike the published `aslint` package, contains the `aslint.bundle.js` file.
+The `aslint` rule engine makes use of the [`aslint-testaro` fork](https://www.npmjs.com/package/aslint-testaro) of the [`aslint` repository](https://github.com/essentialaccessibility/aslint), which, unlike the published `aslint` package, contains the `aslint.bundle.js` file.
 
 ### HTML CodeSniffer
 
-The `htmlcs` tool makes use of the `htmlcs/HTMLCS.js` file. That file was created, and can be recreated if necessary, as follows:
+The `htmlcs` rule engine makes use of the `htmlcs/HTMLCS.js` file. That file was created, and can be recreated if necessary, as follows:
 
 1. Clone the [HTML CodeSniffer package](https://github.com/squizlabs/HTML_CodeSniffer).
 1. Make that package’s directory the active directory.
@@ -433,7 +430,7 @@ The changes in `htmlcs/HTMLCS.js` are:
 
 The `ibm` tests require the `aceconfig.js` file.
 
-As of 2 March 2023 (version 3.1.45 of `accessibility-checker`), the `ibm` tool threw errors when hosted under the Windows operating system. To prevent these errors, it was possible to edit two files in the `accessibility-checker` package as follows:
+As of 2 March 2023 (version 3.1.45 of `accessibility-checker`), the `ibm` rule engine threw errors when hosted under the Windows operating system. To prevent these errors, it was possible to edit two files in the `accessibility-checker` package as follows:
 
 In `node_modules/accessibility-checker/lib/ACEngineManager.js`, remove or comment out these lines starting on line 169:
 
@@ -452,19 +449,17 @@ results.label = results.label.replace(/:/g, '-');
 
 These changes were proposed as [pull requests 1333 and 1334](https://github.com/IBMa/equal-access/pulls).
 
-The `ibm` tool is one of two tools (`testaro` is the other) with a `withItems` property. If you set `withItems` to `false`, the result includes the counts of “violations” and “recommendations”, but no information about the rules that gave rise to them.
-
-In a previous version of the package, the tool operated on the page content when the `withNewContent` property was `false`. In some cases the tool threw untrappable errors for some targets under that condition. The tool launched a Puppeteer browser to create pages to perform its tests on. On any host that did not permit sandboxed browsers to be launched, the `aceconfig.js` file needed to specify nonsandboxed browsers. Starting in December 2025, the tool operates on the page rather than the page content.
+The `ibm` rule engine is one of two rule engines (`testaro` is the other) with a `withItems` property. If you set `withItems` to `false`, the result includes the counts of “violations” and “recommendations”, but no information about the rules that gave rise to them.
 
 ### Nu Html Checker
 
-The `nuVal` and `nuVnu` tools perform the tests of the Nu Html Checker. The `nuVal` tool is a remote service with an API. The `nuVnu` tool is installed as a dependency. A job can choose either one, or can try `nuVal` and if it fails then invoke `nuVnu`.
+The `nuVal` and `nuVnu` rule engines perform the tests of the Nu Html Checker. The `nuVal` rule engine is a remote service with an API. The `nuVnu` rule engine is installed as a dependency. A job can choose either one, or can try `nuVal` and if it fails then invoke `nuVnu`.
 
 Its `rules` argument is **not** an array of rule IDs, but instead is an array of rule _specifications_. A rule specification for `nuVal` or `nuVnu` is a string with the format `=ruleID` or `~ruleID`. The `=` prefix indicates that the rule ID is invariable. The `~` prefix indicates that the rule ID is variable, in which case the `ruleID` part of the specification is a matching regular expression, rather than the exact text of a message. This `rules` format arises from the fact that `nuVal` and `nuVnu` generate customized messages and do not accompany them with rule identifiers.
 
 ### QualWeb
 
-The `qualWeb` tool performs the ACT rules, WCAG Techniques, and best-practices tests of QualWeb. Only failures and warnings are included in the report. The EARL report of QualWeb is not generated, because it is equivalent to the report of the ACT rules tests.
+The `qualWeb` rule engine performs the ACT rules, WCAG Techniques, and best-practices tests of QualWeb. Only failures and warnings are included in the report. The EARL report of QualWeb is not generated, because it is equivalent to the report of the ACT rules tests.
 
 QualWeb allows specification of rules for 3 modules: `act-rules`, `wcag-techniques`, and `best-practices`. If you include a `rules` argument in a QualWeb test act, its value must be an array of 1, 2, or 3 strings. Any string in that array is a specification for one of these modules. The string has this format:
 
@@ -502,13 +497,13 @@ The Testaro rules are classified by an `allRules` array defined in the `tests/te
 - `timeOut`: the maximum time in seconds allowed for a test of the rule
 - `defaultOn`: whether the rule is to be tested for by default
 
-If you do not specify rules when using the `testaro` tool, Testaro will test for its default rules, in the order in which they appear in the array.
+If you do not specify rules when using the `testaro` rule engine, Testaro will test for its default rules, in the order in which they appear in the array.
 
 The optional `rules` argument for a `testaro` test act is an array whose first item is either `'y'` or `'n'` and whose remaining items are rule IDs. If `'y'`, then only the specified rules’ tests are performed. If `'n'`, then all the default rules are tested for, **except** for the specified rules.
 
-The `testaro` tool (like the `ibm` tool) has a `withItems` property. If you set it to `false`, the `standardResult` object will contain an `instances` property with summaries that identify issues and instance counts. If you set it to `true`, some of the instances will be itemized.
+The `testaro` rule engine (like the `ibm` rule engine) has a `withItems` property. If you set it to `false`, the `standardResult` object will contain an `instances` property with summaries that identify issues and instance counts. If you set it to `true`, some of the instances will be itemized.
 
-Unlike any other tool, the `testaro` tool requires a `stopOnFail` property, which specifies whether a failure to conform to any rule (i.e. any value of `totals` other than `[0, 0, 0, 0]`) should terminate the execution of tests for the remaining rules.
+Unlike any other rule engine, the `testaro` rule engine requires a `stopOnFail` property, which specifies whether a failure to conform to any rule (i.e. any value of `totals` other than `[0, 0, 0, 0]`) should terminate the execution of tests for the remaining rules.
 
 Tests of the `testaro` tests (i.e. _validation_) could previously be performed as documented in the `VALIDATION.md` file. This functionality has broken and its redesign is planned.
 
@@ -538,9 +533,9 @@ The rationales motivating the Testaro-defined tests can be found in comments wit
 
 On some occasions a test throws an error that cannot be handled with a `try`-`catch` structure. It has been observed, for example, that the `ibm` test does this when the page content, rather than the page URL, is given to `getCompliance()` and the target is `https://globalsolutions.org`, `https://monsido.com`, or `https://www.ambetterhealth.com/`.
 
-Some tools take apparently infinite time to perform their tests on some pages. One website whose pages prevent 5 of the tools from ever completing their tests is the site of BrowserStack.
+Some rule engines take apparently infinite time to perform their tests on some pages. One website whose pages prevent 5 of the rule engines from ever completing their tests is the site of BrowserStack.
 
-To handle such fatal errors and stalls, Testaro runs the tests of each tool in a separate forked child process that executes the `procs/doTestAct.js` module. The parent process subjects each tool to a time limit and kills the child if the time limit expires.
+To handle such fatal errors and stalls, Testaro runs the tests of each rule engine in a separate forked child process that executes the `procs/doTestAct.js` module. The parent process subjects each rule engine to a time limit and kills the child if the time limit expires.
 
 ### Activation
 
@@ -552,22 +547,22 @@ The Playwright “Receives Events” actionability check does **not** check whet
 
 Test targets employ mechanisms to prevent scraping, multiple requests within a short time, automated form submission, and other automated actions. These mechanisms may interfere with testing. When a test act is prevented, Testaro reports this prevention.
 
-Some targets prohibit the execution of alien scripts unless the client can demonstrate that it is the requester of the page. Failure to provide that evidence results in the script being blocked and an error message being logged, saying “Refused to execute a script because its hash, its nonce, or unsafe-inline does not appear in the script-src directive of the Content Security Policy”. This mechanism affects tools that insert scripts into a target in order to test it. To comply with this requirement, Testaro obtains a _nonce_ from the response that serves the target. Then the file that runs the tool adds that nonce to the script as the value of a `nonce` attribute when it inserts its script into the target.
+Some targets prohibit the execution of alien scripts unless the client can demonstrate that it is the requester of the page. Failure to provide that evidence results in the script being blocked and an error message being logged, saying “Refused to execute a script because its hash, its nonce, or unsafe-inline does not appear in the script-src directive of the Content Security Policy”. This mechanism affects rule engines that insert scripts into a target in order to test it. To comply with this requirement, Testaro obtains a _nonce_ from the response that serves the target. Then the file that runs the rule engine adds that nonce to the script as the value of a `nonce` attribute when it inserts its script into the target.
 
 Some targets have been found erratically to prevent the creation of page images. When page images have been created, during the `motion` test in `testaro` some targets have been found to prevent their comparison by BlazeDiff, but comparison by `pixelmatch` has succeeded. For this reason, although reportedly slower, `pixelmatch` is the library used for image comparison.
 
-### Tool duplicativity
+### Rule-engine duplicativity
 
-Tools sometimes do redundant testing, in that two or more tools test for the same defects, although such duplications are not necessarily perfect. This fact creates problems:
+Rule engines sometimes do redundant testing, in that two or more rule engines test for the same defects, although such duplications are not necessarily perfect. This fact creates problems:
 
-- One cannot be confident in excluding some tests of some tools on the assumption that they perfectly duplicate tests of other tools.
-- The Testaro report from a job documents each tool’s results separately, so a single defect may be documented in multiple locations within the report, making the direct consumption of the report inefficient.
-- An effort to aggregate the results into a single score may distort the scores by inflating the weights of defects that happen to be discovered by multiple tools.
-- Tools use different methods for identifying the locations of elements that violate tool rules.
+- One cannot be confident in excluding some tests of some rule engines on the assumption that they perfectly duplicate tests of other rule engines.
+- The Testaro report from a job documents each rule engine’s results separately, so a single defect may be documented in multiple locations within the report, making the direct consumption of the report inefficient.
+- An effort to aggregate the results into a single score may distort the scores by inflating the weights of defects that happen to be discovered by multiple rule engines.
+- Rule engines use different methods for identifying the locations of elements that violate rule-engine rules.
 
-### Tool malfunctions
+### Rule-engine malfunctions
 
-Tools can become faulty. For example, Alfa stopped reporting any rule violations in mid-April 2024 and resumed doing so at the end of April. In some cases, such as this, the tool maker corrects the fault. In others, the tool changes and forces Testaro to change its handling of the tool.
+Rule engines can become faulty. For example, Alfa stopped reporting any rule violations in mid-April 2024 and resumed doing so at the end of April. In some cases, such as this, the rule-engine maker corrects the fault. In others, the rule engine changes and forces Testaro to change its handling of the rule engine.
 
 ### Dependency deployment
 
@@ -575,7 +570,7 @@ The behavior of Testaro as a dependency of an application deployed on a virtual 
 
 ### Containerized deployment
 
-A reference container image for stand-alone deployment, in which all tools run, is defined by the `Dockerfile` and `docker-compose.yml` files at the project root and documented in [CONTAINERS.md](CONTAINERS.md).
+A reference container image for stand-alone deployment, in which all rule engines run, is defined by the `Dockerfile` and `docker-compose.yml` files at the project root and documented in [CONTAINERS.md](CONTAINERS.md).
 
 ### Headless browser fidelity
 
@@ -596,7 +591,7 @@ Any files in the `temp` or `tmp` directory are presumed ephemeral and are not tr
 - produces human-oriented HTML digests from scored reports
 - produces human-oriented HTML comparisons of the scores of targets
 
-Testilo contains procedures that reorganize report data by issue and by element, rather than tool, and that compensate for duplicative tests when computing scores.
+Testilo contains procedures that reorganize report data by issue and by element, rather than rule engine, and that compensate for duplicative tests when computing scores.
 
 Report standardization could be performed by other software rather than by Testaro. That would require sending the original reports to the server. They are typically larger than standardized reports. Whenever users want only standardized reports, the fact that Testaro standardizes them eliminates the need to send the original reports anywhere.
 

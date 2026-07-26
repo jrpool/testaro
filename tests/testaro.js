@@ -471,20 +471,15 @@ exports.reporter = async (page, report, actIndex) => {
   };
   const {standardResult} = result;
   const allRuleIDs = allRules.map(rule => rule.id);
-  // If the rule specification is valid:
   if (
+    // If the rule specification has at least 2 items
     ruleSpec.length > 1
+    // and the first item is y or n
     && ['y', 'n'].includes(ruleSpec[0])
+    // and all subsequent items are rule IDs to be included (if y) or excluded (if n):
     && ruleSpec.slice(1).every(ruleID => allRuleIDs.includes(ruleID))
   ) {
     // Get the rules to be tested for and their execution order.
-    // 'y' = include-list: run exactly the rules in ruleSpec.slice(1).
-    // 'n' = exclude-list: run all defaultOn rules EXCEPT those in
-    //       ruleSpec.slice(1). (The prior implementation was a no-op:
-    //       it checked against `allRuleIDs` — which is every rule's id —
-    //       so the predicate was never true, and it returned rule
-    //       objects rather than IDs, which then never matched the
-    //       string comparison on the next line.)
     const excludeIDs = ruleSpec.slice(1);
     const jobRuleIDs = ruleSpec[0] === 'y'
     ? excludeIDs

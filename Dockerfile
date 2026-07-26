@@ -10,7 +10,7 @@
 # The base-image tag must match the version of the playwright package in
 # package-lock.json, so that the browsers baked into the image are the ones
 # the installed Playwright expects.
-FROM mcr.microsoft.com/playwright:v1.60.0-noble
+FROM mcr.microsoft.com/playwright:v1.61.1-noble
 
 # Install a headless Java runtime for the nuVnu test (vnu-jar); baking it in
 # prevents vnu-jar from downloading a Temurin runtime over the network on

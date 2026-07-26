@@ -29,6 +29,7 @@
     "url": "https://github.com/jrpool/testaro/issues"
   },
   "homepage": "https://github.com/jrpool/testaro#readme",
+  "about dependencies": "playwright is temporarily pinned to version 1.61.1 because mcr.microsoft.com/playwright:v1.62.0-noble has not yet been released, so containerized deployment requires version 1.61.1.",
   "dependencies": {
     "@qualweb/core": "*",
     "@qualweb/act-rules": "*",
@@ -44,7 +45,7 @@
     "axe-playwright": "*",
     "dotenv": "*",
     "pixelmatch": "*",
-    "playwright": "*",
+    "playwright": "1.61.1",
     "playwright-dompath": "*",
     "playwright-extra": "*",
     "playwright-extra-plugin-stealth": "*",

@@ -111,7 +111,7 @@ const doTestAct = async (reportPath, actIndex) => {
       process.exit(1);
     }
   }
-  // If the page exists or the tool is Testaro:
+  // If the page exists after the launch, or if the tool is Testaro:
   if (page || which === 'testaro') {
     try {
       // Make the act reporter perform the specified tests of the tool.
@@ -157,13 +157,13 @@ const doTestAct = async (reportPath, actIndex) => {
       process.exit(1);
     };
   }
-  // Otherwise, i.e. if the page does not exist:
+  // Otherwise, i.e. if the page does not exist after the launch:
   else {
-    // Add data to the act.
+    // Add this to the act.
     act.data ??= {};
     act.data.prevented = true;
     act.data.error = 'No page';
-    // Add prevention data to the job data.
+    // Add the prevention to the job data.
     report.jobData.preventions[which] = act.data.error;
     const reportJSON = JSON.stringify(report);
     // Save the revised report.
