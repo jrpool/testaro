@@ -10,7 +10,7 @@
 
 /*
   alfa
-  This test implements the alfa ruleset for accessibility.
+  Implements the alfa ruleset for accessibility.
 */
 
 // IMPORTS

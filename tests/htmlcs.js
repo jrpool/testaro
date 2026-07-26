@@ -10,7 +10,7 @@
 
 /*
   htmlcs
-  This test implements the HTML CodeSniffer ruleset.
+  Implements the HTML CodeSniffer ruleset.
 */
 
 // IMPORTS

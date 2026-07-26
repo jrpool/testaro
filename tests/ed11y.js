@@ -10,7 +10,7 @@
 
 /*
   ed11y
-  This test implements the Editoria11y ruleset for accessibility.
+  Implements the Editoria11y ruleset for accessibility.
 */
 
 // IMPORTS

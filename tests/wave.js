@@ -10,7 +10,7 @@
 
 /*
   wave
-  This test implements the WebAIM WAVE ruleset for accessibility. The 'reportType' argument
+  Implements the WebAIM WAVE ruleset for accessibility. The 'reportType' argument
   specifies a WAVE report type: 1, 2, 3, or 4.
 */
 

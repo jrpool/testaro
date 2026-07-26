@@ -10,7 +10,7 @@
 
 /*
   aslint
-  This test implements the ASLint ruleset for accessibility.
+  Implements the ASLint ruleset for accessibility.
 */
 
 // IMPORTS

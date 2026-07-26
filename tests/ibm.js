@@ -10,11 +10,11 @@
 
 /*
   ibm
-  This tool implements the IBM Equal Access ruleset for accessibility.
+  Implements the IBM Equal Access ruleset for accessibility.
 
-  This tool depends on aceconfig.js.
+  This rule engine depends on aceconfig.js.
 
-  This tool is compatible with Windows only if the accessibility-checker package
+  This rule engine is compatible with Windows only if the accessibility-checker package
   is revised. See README.md for details.
 */
 

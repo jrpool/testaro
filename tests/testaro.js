@@ -10,7 +10,7 @@
 
 /*
   testaro
-  This test implements the Testaro evaluative rules.
+  Implements the Testaro evaluative rules.
 */
 
 // IMPORTS

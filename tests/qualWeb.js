@@ -10,7 +10,7 @@
 
 /*
   qualWeb
-  This test implements the QualWeb ruleset for accessibility.
+  Implements the QualWeb ruleset for accessibility.
 */
 
 // IMPORTS
@@ -22,15 +22,9 @@ const {BestPractices} = require('@qualweb/best-practices');
 const {PlaywrightDriver} = require('@qualweb/playwright-driver');
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 
-// XXX
-const {spawn: origSpawn} = require('child_process');
-require('child_process').spawn = (...spawnArgs) => {
-  console.log('XXX SPAWN:', JSON.stringify(spawnArgs[0]), JSON.stringify(spawnArgs[1]));
-  return origSpawn(...spawnArgs);
-};
-
 // CONSTANTS
 
+// QualWeb core engine with Playwright as driver.
 const qualWeb = new QualWeb(undefined, new PlaywrightDriver({
   adBlock: true,
   stealth: true
@@ -38,6 +32,7 @@ const qualWeb = new QualWeb(undefined, new PlaywrightDriver({
 const actRulesModule = new ACTRules({});
 const wcagModule = new WCAGTechniques({});
 const bpModule = new BestPractices({});
+// Mapping of QualWeb module violation types to ordinal severities.
 const ordinalSeverities = {
   'act-rules': {
     'warning': 1,
