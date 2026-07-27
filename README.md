@@ -201,6 +201,8 @@ Here is a sample job, showing properties that you can set:
 
 The `device` property lets you choose among [about 125 devices recognized by Playwright](https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/server/deviceDescriptorsSource.json).
 
+The `browserID` property dictates the first browser type that Testaro uses for its requests. When requests with that browser type are repeatedly rejected, Testaro switches to a different browser type and also replaces the `browserID` property of the job with that new browser type. Targets and their edge-management platforms often block requests from one browser type but not another, so switching browser types can make a job succeed instead of failing or make it finish quickly instead of slowly.
+
 The act types and their options are documented in the `etc` property of the [actSpecs.js](actSpecs.js) object and in the [actSpecs-doc.md](actSpecs-doc.md) file.
 
 ## Running jobs

@@ -172,11 +172,26 @@ const goTo = exports.goTo = async (report, page, url, timeout, waitUntil) => {
     }
     // Otherwise, if the response status was prohibition:
     else if (httpStatus === 403) {
-      // Return this.
+      // Log this.
       console.log(`ERROR: Visit to ${url} prohibited (status 403)`);
+      // Collect diagnostic data from the response.
+      let rejectionData = {status: 403};
+      try {
+        const headers = await response.allHeaders();
+        rejectionData.server = headers['server'] || '';
+        rejectionData.cfRay = headers['cf-ray'] || '';
+        rejectionData.via = headers['via'] || '';
+        rejectionData.xAkamai = headers['x-akamai-transformed'] || '';
+        rejectionData.xSucuri = headers['x-sucuri-id'] || '';
+        rejectionData.xWaf = headers['x-waf-event-info'] || '';
+        rejectionData.headers = headers;
+      }
+      catch {}
+      // Return the prohibition and the data.
       return {
         success: false,
-        error: 'status403'
+        error: 'status403',
+        rejectionData
       };
     }
     // Otherwise, if the response status was rejection of excessive requests:
@@ -534,8 +549,12 @@ const launchOnce = async opts => {
       }
       // Otherwise, i.e. if the navigation failed:
       else {
+        const {rejectionData} = navResult;
+        const addendum = rejectionData
+        ? ` (rejection data: ${JSON.stringify(rejectionData, null, 2)})`
+        : '';
         // Throw an error.
-        throw new Error(`Navigation failed (${navResult.error})`);
+        throw new Error(`Navigation failed: ${navResult.error}${addendum}`);
       }
     }
     // If the browser and page creation and navigation threw an error:
@@ -648,7 +667,8 @@ exports.launch = async (opts = {}) => {
           if (tempBrowserID && unusedBrowserIDs.length && ! retriesLeft) {
             // Change the browser type.
             tempBrowserID = unusedBrowserIDs.shift();
-            console.log(`NOTICE: Changing browser type to ${tempBrowserID}`);
+            console.log(`NOTICE: Changing job browser type to ${tempBrowserID}`);
+            report.browserID = tempBrowserID;
             // Reset the retries.
             retriesLeft = retries;
           }
