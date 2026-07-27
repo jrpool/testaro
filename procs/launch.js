@@ -340,7 +340,12 @@ const launchOnce = async opts => {
       // Create a context (i.e. window) for it.
       const contextOptions = {
         ...device.windowOptions,
-        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        // Honor a caller-supplied device User-Agent (device.windowOptions.userAgent,
+        // spread above); fall back to the default only when the job provides none.
+        // Assigning unconditionally here overrode device emulation and per-job
+        // browser selection, so Firefox/WebKit launches announced Chrome-on-macOS.
+        userAgent: device.windowOptions.userAgent
+          || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         viewport: device.windowOptions.viewport || {width: 1920, height: 1080},
         locale: 'en-US',
         timezoneId: 'America/Los_Angeles',
