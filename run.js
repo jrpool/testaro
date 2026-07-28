@@ -76,6 +76,20 @@ const getTmpDirPath = async jobName => {
 };
 // Runs a job and returns a report.
 exports.doJob = async (job, opts = {}) => {
+  // Fire-and-forget progress emitter (see #44). A handler exception is logged,
+  // never propagated, so a faulty consumer can never abort the job. Payloads
+  // carry identifiers and timing only — no report content — and are delivered
+  // via the existing opts param, so doJob's signature is unchanged.
+  const emitProgress = event => {
+    if (opts && typeof opts.onProgress === 'function') {
+      try {
+        opts.onProgress(event);
+      }
+      catch (error) {
+        console.log(`ERROR in onProgress callback: ${error.message}`);
+      }
+    }
+  };
   // Initialize a report as a copy of the job.
   let report = JSON.parse(JSON.stringify(job));
   report.jobData ??= {};
@@ -94,6 +108,7 @@ exports.doJob = async (job, opts = {}) => {
   else {
     // Report this.
     console.log(`Starting job ${job.id} (${job.target.what})`);
+    emitProgress({event: 'jobStart', id: job.id});
     const tmpDir = await getTmpDirPath(job.id);
     // Add initialized job data to the report.
     const startTime = new Date();
@@ -128,8 +143,15 @@ exports.doJob = async (job, opts = {}) => {
     if (job.browserID && job.target && job.standard !== 'no') {
       // Initialize a catalog so it precedes any page images in the report.
       report.catalog = {};
+      // getCatalog() navigates to the target (procs/catalog.js) — which, on a
+      // slow, blocked, or dead target, can retry across browser types — before
+      // any act runs. Bracket it with events so a consumer can heartbeat through
+      // this phase instead of seeing the job fall silent until the first act.
+      emitProgress({event: 'catalogStart'});
+      const catalogStartMs = Date.now();
       // Add a catalog of the target, and a page image if required, to the report.
       report.catalog = await getCatalog(report);
+      emitProgress({event: 'catalogEnd', elapsedMs: Date.now() - catalogStartMs});
     }
     // Perform the acts and revise the report.
     report = await doActs(report, opts);
@@ -152,6 +174,9 @@ exports.doJob = async (job, opts = {}) => {
       report.jobData.toolTimes[item[0]] = item[1];
     });
   }
+  // Signal job completion (also fires for an invalid job, after its abort data
+  // is set) so a consumer can finalize regardless of outcome.
+  emitProgress({event: 'jobEnd', id: job.id, aborted: !! report.jobData.aborted});
   // Return the report.
   return report;
 };

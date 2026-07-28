@@ -227,7 +227,20 @@ const waitError = (page, act, error, what) => {
   return false;
 };
 // Performs the acts in a report and adds the results to the report.
-exports.doActs = async report => {
+exports.doActs = async (report, opts = {}) => {
+  // Fire-and-forget progress emitter (see #44), mirroring run.js: a handler
+  // exception is logged, never propagated, so a faulty consumer can never abort
+  // the job.
+  const emitProgress = event => {
+    if (opts && typeof opts.onProgress === 'function') {
+      try {
+        opts.onProgress(event);
+      }
+      catch (error) {
+        console.log(`ERROR in onProgress callback: ${error.message}`);
+      }
+    }
+  };
   // Make a temporary copy of the report. Precondition: report is valid.
   let tempReport = JSON.parse(JSON.stringify(report));
   let page = null;
@@ -247,6 +260,9 @@ exports.doActs = async report => {
     if (tempReport?.jobData && ! tempReport.jobData.aborted) {
       let act = acts[actIndex];
       const {type, which} = act;
+      // #44: signal act start so a consumer can heartbeat and advance a live
+      // per-act (per-tool, for test acts) view while the act runs.
+      emitProgress({event: 'actStart', index: Number(actIndex), type, which});
       const actSuffix = type === 'test' ? ` ${which}` : '';
       const message = `>>>> ${type}${actSuffix}`;
       // Log the act.
@@ -477,6 +493,19 @@ exports.doActs = async report => {
             act.expectationFailures = failureCount;
           }
         }
+        // #44: signal test-act completion with its outcome — timedOut is the
+        // most useful, since doActs already SIGKILLs a timed-out child — and its
+        // elapsed time, so consumers need not re-derive them from the report.
+        emitProgress({
+          event: 'actEnd',
+          index: Number(actIndex),
+          type,
+          which,
+          outcome: timedOut
+            ? 'timedOut'
+            : act.data && act.data.prevented ? 'prevented' : 'success',
+          elapsedMs: Date.now() - startTime
+        });
       }
       // Otherwise, if a current page exists:
       else if (page) {
