@@ -14,7 +14,9 @@ Containerization is practical. The reference image runs every Testaro tool:
 
 ## Version coupling
 
-The tag of the base image in the `Dockerfile` (`mcr.microsoft.com/playwright:v1.60.0-noble`) must match the version of the `playwright` package in `package-lock.json`, so that the browsers baked into the image are the ones the installed Playwright expects. When upgrading Playwright, change both together.
+The tag of the base image in the `Dockerfile` (such as `mcr.microsoft.com/playwright:v1.62.0-noble`) must match the version of the `playwright` package in `package-lock.json`, so that the browsers baked into the image are the ones the installed Playwright expects. When you update dependencies, check the version of the `playwright` package and incorporate that version into the `Dockerfile`.
+
+However, to be sure that this works, check `https://mcr.microsoft.com/v2/playwright/tags/list` to determine whether an image for that version exists yet. If not and you want to run Testaro containerized, pin the version in `package.json` to the last version for which a base image exists and use that version in `Dockerfile`, too.
 
 ## The Chromium sandbox
 

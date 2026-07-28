@@ -1,6 +1,6 @@
 {
   "name": "testaro",
-  "version": "76.2.1",
+  "version": "76.2.2",
   "description": "Run 1300 web accessibility tests from 10 tools and get a standardized report",
   "main": "index.js",
   "scripts": {
@@ -29,7 +29,6 @@
     "url": "https://github.com/jrpool/testaro/issues"
   },
   "homepage": "https://github.com/jrpool/testaro#readme",
-  "//": "playwright is temporarily pinned to version 1.61.1 because mcr.microsoft.com/playwright:v1.62.0-noble has not yet been released, so containerized deployment requires version 1.61.1.",
   "dependencies": {
     "@qualweb/core": "*",
     "@qualweb/act-rules": "*",
@@ -45,7 +44,7 @@
     "axe-playwright": "*",
     "dotenv": "*",
     "pixelmatch": "*",
-    "playwright": "1.61.1",
+    "playwright": "*",
     "playwright-dompath": "*",
     "playwright-extra": "*",
     "playwright-extra-plugin-stealth": "*",
