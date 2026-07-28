@@ -65,8 +65,17 @@ exports.getCatalog = async report => {
         // Initialize the index of the current heading.
         let headingIndex = '';
         // For each element in the page:
-        for (const index in elements) {
-          const element = elements[index];
+        // Iterate by numeric index rather than `for...in`. `for...in` over this
+        // array also enumerates any enumerable members added to Array.prototype
+        // by the TARGET page's own scripts (e.g. legacy MooTools/Prototype-style
+        // extensions); `element` then becomes that injected value and the
+        // element.closest(...) call below throws "closest is not a function",
+        // aborting the entire catalog and the job. The indexed loop sees only
+        // real elements. `index` is kept as a string so the catalog keys
+        // (cat[index], texts[...].push(index)) are unchanged.
+        for (let i = 0; i < elements.length; i++) {
+          const index = String(i);
+          const element = elements[i];
           // Get its ID and tag name.
           const {id, tagName} = element;
           // Get its start tag.
