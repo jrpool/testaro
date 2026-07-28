@@ -209,17 +209,49 @@ The act types and their options are documented in the `etc` property of the [act
 
 ### Job as an object
 
+#### Simple execution
+
 An application can execute a job with:
 
 ```javascript
 const {doJob} = require('testaro/run');
+// Perform the job, which adds content to the job, making it a report.
 doJob(job)
 .then(report => {
-  // Perform the job and create a report.
+  // Optionally, modify the report.
   …
   return report;
 });
 ```
+
+#### Execution with observability
+
+If the application is capable of listening for events while a job is being executed, it is possible to do that by passing a second argument to `doJob`:
+
+```javascript
+const {doJob} = require('testaro/run');
+// Perform the job, which adds content to the job, making it a report.
+doJob(job, {
+  onProgress: event => {
+    // Handle the event. For example:
+    console.log(event);
+  }
+})
+.then(report => {
+  // Optionally, modify the report.
+  …
+  return report;
+});
+```
+
+Testaro emits events during job execution that allow an application to monitor progress. The events are:
+
+- `jobStart` - Emitted when a job starts.
+- `catalogStart` - Emitted when catalog compilation starts.
+- `catalogEnd` - Emitted when catalog compilation ends.
+- `actStart` - Emitted when an act starts.
+- `actEnd` - Emitted when an act ends.
+- `jobEnd` - Emitted when a job ends.
 
 ### Job as a file
 
