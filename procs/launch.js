@@ -77,6 +77,8 @@ const wait = exports.wait = ms => {
     }, ms);
   });
 };
+// Removes any trailing slashes from a URL, for redirection comparison.
+const deSlash = url => (url || '').replace(/\/+$/, '');
 // Close a browser context and/or its browser, if they exist.
 const browserClose = exports.browserClose = async page => {
   if (page) {
