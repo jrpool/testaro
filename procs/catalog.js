@@ -44,6 +44,18 @@ exports.getCatalog = async report => {
     });
     // If the launch and navigation succeeded:
     if (page) {
+      // Expand closed details elements before the page image and the box measurements, so
+      // both see the same fully disclosed state. Chromium lays out the content of a closed
+      // details element (content-visibility: hidden) without painting it and without
+      // shifting the content after it, so getBoundingClientRect returns coordinates that
+      // overlap unrelated visible elements, making box IDs disagree with the page image.
+      await page.evaluate(() => {
+        document.querySelectorAll('details:not([open])').forEach(details => {
+          details.setAttribute('open', '');
+        });
+      }).catch(error => {
+        console.log(`ERROR: Expanding details elements failed (${error.message})`);
+      });
       // If a page image is required:
       if ([0, 2, 4, 6].includes(report.imageColor)) {
         // Create one and add it to the report.
