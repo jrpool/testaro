@@ -18,14 +18,6 @@
 
 const {addError} = require('./error');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
-// Whether to launch Chromium without its sandbox. The sandbox requires
-// unprivileged user-namespace cloning, which the default container seccomp
-// policies and some hardened hosts prohibit. Setting
-// TESTARO_CHROMIUM_NO_SANDBOX=true permits Chromium to run in such
-// environments; the alternative is to run the container with a seccomp
-// profile that permits user-namespace cloning. Applies only to Chromium;
-// WebKit and Firefox have no equivalent option.
-const chromiumNoSandbox = process.env.TESTARO_CHROMIUM_NO_SANDBOX === 'true';
 // Two flavors of Playwright:
 // - `playwrightCore`: the upstream Playwright SDK with no plugins attached.
 // - `playwrightExtra`: the playwright-extra wrapper. `run.js` registers
@@ -66,6 +58,14 @@ const errorWords = [
 // Seconds to wait between actions.
 const waits = Number(process.env.WAITS) ?? 0;
 const abortAssertively = process.env.ABORT_ASSERTIVELY === 'true';
+// Whether to launch Chromium without its sandbox. The sandbox requires
+// unprivileged user-namespace cloning, which the default container seccomp
+// policies and some hardened hosts prohibit. Setting
+// TESTARO_CHROMIUM_NO_SANDBOX=true permits Chromium to run in such
+// environments; the alternative is to run the container with a seccomp
+// profile that permits user-namespace cloning. Applies only to Chromium;
+// WebKit and Firefox have no equivalent option.
+const chromiumNoSandbox = process.env.TESTARO_CHROMIUM_NO_SANDBOX === 'true';
 
 // FUNCTIONS
 
