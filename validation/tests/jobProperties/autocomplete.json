@@ -67,7 +67,7 @@
         [
           "standardResult.totals.2",
           "=",
-          4
+          3
         ],
         [
           "standardResult.instances.1.what",
@@ -120,7 +120,7 @@
         [
           "standardResult.totals.2",
           "=",
-          4
+          3
         ],
         [
           "standardResult.instances.0.what",
@@ -135,7 +135,7 @@
         [
           "standardResult.instances.0.count",
           "=",
-          4
+          3
         ]
       ],
       "rules": [

@@ -79,8 +79,12 @@ exports.reporter = async (
   };
   const selector = 'body input[type=text], body input[type=email], body input:not([type])';
   const whats = 'Inputs are missing required autocomplete attributes';
-  const placeHolders = Object.keys(labels).map(key => `__${key}Labels__`);
-  const replacers = Object.values(labels).map(value => JSON.stringify(value));
+  // Each placeholder sits inside single quotes in getBadWhat (e.g. name: ['__nameLabels__']).
+  // Replace the quoted placeholder with the bracket-stripped JSON so the result is a proper
+  // element list (name: ["your name", ...]) rather than a one-element array holding the JSON
+  // text of the array (name: ['["your name", ...]']), which never matches an accessible name.
+  const placeHolders = Object.keys(labels).map(key => `'__${key}Labels__'`);
+  const replacers = Object.values(labels).map(value => JSON.stringify(value).slice(1, -1));
   // Create a stringified getBadWhat, with placeholders replaced with the specified label arrays.
   let getBadWhatString = getBadWhat.toString();
   [0, 1, 2, 3].forEach(index => {
