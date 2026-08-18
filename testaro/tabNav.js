@@ -374,7 +374,7 @@ exports.reporter = async (page, report, _, withItems) => {
         what: `Tab responds nonstandardly to ${item.navigationErrors.join(', ')}`,
         ordinalSeverity: 1,
         count: 1,
-        catalogIndex: getXPathCatalogIndex(report.catalog, item.xPath)
+        catalogIndex: getXPathCatalogIndex(report, item.xPath)
       });
     });
   }

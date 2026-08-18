@@ -96,7 +96,7 @@ exports.reporter = async (page, report, _, withItems) => {
           what: `${item.tagName} element has 2 attributes named ${item.duplicatedAttribute}`,
           ordinalSeverity: 2,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
+          catalogIndex: getXPathCatalogIndex(report, '/html/body')
         });
       });
     }

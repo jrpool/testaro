@@ -74,7 +74,7 @@ exports.reporter = async (page, report) => {
       what: 'Some focusable elements are not Tab-focusable or vice versa',
       ordinalSeverity: 2,
       count,
-      catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
+      catalogIndex: getXPathCatalogIndex(report, '/html/body')
     }] : []
   };
 };

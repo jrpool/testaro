@@ -70,6 +70,6 @@ exports.reporter = async (page, report, _, withItems) => {
   const selector = headingLevels.map(level => `body h${level}`).join(', ');
   const whats = 'Adjacent sibling same-level headings have the same text';
   return await doTest(
-    page, report.catalog, withItems, 'headingAmb', selector, whats, 1, getBadWhat.toString()
+    page, report, withItems, 'headingAmb', selector, whats, 1, getBadWhat.toString()
   );
 };

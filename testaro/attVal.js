@@ -31,6 +31,6 @@ exports.reporter = async (page, report, _0, withItems, attributeName, areLicit, 
   };
   const whats = `Elements have attribute ${attributeName} with illicit values`;
   return await doTest(
-    page, report.catalog, withItems, 'attVal', `body [${attributeName}]`, whats, 2, getBadWhat.toString()
+    page, report, withItems, 'attVal', `body [${attributeName}]`, whats, 2, getBadWhat.toString()
   );
 };

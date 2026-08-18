@@ -71,7 +71,6 @@ exports.reporter = async (page, report, actIndex) => {
     // Get the evaluations.
     const evaluations = Array.from(await audit.evaluate());
     const {nativeResult, standardResult} = result;
-    const {catalog} = report;
     // For each of them:
     for (const index in evaluations) {
       const evaluation = evaluations[index];
@@ -139,7 +138,7 @@ exports.reporter = async (page, report, actIndex) => {
               what,
               ordinalSeverity,
               count: 1,
-              catalogIndex: getXPathCatalogIndex(catalog, xPath)
+              catalogIndex: getXPathCatalogIndex(report, xPath)
             });
           }
         }

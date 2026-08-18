@@ -56,6 +56,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'table elements are misused for non-table content';
   return await doTest(
-    page, report.catalog, withItems, 'nonTable', 'body table', whats, 2, getBadWhat.toString()
+    page, report, withItems, 'nonTable', 'body table', whats, 2, getBadWhat.toString()
   );
 };

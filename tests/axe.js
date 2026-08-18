@@ -203,7 +203,7 @@ exports.reporter = async (page, report, actIndex) => {
                   what: Array.from(whatSet.values()).join('; '),
                   ordinalSeverity,
                   count: 1,
-                  catalogIndex: getXPathCatalogIndex(report.catalog, xPath)
+                  catalogIndex: getXPathCatalogIndex(report, xPath)
                 };
                 standardResult.instances.push(instance);
               });

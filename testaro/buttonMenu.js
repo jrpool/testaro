@@ -15,7 +15,7 @@
 
 // IMPORTS
 
-const {addCatalogIndex} = require('../procs/catalog');
+const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // ########## FUNCTIONS
 
@@ -304,7 +304,7 @@ exports.reporter = async (page, report, _0, withItems, trialKeySpecs = []) => {
                     what: `Menu responds nonstandardly to the ${key} key`,
                     ordinalSeverity: 2,
                     count: 1,
-                    catalogIndex: getXPathCatalogIndex(report.catalog, mbXPath)
+                    catalogIndex: getXPathCatalogIndex(report, mbXPath)
                   });
                 }
                 // Stop testing the menu button.
@@ -339,7 +339,7 @@ exports.reporter = async (page, report, _0, withItems, trialKeySpecs = []) => {
           what: 'Menu button does not control exactly 1 menu',
           ordinalSeverity: 2,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(report.catalog, mbXPath)
+          catalogIndex: getXPathCatalogIndex(report, mbXPath)
         });
       }
     }

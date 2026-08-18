@@ -33,6 +33,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'Elements have non-default Z indexes';
   return await doTest(
-    page, report.catalog, withItems, 'zIndex', 'body, body *', whats, 0, getBadWhat.toString()
+    page, report, withItems, 'zIndex', 'body, body *', whats, 0, getBadWhat.toString()
   );
 };

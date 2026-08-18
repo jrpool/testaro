@@ -90,7 +90,7 @@ exports.reporter = async (page, report) => {
           what: violationWhat,
           ordinalSeverity,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
+          catalogIndex: getXPathCatalogIndex(report, '/html/body')
         });
       }
     }

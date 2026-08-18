@@ -236,7 +236,7 @@ exports.reporter = async (page, report, actIndex, timeLimit) => {
                               what,
                               ordinalSeverity: ordinalSeverities[section][verdict],
                               count: 1,
-                              catalogIndex: getXPathCatalogIndex(report.catalog, xPath)
+                              catalogIndex: getXPathCatalogIndex(report, xPath)
                             };
                             // Add the instance to the standard result.
                             standardResult.instances.push(instance);

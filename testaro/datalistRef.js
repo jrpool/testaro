@@ -46,6 +46,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'list attributes of input elements are empty or IDs of no or non-datalist elements';
   return await doTest(
-    page, report.catalog, withItems, 'datalistRef', 'body input[list]', whats, 3, getBadWhat.toString()
+    page, report, withItems, 'datalistRef', 'body input[list]', whats, 3, getBadWhat.toString()
   );
 };

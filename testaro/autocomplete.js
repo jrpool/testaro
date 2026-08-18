@@ -91,6 +91,6 @@ exports.reporter = async (
     getBadWhatString = getBadWhatString.replace(placeHolders[index], replacers[index]);
   });
   return doTest(
-    page, report.catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString
+    page, report, withItems, 'autocomplete', selector, whats, 2, getBadWhatString
   );
 };

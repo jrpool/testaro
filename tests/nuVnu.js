@@ -99,7 +99,7 @@ exports.reporter = async (page, report, actIndex) => {
           // If the acquisition succeeded:
           if (xPath) {
             // Add the catalog index to the standard instance.
-            standardInstance.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+            standardInstance.catalogIndex = getXPathCatalogIndex(report, xPath);
           }
           // Add the standard instance to the standard result.
           standardResult.instances.push(standardInstance);

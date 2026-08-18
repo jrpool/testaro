@@ -14,6 +14,10 @@
   This test reports a failure to equip the page document with a W3C-recommended HTML doctype.
 */
 
+// IMPORTS
+
+const {getXPathCatalogIndex} = require('../procs/xPath');
+
 // Runs the test and returns the result.
 exports.reporter = async (page, report) => {
   // Returns whether the page declares a document type.
@@ -31,7 +35,7 @@ exports.reporter = async (page, report) => {
       what: 'Document has no standard HTML doctype preamble',
       ordinalSeverity: 3,
       count: 1,
-      catalogIndex: getXPathCatalogIndex('/html')
+      catalogIndex: getXPathCatalogIndex(report, '/html')
     }]
   };
 };
