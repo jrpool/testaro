@@ -90,5 +90,7 @@ exports.reporter = async (
   [0, 1, 2, 3].forEach(index => {
     getBadWhatString = getBadWhatString.replace(placeHolders[index], replacers[index]);
   });
-  return doTest(page, report.catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString);
+  return doTest(
+    page, report.catalog, withItems, 'autocomplete', selector, whats, 2, getBadWhatString
+  );
 };

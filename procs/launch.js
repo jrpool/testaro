@@ -514,11 +514,11 @@ const launchOnce = async opts => {
       }
       // Base the wait on the need of the tool and the retry history.
       let waitUntil = xPathNeed === 'none' ? 'domcontentloaded' : 'networkidle';
-      if (relaxWait !== 'no' && waitUntil === 'networkidle') {
-        waitUntil = 'domcontentloaded';
+      if (relaxWait === 'partly' && waitUntil === 'networkidle') {
+        waitUntil = 'load';
       }
       if (relaxWait === 'fully') {
-        waitUntil = 'load';
+        waitUntil = 'domcontentloaded';
       }
       // Navigate to the specified URL and wait for the stability required by the next action.
       const navResult = await goTo(report, page, url, 10000, waitUntil);
