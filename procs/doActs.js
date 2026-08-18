@@ -69,7 +69,18 @@ const errorStart = error => error.message.replace(/\n.+/s, '');
 const isTrue = (object, specs) => {
   const property = specs[0];
   const propertyTree = property.split('.');
-  let actual = property.length ? object[propertyTree[0]] : object;
+  // Test-act expectations reference results by property path. Most fixtures use the
+  // bare standardResult.* path, whose value lives at act.result.standardResult; a few
+  // use result.* directly on the act. Resolve against act.result when the first segment
+  // is absent on the act but present on act.result, so both conventions work.
+  let base = object;
+  if (
+    property.length && object && object[propertyTree[0]] === undefined
+    && object.result && object.result[propertyTree[0]] !== undefined
+  ) {
+    base = object.result;
+  }
+  let actual = property.length ? base[propertyTree[0]] : base;
   // Identify the actual value of the specified property.
   while (propertyTree.length > 1 && actual !== undefined) {
     propertyTree.shift();
