@@ -17,6 +17,7 @@
 // IMPORTS
 
 const {addError} = require('./error');
+const {posix: posixPath} = require('path');
 const headedBrowser = process.env.HEADED_BROWSER === 'true';
 // Two flavors of Playwright:
 // - `playwrightCore`: the upstream Playwright SDK with no plugins attached.
@@ -106,8 +107,12 @@ const normalizeURL = url => {
     if (url.toLowerCase().startsWith('file:')) {
       let path = url.replace(/^file:\/+/i, '');
       path = path.replace(/\\/g, '/');
+      // Collapse redundant slashes and resolve . and .. segments, so a URL built
+      // with a relative prefix (e.g. .../procs/../target) compares equal to the
+      // absolute URL the browser reports.
+      path = posixPath.normalize('/' + path).replace(/^\//, '');
       // Return the URL normalized.
-      return 'file:///' + path.replace(/^\//, '');
+      return 'file:///' + path;
     }
     // Otherwise, i.e. if it is not that of a local file:
     else {
