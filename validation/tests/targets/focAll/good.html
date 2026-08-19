@@ -17,7 +17,21 @@
   <body>
     <main>
       <h1>Page with full focusability</h1>
-      <p>This page contains a link to <a href="https://en.wikipedia.org">information</a>, a <button type="button">button</button>, and a <label>text input <input type="text"></label>. All three, and no other elements, can be focused with Tab-key navigation.</p>
+      <p>This page contains a link to <a href="https://en.wikipedia.org">information</a>, a <button type="button">button</button>, and a <label>text input <input type="text"></label>. It also contains two forms, each containing a radio-button group, with both groups sharing one name. Each group is one Tab stop, at its checked radio button. The three controls and the two groups, and no other elements, can be focused with Tab-key navigation.</p>
+      <form>
+        <fieldset>
+          <legend>Beverage</legend>
+          <label><input type="radio" name="choice" value="coffee" checked> Coffee</label>
+          <label><input type="radio" name="choice" value="tea"> Tea</label>
+        </fieldset>
+      </form>
+      <form>
+        <fieldset>
+          <legend>Meal</legend>
+          <label><input type="radio" name="choice" value="lunch" checked> Lunch</label>
+          <label><input type="radio" name="choice" value="dinner"> Dinner</label>
+        </fieldset>
+      </form>
     </main>
   </body>
 </html>

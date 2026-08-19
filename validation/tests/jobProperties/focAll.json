@@ -53,6 +53,11 @@
           0
         ],
         [
+          "standardResult.instances.length",
+          "=",
+          1
+        ],
+        [
           "standardResult.instances.0.ruleID",
           "=",
           "focAll"
@@ -60,7 +65,7 @@
         [
           "standardResult.instances.0.what",
           "i",
-          "vice versa"
+          "was not reached"
         ],
         [
           "standardResult.instances.0.ordinalSeverity",
@@ -100,6 +105,11 @@
           0
         ],
         [
+          "standardResult.instances.length",
+          "=",
+          2
+        ],
+        [
           "standardResult.instances.0.ruleID",
           "=",
           "focAll"
@@ -107,7 +117,7 @@
         [
           "standardResult.instances.0.what",
           "i",
-          "vice versa"
+          "was not a visible focusable"
         ],
         [
           "standardResult.instances.0.ordinalSeverity",
@@ -117,7 +127,12 @@
         [
           "standardResult.instances.0.count",
           "=",
-          2
+          1
+        ],
+        [
+          "standardResult.instances.1.count",
+          "=",
+          1
         ]
       ],
       "rules": [
