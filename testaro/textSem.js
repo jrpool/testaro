@@ -38,6 +38,6 @@ exports.reporter = async (page, report, _, withItems) => {
   const selector = 'body i, body b, body small';
   const whats = 'Semantically vague elements i, b, and/or small are used';
   return await doTest(
-    page, report.catalog, withItems, 'textSem', selector, whats, 0, getBadWhat.toString()
+    page, report, withItems, 'textSem', selector, whats, 0, getBadWhat.toString()
   );
 };

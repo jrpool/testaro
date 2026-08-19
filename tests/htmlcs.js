@@ -134,7 +134,7 @@ exports.reporter = async (page, report, actIndex) => {
           what: parts[4],
           ordinalSeverity: parts[0] === 'Warning' ? 0 : 2,
           count: 1,
-          catalogIndex: getXPathCatalogIndex(report.catalog, xPath)
+          catalogIndex: getXPathCatalogIndex(report, xPath)
         };
         standardResult.instances.push(instance);
       }

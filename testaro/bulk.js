@@ -38,7 +38,7 @@ exports.reporter = async (page, report) => {
         what: `Page contains ${visibleElementCount} visible elements`,
         ordinalSeverity: severity,
         count: 1,
-        catalogIndex: getXPathCatalogIndex(report.catalog, '/html')
+        catalogIndex: getXPathCatalogIndex(report, '/html')
       }]
     };
   }

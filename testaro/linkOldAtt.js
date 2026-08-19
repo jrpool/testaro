@@ -39,6 +39,6 @@ exports.reporter = async (page, report, _, withItems) => {
   const selector = 'body a[charset], body a[coords], body a[name], body a[rev], body a[shape]';
   const whats = 'Links have deprecated attributes';
   return await doTest(
-    page, report.catalog, withItems, 'linkOldAtt', selector, whats, 1, getBadWhat.toString()
+    page, report, withItems, 'linkOldAtt', selector, whats, 1, getBadWhat.toString()
   );
 };

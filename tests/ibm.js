@@ -174,7 +174,7 @@ exports.reporter = async (page, report, actIndex) => {
           // If the XPath was obtained:
           if (xPath) {
             // Add the catalog index to the standard instance.
-            standardItem.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+            standardItem.catalogIndex = getXPathCatalogIndex(report, xPath);
           }
           // Add the standard instance to the standard result.
           standardResult.instances.push(standardItem);

@@ -224,7 +224,6 @@ exports.reporter = async (page, report, actIndex) => {
         }
         // If standard results are to be reported:
         if (standard) {
-          const {catalog} = report;
           const ruleIDs = Object.keys(rules);
           // For each violated rule:
           for (let ruleID of ruleIDs) {
@@ -249,7 +248,7 @@ exports.reporter = async (page, report, actIndex) => {
               const {xpath} = element;
               const pathID = getNormalizedXPath(xpath);
               // Use it to get the index of the element in the catalog.
-              const catalogIndex = getXPathCatalogIndex(catalog, pathID);
+              const catalogIndex = getXPathCatalogIndex(report, pathID);
               // Add an instance to the standard result.
               standardResult.instances.push({
                 ruleID,

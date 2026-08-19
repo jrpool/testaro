@@ -44,6 +44,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'Links with adjacent text are not underlined';
   return await doTest(
-    page, report.catalog, withItems, 'linkUl', 'body a', whats, 1, getBadWhat.toString()
+    page, report, withItems, 'linkUl', 'body a', whats, 1, getBadWhat.toString()
   );
 };

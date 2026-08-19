@@ -140,5 +140,5 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const selector = 'body a, body button, body input, body [onmouseenter], body [onmouseover]';
   const whats = 'elements have confusing hover indicators';
-  return await doTest(page, report.catalog, withItems, 'hovInd', selector, whats, 1, getBadWhat.toString());
+  return await doTest(page, report, withItems, 'hovInd', selector, whats, 1, getBadWhat.toString());
 };

@@ -32,6 +32,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'Elements with role=option have no aria-selected attributes';
   return await doTest(
-    page, report.catalog, withItems, 'optRoleSel', 'body [role="option"]', whats, 1, getBadWhat.toString()
+    page, report, withItems, 'optRoleSel', 'body [role="option"]', whats, 1, getBadWhat.toString()
   );
 };

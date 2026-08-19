@@ -161,7 +161,7 @@ exports.reporter = async (page, report, actIndex) => {
                       };
                       const xPath = violation[1];
                       // Add the catalog index to the instance.
-                      instance.catalogIndex = getXPathCatalogIndex(report.catalog, xPath);
+                      instance.catalogIndex = getXPathCatalogIndex(report, xPath);
                       // Add the instance to the standard result.
                       instances.push(instance);
                     }

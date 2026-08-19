@@ -34,6 +34,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'input elements have placeholders but no accessible names';
   return await doTest(
-    page, report.catalog, withItems, 'phOnly', 'body input[placeholder]', whats, 2, getBadWhat.toString()
+    page, report, withItems, 'phOnly', 'body input[placeholder]', whats, 2, getBadWhat.toString()
   );
 };

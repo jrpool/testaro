@@ -45,6 +45,6 @@ exports.reporter = async (page, report, _, withItems) => {
   const selector = 'body, body *:not(style, script, svg)';
   const whats = 'Elements contain all-slanted text';
   return await doTest(
-    page, report.catalog, withItems, 'allSlanted', selector, whats, 0, getBadWhat.toString()
+    page, report, withItems, 'allSlanted', selector, whats, 0, getBadWhat.toString()
   );
 };

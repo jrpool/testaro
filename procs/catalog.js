@@ -66,12 +66,14 @@ exports.getCatalog = async report => {
           action: 'report'
         });
       }
-      // Get a catalog of the elements in the page.
+      // Get a catalog of the elements in the page and a map of path IDs to catalog indexes.
       console.log('Creating catalog');
-      const catalog = await page.evaluate(() => {
+      const {cat: catalog, pathIDs} = await page.evaluate(() => {
         const elements = Array.from(document.querySelectorAll('*'));
         // Initialize a catalog.
         const cat = {};
+        // Initialize a map of path IDs to catalog indexes.
+        const pathIDs = {};
         // Initialize a directory of text fragments.
         const texts = {};
         // Initialize the index of the current heading.
@@ -144,9 +146,8 @@ exports.getCatalog = async report => {
             // Assign its index to the current heading index.
             headingIndex = index;
           }
-          // Add the path ID to the temporary path ID property of the catalog.
-          cat.pathID ??= {};
-          cat.pathID[pathID] = index;
+          // Add the path ID to the map of path IDs.
+          pathIDs[pathID] = index;
         }
         // For each text in the catalog:
         Object.keys(texts).forEach(text => {
@@ -172,8 +173,10 @@ exports.getCatalog = async report => {
             });
           }
         });
-        return cat;
+        return {cat, pathIDs};
       });
+      // Add the map of path IDs to the report as a temporary job-time property.
+      report.pathIDs = pathIDs;
       // Close the browser and its context.
       await browserClose(page);
       // Return the catalog.
@@ -200,22 +203,23 @@ exports.pruneCatalog = report => {
       // For each instance of the standard result:
       instances.forEach(instance => {
         const catalogIndex = instance?.catalogIndex;
-        // If the instance has a catalog index:
-        if (catalogIndex) {
-          // Ensure the index is classified as cited.
-          citedElementIndexes.add(catalogIndex);
-          const {headingIndex} = catalog[catalogIndex];
+        // If the instance has a catalog index (an index of '0' counts, so test for presence):
+        if (catalogIndex !== undefined && catalogIndex !== '') {
+          // Ensure the index is classified as cited, as a string so it matches the
+          // catalog keys tested below (Object.keys() yields strings).
+          citedElementIndexes.add(String(catalogIndex));
+          const {headingIndex} = catalog[catalogIndex] ?? {};
           // If the catalog item has a heading index:
           if (headingIndex) {
             // Ensure it, too, is classified as cited.
-            citedElementIndexes.add(headingIndex);
+            citedElementIndexes.add(String(headingIndex));
           }
         }
       });
     }
   });
-  // Delete the temporary path ID property.
-  delete catalog.pathID;
+  // Delete the temporary path ID map of the report.
+  delete report.pathIDs;
   // For each element in the catalog:
   Object.keys(catalog).forEach(elementIndex => {
     // If it is not cited by any instance or by any cited element:

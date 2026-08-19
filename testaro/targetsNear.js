@@ -142,7 +142,7 @@ exports.reporter = async (page, report, _, withItems) => {
   }, withItems);
   // Convert the XPaths of the proto-instances to catalog indexes.
   protoResult.standardInstances = protoResult.standardInstances.map(instance => {
-    instance.catalogIndex = getXPathCatalogIndex(report.catalog, instance.xPath);
+    instance.catalogIndex = getXPathCatalogIndex(report, instance.xPath);
     delete instance.xPath;
     return instance;
   });

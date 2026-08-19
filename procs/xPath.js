@@ -65,18 +65,20 @@ const getXPathTagName = xPath => {
   return xPath.split('/').pop().replace(/\[.+/, '').toUpperCase();
 };
 // Gets a catalog index as a string from an XPath.
-exports.getXPathCatalogIndex = (catalog, xPath) => {
+exports.getXPathCatalogIndex = (report, xPath) => {
+  const {catalog} = report;
+  report.pathIDs ??= {};
   // Get the index of the catalog item with the XPath.
-  const index = catalog.pathID[xPath];
-  // If no such item exists:
-  if (! index) {
-    // Add an item to the catalog.
-    const newIndex = Object.keys(catalog).length;
+  const index = report.pathIDs[xPath];
+  // If no such item exists (an index of '0' is a match, so test for absence, not falsity):
+  if (index === undefined) {
+    // Add an item to the catalog, keyed by the count of items already in it.
+    const newIndex = `${Object.keys(catalog).length}`;
     catalog[newIndex] = {
       pathID: xPath,
       tagName: getXPathTagName(xPath)
     };
-    catalog.pathID[xPath] = `${newIndex}`;
+    report.pathIDs[xPath] = newIndex;
     return newIndex;
   }
   return index;

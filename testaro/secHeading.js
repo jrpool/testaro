@@ -44,6 +44,6 @@ exports.reporter = async (page, report, _, withItems) => {
   const selector = 'body section, body article, body nav, body aside, body main';
   const whats = 'First child headings of sectioning containers are deeper than others';
   return await doTest(
-    page, report.catalog, withItems, 'secHeading', selector, whats, 0, getBadWhat.toString()
+    page, report, withItems, 'secHeading', selector, whats, 0, getBadWhat.toString()
   );
 };

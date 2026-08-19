@@ -69,6 +69,6 @@ exports.reporter = async (page, report, _, withItems) => {
   };
   const whats = 'Radio buttons are not validly grouped in fieldsets with legends';
   return await doTest(
-    page, report.catalog, withItems, 'radioSet', 'body input[type=radio]', whats, 2, getBadWhat.toString()
+    page, report, withItems, 'radioSet', 'body input[type=radio]', whats, 2, getBadWhat.toString()
   );
 };

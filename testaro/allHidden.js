@@ -33,7 +33,7 @@ exports.reporter = async (page, report) => {
         what: 'The entire page body is hidden or empty',
         ordinalSeverity: 3,
         count: 1,
-        catalogIndex: getXPathCatalogIndex(report.catalog, '/html/body')
+        catalogIndex: getXPathCatalogIndex(report, '/html/body')
       }]
     };
   }

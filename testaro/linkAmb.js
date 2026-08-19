@@ -22,7 +22,7 @@ const {getXPathCatalogIndex} = require('../procs/xPath');
 
 // Runs the test and returns the result.
 exports.reporter = async (page, report, _, withItems) => {
-  const catalogIndex = getXPathCatalogIndex(report.catalog, '/html/body');
+  const catalogIndex = getXPathCatalogIndex(report, '/html/body');
   return await page.evaluate(args => {
     const [withItems, catalogIndex] = args;
     // Get all links.

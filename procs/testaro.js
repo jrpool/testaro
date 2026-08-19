@@ -22,7 +22,7 @@ const {getXPathCatalogIndex} = require('./xPath');
 // Tests for a testaro rule.
 exports.doTest = async (
   page,
-  catalog,
+  report,
   withItems,
   ruleID,
   candidateSelector,
@@ -122,7 +122,7 @@ exports.doTest = async (
       // If the proto-instance includes an XPath:
       if (xPath) {
         // Add the catalog index to the standard instance.
-        standardInstance.catalogIndex = getXPathCatalogIndex(catalog, xPath);
+        standardInstance.catalogIndex = getXPathCatalogIndex(report, xPath);
       }
       // Add the standard instance to the standard instances.
       standardInstances.push(standardInstance);
@@ -152,17 +152,17 @@ exports.doTest = async (
   };
 };
 // Adds a catalog index or, if necessary, an XPath to a proto-instance.
-const addCatalogIndex = async (protoInstance, locator, catalog) => {
+const addCatalogIndex = async (protoInstance, locator, report) => {
   // Get the XPath of the element referenced by the locator.
   const xPath = await locator.evaluate(element => window.getXPath(element) ?? '/html');
   // Add a catalog index to the proto-instance.
-  protoInstance.catalogIndex = getXPathCatalogIndex(catalog, xPath);
+  protoInstance.catalogIndex = getXPathCatalogIndex(report, xPath);
   // Return the proto-instance with any modification.
   return protoInstance;
 };
 // Tests for a doTest-ineligible Testaro rule.
 exports.getBasicResult = async (
-  catalog, withItems, ruleID, ordinalSeverity, whats, data, violations
+  report, withItems, ruleID, ordinalSeverity, whats, data, violations
 ) => {
   // If the test was prevented:
   if (data.prevented) {
@@ -190,7 +190,7 @@ exports.getBasicResult = async (
         count: 1
       };
       // Add a catalog index to it.
-      addCatalogIndex(protoInstance, loc, catalog);
+      addCatalogIndex(protoInstance, loc, report);
       // Add the standard instance to the standard instances.
       standardInstances.push(protoInstance);
     }
