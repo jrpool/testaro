@@ -324,7 +324,10 @@ const allRules = [
     what: 'motion without user request',
     contaminates: false,
     needsAccessibleName: false,
-    timeOut: 5,
+    // The budget must cover a full-page screenshot (itself allowed 4 seconds in
+    // procs/shoot.js), decoding two full-page PNGs, and a pixel comparison; 5
+    // seconds made the rule time out whenever an initial image existed.
+    timeOut: 30,
     defaultOn: true
   },
   {
