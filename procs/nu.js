@@ -93,9 +93,9 @@ exports.curate = async (data, nuData, rules) => {
   // Return the result.
   return result;
 };
-// Maximum length of the excerpt of a standard instance.
+// Maximum length of an extract excerpt included in the what property of a standard instance.
 const excerptMax = 400;
-// Gets an excerpt for a standard instance from the extract of a message, if the element catalog cannot report the extract.
+// Gets an excerpt of the extract of a message for inclusion in the what property of a standard instance, if the element catalog cannot report the extract.
 exports.getExtractExcerpt = extract => {
   // If there is no extract, or the extract contains a data-xpath attribute identifying an element:
   if (! extract || / data-xpath="/.test(extract)) {

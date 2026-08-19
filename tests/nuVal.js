@@ -113,12 +113,12 @@ exports.reporter = async (page, report, actIndex) => {
           // Add the catalog index to the standard instance.
           standardInstance.catalogIndex = getXPathCatalogIndex(report, xPath);
         }
-        // Get an excerpt from the extract, if the extract identifies no element.
-        const excerpt = getExtractExcerpt(message.extract);
+        // Get an excerpt of the extract, if the extract identifies no element.
+        const extractExcerpt = getExtractExcerpt(message.extract);
         // If one was obtained (e.g. the erroneous CSS of a CSS: Parse Error message):
-        if (excerpt) {
-          // Add it to the standard instance, so the extract is not lost.
-          standardInstance.excerpt = excerpt;
+        if (extractExcerpt) {
+          // Add it to the description of the violation, so the extract is not lost.
+          standardInstance.what = `${message.message} Extract: ${extractExcerpt}`;
         }
         // Add the standard instance to the standard result.
         standardResult.instances.push(standardInstance);
