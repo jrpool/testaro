@@ -83,9 +83,11 @@ const deSlash = url => (url || '').replace(/\/+$/, '');
 // Close a browser context and/or its browser, if they exist.
 const browserClose = exports.browserClose = async page => {
   if (page) {
-    const browserContext = page.context;
+    // Get the context (i.e. window) of the page and the browser of the context. These are methods, not properties; referencing them as properties made this function silently fail to close anything, because a function object has no close method and the resulting TypeError was caught and discarded.
+    const browserContext = page.context();
     if (browserContext) {
-      const {browser} = browserContext;
+      // The browser is null for a context not owned by a browser, such as a persistent context.
+      const browser = browserContext.browser();
       try {
         await browserContext.close();
       }
