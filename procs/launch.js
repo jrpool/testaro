@@ -281,7 +281,10 @@ const launchOnce = async opts => {
     tempURL = '',
     headEmulation = 'high',// low, high
     xPathNeed = 'script',// own, script, attribute, none
-    needsAccessibleName = false
+    needsAccessibleName = false,
+    // Extra Playwright context options (e.g. deviceScaleFactor for device-pixel page
+    // images), spread last so they win over the defaults.
+    contextOverrides = {}
   } = opts;
   const act = report.acts[actIndex] ?? {};
   const {device} = report;
@@ -373,7 +376,9 @@ const launchOnce = async opts => {
           'Accept-Encoding': 'gzip, deflate, br',
           'DNT': '1',
           'Upgrade-Insecure-Requests': '1'
-        }
+        },
+        // Caller-specified context options (see contextOverrides above).
+        ...contextOverrides
       };
       browserContext = await browser.newContext(contextOptions);
       // Prevent default timeouts.
@@ -599,7 +604,9 @@ exports.launch = async (opts = {}) => {
     headEmulation = 'high',
     xPathNeed = 'script',
     needsAccessibleName = false,
-    retries = 2
+    retries = 2,
+    // Extra Playwright context options, passed through to launchOnce.
+    contextOverrides = {}
   } = opts;
   // If the report is valid:
   const jobValidation = isValidJob(report);
@@ -615,7 +622,8 @@ exports.launch = async (opts = {}) => {
         tempURL,
         headEmulation,
         xPathNeed,
-        needsAccessibleName
+        needsAccessibleName,
+        contextOverrides
       }
     );
     // If the launch and navigation succeeded:
@@ -657,7 +665,8 @@ exports.launch = async (opts = {}) => {
             tempURL,
             headEmulation,
             xPathNeed,
-            needsAccessibleName
+            needsAccessibleName,
+            contextOverrides
           }
         );
         // If the launch and navigation succeeded:

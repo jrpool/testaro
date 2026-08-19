@@ -33,6 +33,16 @@ const {shoot} = require('./shoot');
 exports.getCatalog = async report => {
   const {browserID} = report;
   const targetURL = report.target?.url;
+  // Image scale factor (report.imageScale). When greater than 1, the catalog context
+  // runs at that deviceScaleFactor and a supplemental page image is captured at device
+  // scale, i.e. with imageScale times the pixels of the CSS layout. Box IDs are
+  // CSS-pixel regardless, because getBoundingClientRect reports CSS pixels by
+  // definition; consumers map them onto the supplemental image by multiplying by
+  // imageScale. Omitted, 1, or invalid values keep the behavior identical to before
+  // this option existed.
+  const imageScale = Number.isFinite(report.imageScale) && report.imageScale > 1
+    ? report.imageScale
+    : 1;
   // If the report specifies a global browser ID and a global target URL:
   if (browserID && targetURL) {
     // Launch a browser and visit the target, or abort the job on failure.
@@ -40,7 +50,8 @@ exports.getCatalog = async report => {
       report,
       actIndex: null,
       tempBrowserID: browserID,
-      tempURL: targetURL
+      tempURL: targetURL,
+      contextOverrides: imageScale > 1 ? {deviceScaleFactor: imageScale} : {}
     });
     // If the launch and navigation succeeded:
     if (page) {
@@ -58,13 +69,27 @@ exports.getCatalog = async report => {
       });
       // If a page image is required:
       if ([0, 2, 4, 6].includes(report.imageColor)) {
-        // Create one and add it to the report.
+        // Create one at CSS-pixel scale and add it to the report as images[0]. This
+        // scale is invariant to imageScale and to the context's deviceScaleFactor, so
+        // the testaro motion rule, which compares its own CSS-scale screenshot with
+        // images[0], is unaffected by the imageScale option.
         console.log('Creating page image');
         await shoot(page, report, {
           exclusionSelector: '',
           colorType: report.imageColor,
           action: 'report'
         });
+        // If a supersampled page image is also required:
+        if (imageScale > 1) {
+          // Create one at device-pixel scale and add it to the report as images[1].
+          console.log(`Creating page image at ${imageScale}x device scale`);
+          await shoot(page, report, {
+            exclusionSelector: '',
+            colorType: report.imageColor,
+            action: 'report',
+            scale: 'device'
+          });
+        }
       }
       // Get a catalog of the elements in the page and a map of path IDs to catalog indexes.
       console.log('Creating catalog');
