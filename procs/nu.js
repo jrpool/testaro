@@ -93,3 +93,15 @@ exports.curate = async (data, nuData, rules) => {
   // Return the result.
   return result;
 };
+// Maximum length of the excerpt of a standard instance.
+const excerptMax = 400;
+// Gets an excerpt for a standard instance from the extract of a message, if the element catalog cannot report the extract.
+exports.getExtractExcerpt = extract => {
+  // If there is no extract, or the extract contains a data-xpath attribute identifying an element:
+  if (! extract || / data-xpath="/.test(extract)) {
+    // Report that no excerpt is needed, because the catalog reports the element.
+    return null;
+  }
+  // Return the extract (e.g. the erroneous text of a CSS: Parse Error message), truncated if necessary.
+  return extract.length > excerptMax ? `${extract.slice(0, excerptMax)} …` : extract;
+};
