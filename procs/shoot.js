@@ -26,10 +26,13 @@ const randomFileName = (suffixLength = 3) => {
   return fileName;
 };
 // Creates and returns a screenshot.
-const screenShot = async (page, exclusionLocator = null) => {
+const screenShot = async (page, exclusionLocator = null, scale = 'css') => {
   const options = {
     fullPage: true,
-    scale: 'css',
+    // 'css' renders 1 image pixel per CSS pixel; 'device' renders at the context's
+    // deviceScaleFactor, i.e. an image whose pixel coordinates are the CSS
+    // coordinates multiplied by that factor.
+    scale,
     timeout: applyMultiplier(4000)
   };
   if (exclusionLocator) {
@@ -49,10 +52,12 @@ exports.shoot = async (page, report, {
   // Color fidelity: 0 (grayscale), 2 (RGB), 4 (grayscale alpha), 6 (RGBA).
   colorType = 0,
   // Disposition: return, report, file.
-  action = 'return'
+  action = 'return',
+  // Screenshot scale ('css' or 'device'); see screenShot above.
+  scale = 'css'
 } = {}) => {
   // Make and get a screenshot as a buffer.
-  let shot = await screenShot(page, exclusionSelector ? page.locator(exclusionSelector) : null);
+  let shot = await screenShot(page, exclusionSelector ? page.locator(exclusionSelector) : null, scale);
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.

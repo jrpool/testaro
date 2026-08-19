@@ -142,6 +142,7 @@ Here is a sample job, showing properties that you can set:
   strict: true, // Whether to reject redirections from the target URL
   standard: 'only', // Report native (no), standard (only), or both (also) results
   imageColor: 0, // Color type (0, 2, 4, 6) of the page image, if one is to be created along with a catalog
+  imageScale: 2, // Optional: also capture the page image at this device pixel density (see the images section)
   device: { // Device to emulate
     id: 'iPhone 8',
     windowOptions: {
@@ -375,7 +376,9 @@ In some cases no catalog entry can be found. The reasons may include:
 
 #### `images`
 
-Testaro inserts an `images` array property if necessary to store page images in the report. If the job has an `imageColor` property with `0`, `2`, `4`, or `6` as its value and Testaro will insert a `catalog` property, then Testaro also creates a page image with that color type and makes its base64-encoded PNG the first item in the `images` array.
+Testaro inserts an `images` array property if necessary to store page images in the report. If the job has an `imageColor` property with `0`, `2`, `4`, or `6` as its value and Testaro will insert a `catalog` property, then Testaro also creates a page image with that color type and makes its base64-encoded PNG the first item in the `images` array. The first item is always captured at CSS-pixel scale (one image pixel per CSS pixel), so the `motion` test of the `testaro` tool can compare it with its own CSS-pixel screenshot.
+
+If the job also has an `imageScale` property with a number greater than 1 as its value, then the catalog page is rendered at that device scale factor, and Testaro captures a second page image at device-pixel scale and makes it the second item in the `images` array. That image has `imageScale` times the pixels of the CSS layout in each dimension, for crisp display on high-resolution screens. The `boxID` properties of the catalog remain in CSS pixels; consumers can map them onto the second image by multiplying the coordinates by `imageScale`. Fractional values (such as a device's native `2.625`) are valid. A natural choice is the emulated device's own `deviceScaleFactor`, which also makes the catalog page select the same `srcset`/`image-set` resources as the test pages. If `imageScale` is omitted, `1`, or invalid, the behavior is identical to that before this property existed.
 
 There is a `shoot` act type that can be used to make additional page images during a job.
 
