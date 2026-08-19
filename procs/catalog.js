@@ -112,7 +112,14 @@ exports.getCatalog = async report => {
             texts[text] ??= [];
             texts[text].push(index);
           }
-          const domRect = element.getBoundingClientRect();
+          // Get its bounding box, but only if the element is painted. Chromium reports
+          // plausible nonzero boxes for laid-out but unpainted content (visibility: hidden
+          // and content-visibility: hidden subtrees), and such a box disagrees with the
+          // page image, overlapping unrelated visible elements.
+          const isVisible = typeof element.checkVisibility === 'function'
+          ? element.checkVisibility({checkVisibilityCSS: true, visibilityProperty: true})
+          : true;
+          const domRect = isVisible ? element.getBoundingClientRect() : null;
           // Get its box ID.
           const boxID = domRect
           ? ['x', 'y', 'width', 'height'].map(key => Math.round(domRect[key])).join(':')
