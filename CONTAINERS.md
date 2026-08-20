@@ -84,6 +84,7 @@ docker run --rm --init \
 ## License
 
 © 2026 Jeff Witt.
+© 2026 Jonathan Robert Pool.
 
 Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](LICENSE) file at the project root for details.
 

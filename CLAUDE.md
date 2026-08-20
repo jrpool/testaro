@@ -59,7 +59,7 @@ Two implementation patterns exist:
 
 ### Validation
 
-Validation is currently broken. A reconsideration of its architecture is anticipated, but in the meantime the next paragraph describes its current inoperative design.
+A revision of the validation architecture is currently being planned. In the meantime the next paragraph describes its current design, not guaranteed to work without error.
 
 Validation tests live in `validation/tests/jobs/` (jobs with `expect` arrays) and `validation/tests/targets/` (static HTML pages served locally as test targets). Running `npm test <ruleID>` executes `validation/executors/test.js` → `validation/validateTest.js`, which runs the job and compares `result` fields against `expect` clauses.
 

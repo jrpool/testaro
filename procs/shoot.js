@@ -57,7 +57,9 @@ exports.shoot = async (page, report, {
   scale = 'css'
 } = {}) => {
   // Make and get a screenshot as a buffer.
-  let shot = await screenShot(page, exclusionSelector ? page.locator(exclusionSelector) : null, scale);
+  let shot = await screenShot(
+    page, exclusionSelector ? page.locator(exclusionSelector) : null, scale
+  );
   // If it succeeded:
   if (shot.length) {
     // Get the screenshot as an object representation of a PNG image.

@@ -141,7 +141,7 @@ Here is a sample job, showing properties that you can set:
   what: 'monthly health check', // Job description
   strict: true, // Whether to reject redirections from the target URL
   standard: 'only', // Report native (no), standard (only), or both (also) results
-  imageColor: 0, // Color type (0, 2, 4, 6) of the page image, if one is to be created along with a catalog
+  imageColor: 0, // Color type (0 (grayscale), 2 (RGB), 4 (grayscale alpha), 6 (RGBA)) if initial page image required
   imageScale: 2, // Optional: also capture the page image at this device pixel density (see the images section)
   device: { // Device to emulate
     id: 'iPhone 8',
@@ -663,6 +663,7 @@ Future work contemplated for this project is described in its [issues](https://g
 ## License
 
 © 2021–2025 CVS Health and/or one of its affiliates. All rights reserved.
+© 2026 Jeff Witt.
 © 2025–2026 Jonathan Robert Pool.
 
 Licensed under the [MIT License](https://opensource.org/license/mit/). See [LICENSE](../../LICENSE) file at the project root for details.
