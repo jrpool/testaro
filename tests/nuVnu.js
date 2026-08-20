@@ -16,7 +16,7 @@
 
 // IMPORTS
 
-const {curate, getContent} = require('../procs/nu');
+const {curate, getContent, getExtractExcerpt} = require('../procs/nu');
 const {getAttributeXPath, getXPathCatalogIndex} = require('../procs/xPath');
 const fs = require('fs/promises');
 const path = require('path');
@@ -100,6 +100,13 @@ exports.reporter = async (page, report, actIndex) => {
           if (xPath) {
             // Add the catalog index to the standard instance.
             standardInstance.catalogIndex = getXPathCatalogIndex(report, xPath);
+          }
+          // Get an excerpt of the extract, if the extract identifies no element.
+          const extractExcerpt = getExtractExcerpt(message.extract);
+          // If one was obtained (e.g. the erroneous CSS of a CSS: Parse Error message):
+          if (extractExcerpt) {
+            // Add it to the description of the violation, so the extract is not lost.
+            standardInstance.what = `${message.message} Extract: ${extractExcerpt}`;
           }
           // Add the standard instance to the standard result.
           standardResult.instances.push(standardInstance);
