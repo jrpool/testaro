@@ -62,8 +62,19 @@ exports.reporter = async (page, report, actIndex) => {
       const script = document.createElement('script');
       script.nonce = scriptNonce;
       script.textContent = scriptText;
+      // HTMLCS.js is a UMD bundle. If the page exposes an AMD loader (define.amd, e.g. Wix or RequireJS) or leaked CommonJS globals (exports, module), the UMD wrapper registers HTMLCS as a module and never attaches HTMLCS_RUNNER to window, so the run() call below throws and the tool is reported prevented. Hide those loader globals for the duration of the synchronous script execution, so the wrapper falls through to its browser-global branch.
+      const umdDefine = window.define;
+      const umdExports = window.exports;
+      const umdModule = window.module;
+      window.define = undefined;
+      window.exports = undefined;
+      window.module = undefined;
       // Add the HTMLCS script to the page.
       document.head.insertAdjacentElement('beforeend', script);
+      // Restore the loader globals.
+      window.define = umdDefine;
+      window.exports = umdExports;
+      window.module = umdModule;
       // If only some rules are to be employed:
       if (rules && Array.isArray(rules) && rules.length) {
         // Redefine WCAG 2 AAA as including only them.
