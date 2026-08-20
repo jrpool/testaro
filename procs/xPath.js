@@ -57,6 +57,11 @@ exports.getNormalizedXPath = xPath => {
 };
 // Gets an XPath from a data-xpath attribute in an HTML excerpt.
 exports.getAttributeXPath = html => {
+  // If there is no excerpt (e.g. a Nu Html Checker message without an extract):
+  if (! html) {
+    // Return the fallback XPath, as for an excerpt without a data-xpath attribute.
+    return '/html';
+  }
   const match = html.match(/ data-xpath="([^" ]+)"/);
   return match ? match[1] : '/html';
 };
