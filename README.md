@@ -292,13 +292,16 @@ Testaro can poll a server for jobs to be performed. The server can act as the â€
 
 To allow Testaro to poll a server for jobs, define the following environment variables:
 
-- `NETWATCH_URL_JOB`: which URL to poll (the URL must contain the value of the `AGENT` environment variable)
+- `NETWATCH_URL_JOB`: which URL to poll for available jobs
 - `NETWATCH_URL_REPORT`: which URL to send job reports to
-- `NETWATCH_URL_AUTH`: the password to supply to the server when polling and when delivering a report
+- `NETWATCH_URL_AUTH` (optional): a password supplied to the server as the `agentPW` property of the request body when polling and when delivering a report
+- `WORKER_ID` and `WORKER_SECRET` (optional, but both required if either is set): credentials supplied to the server as a `Basic` authorization header when polling and when delivering a report
 
-The job request sent to the server can be a `POST` request, in which the `agentPW` property of the payload will be the password. Or it can be a `GET` request with the URL containing the password.
+The URL paths are determined by agreement between Testaro and the server and may omit any identifier of the Testaro instance. A single Testaro instance watches one server.
 
-Testaro will send the report as a `POST` request whose payload is a JSON object with two properties: `agentPW` (the password) and `report` (the report). However, if the environment does not contain a password, the payload is a JSON object containing only the report.
+Testaro sends the job request as a `POST` request. If `NETWATCH_URL_AUTH` is set, the request body is a JSON object with an `agentPW` property; otherwise the body is an empty JSON object. If `WORKER_ID` and `WORKER_SECRET` are both set, the request also carries an `authorization` header whose value is `Basic ` followed by the base64 encoding of `WORKER_ID:WORKER_SECRET`.
+
+Testaro sends the report as a `POST` request whose body is a JSON object with a `report` property and, if `NETWATCH_URL_AUTH` is set, an `agentPW` property. The same `authorization` header, if any, is attached.
 
 An application can make Testaro poll a server for jobs with:
 

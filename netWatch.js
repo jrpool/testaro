@@ -44,8 +44,24 @@ const toURL = urlString => {
 const jobURL = toURL(process.env.NETWATCH_URL_JOB);
 const jobHost = jobURL && jobURL.host;
 const reportURL = toURL(process.env.NETWATCH_URL_REPORT);
-const reportHost = reportURL && reportURL.host;
 const agentPW = process.env.NETWATCH_URL_AUTH;
+// If a worker ID and secret are configured, build a Basic authorization header
+// value from them, so a watched server can authenticate the Testaro instance.
+const workerID = process.env.WORKER_ID;
+const workerSecret = process.env.WORKER_SECRET;
+const basicAuth = workerID && workerSecret
+  ? `Basic ${Buffer.from(`${workerID}:${workerSecret}`).toString('base64')}`
+  : null;
+// Builds the headers for a request to a watched server.
+const makeHeaders = () => {
+  const headers = {
+    'content-type': 'application/json; charset=utf-8'
+  };
+  if (basicAuth) {
+    headers.authorization = basicAuth;
+  }
+  return headers;
+};
 
 // FUNCTIONS
 
@@ -94,10 +110,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
           // Request a job.
           const requestOptions = {
             method: 'POST',
-            headers: {
-              host: jobHost,
-              'content-type': 'application/json; charset=utf-8'
-            }
+            headers: makeHeaders()
           };
           client.request(jobURL, requestOptions, response => {
             // Initialize a collection of data from the response.
@@ -136,7 +149,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   if (! jobValidity.isValid) {
                     // Report this to the server.
                     respondWithObject({
-                      message: `invalidJob`,
+                      message: 'invalidJob',
                       error: jobValidity.error
                     }, response);
                     console.log(`${logStart}invalid job (${jobValidity.error})`);
@@ -155,18 +168,17 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                     try {
                       const report = await doJob(contentObj);
                       const responseObj = {
-                        agentPW,
                         report
                       };
+                      if (agentPW) {
+                        responseObj.agentPW = agentPW;
+                      }
                       let responseJSON = JSON.stringify(responseObj, null, 2);
                       console.log(`Job ${id} finished (${nowString()})`);
                       const reportLogStart = `Submitted report ${id} to ${reportURL} and got `;
                       const requestOptions = {
                         method: 'POST',
-                        headers: {
-                          host: reportHost,
-                          'content-type': 'application/json; charset=utf-8'
-                        }
+                        headers: makeHeaders()
                       };
                       // Submit the report.
                       const client = reportURL.protocol === 'https:' ? httpsClient : httpClient;
@@ -252,7 +264,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                 // Wait for the specified interval.
                 await wait(1000 * intervalInSeconds);
                 resolve(true);
-              };
+              }
             });
           })
           // If the job request throws an error:
@@ -282,9 +294,9 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             resolve(true);
           })
           // Finish sending the job request.
-          .end(JSON.stringify({
-            agentPW
-          }));
+          .end(JSON.stringify(
+            agentPW ? {agentPW} : {}
+          ));
         }
         // If requesting a job throws an error:
         catch(error) {

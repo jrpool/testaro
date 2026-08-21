@@ -82,7 +82,8 @@ Key variables:
 - `WAVE_KEY` — API key for the WAVE subscription API
 - `JOBDIR` / `REPORTDIR` — root directories for job files and report output
 - `AGENT` — instance name used in network-watch mode
-- `NETWATCH_URL_<N>_JOB/REPORT/AUTH`, `NETWATCH_URLS` — server polling configuration
+- `NETWATCH_URL_JOB`/`NETWATCH_URL_REPORT`/`NETWATCH_URL_AUTH` — server polling configuration
+- `WORKER_ID`/`WORKER_SECRET` — optional Basic auth credentials for the watched server
 - `TIMEOUT_MULTIPLIER` — scales all per-tool time limits (default 1)
 
 ## Code style
