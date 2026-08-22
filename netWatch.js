@@ -67,7 +67,11 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
     jobHost
     && reportHost
     && ['none', 'pathBody', 'header'].includes(authType)
-    && (authType === 'none' || workerID && workerSecret)
+    && (
+      authType === 'none'
+      || authType === 'pathBody' && workerSecret
+      || authType === 'header' && workerID && workerSecret
+    )
   ) {
     // Configure the watch.
     const headers = {
@@ -135,12 +139,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   const jobValidity = isValidJob(contentObj);
                   // If it is invalid:
                   if (! jobValidity.isValid) {
-                    // Report this to the server.
-                    response.setHeader('content-type', 'application/json; charset=utf-8');
-                    response.end(JSON.stringify({
-                      message: 'invalidJob',
-                      error: jobValidity.error
-                    }));
+                    // Report this.
                     console.log(`${logStart}invalid job (${jobValidity.error})`);
                     // Wait for the specified interval.
                     await wait(1000 * intervalInSeconds);
