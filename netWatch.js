@@ -98,12 +98,17 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
       // Perform it.
       await new Promise(async resolve => {
         try {
-          const client = jobURL.protocol === 'https:' ? httpsClient : httpClient;
-          // Request a job.
+          // Get the client and request options for a job request.
+          let client = httpClient;
           const requestOptions = {
             method: 'POST',
             headers
           };
+          if (jobURL.protocol === 'https:') {
+            client = httpsClient;
+            requestOptions.rejectUnauthorized = ! isCertTolerant;
+          }
+          // Request a job.
           client.request(jobURL, requestOptions, response => {
             // Initialize a collection of data from the response.
             const chunks = [];
