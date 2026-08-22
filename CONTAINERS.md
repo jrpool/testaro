@@ -63,14 +63,15 @@ docker run --rm --init \
 
 ## Server polling
 
-To poll a server for jobs instead of watching a directory, override the command and provide the `netWatch` variables:
+To poll a server for jobs instead of watching a directory, override the command and provide the `netWatch` variables, such as:
 
 ```bash
 docker run --rm --init \
-  -e AGENT=agent1 \
-  -e NETWATCH_URL_JOB=https://example.com/api/testaro-agent/job \
-  -e NETWATCH_URL_REPORT=https://example.com/api/testaro-agent/report \
-  -e NETWATCH_URL_AUTH=password \
+  -e NETWATCH_URL_JOB=https://myserver.com/worker/job \
+  -e NETWATCH_URL_REPORT=https://myserver.com/worker/report \
+  -e NETWATCH_AUTH_TYPE=header \
+  -e NETWATCH_WORKER_ID=worker1 \
+  -e NETWATCH_WORKER_SECRET=seekRut \
   testaro node call netWatch true 300 true
 ```
 

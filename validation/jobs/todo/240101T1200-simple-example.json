@@ -2,7 +2,20 @@
   "id": "240101T1200-simple-example",
   "what": "Test example.edu with bulk",
   "strict": true,
+  "standard": "only",
+  "device": {
+    "id": "default",
+    "windowOptions": {}
+  },
+  "browserID": "chromium",
   "timeLimit": 10,
+  "creationTimeStamp": "240101T1200",
+  "executionTimeStamp": "240101T1200",
+  "target": {
+    "what": "example.edu home page",
+    "url": "https://example.edu/"
+  },
+  "sources": {},
   "acts": [
     {
       "type": "launch",
@@ -20,10 +33,5 @@
         "bulk"
       ]
     }
-  ],
-  "sources": {},
-  "standard": "only",
-  "sendReportTo": "http://localhost:3007/api",
-  "timeStamp": "240101T1500",
-  "creationTimeStamp": "240101T1200"
+  ]
 }

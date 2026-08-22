@@ -28,11 +28,9 @@ const {doJob} = require('./run');
 // Module to process dates and times.
 const {nowString} = require('./procs/dateTime');
 
-// CONSTANTS
+// FUNCTIONS
 
-// The netWatch environment variables are required only for network watching,
-// but call.js loads this module for every command, so their absence or
-// invalidity must not throw here; netWatch reports it if netWatch is used.
+// Returns the URL represented by a string, or null if invalid.
 const toURL = urlString => {
   try {
     return new URL(urlString);
@@ -41,14 +39,6 @@ const toURL = urlString => {
     return null;
   }
 };
-const jobURL = toURL(process.env.NETWATCH_URL_JOB);
-const jobHost = jobURL && jobURL.host;
-const reportURL = toURL(process.env.NETWATCH_URL_REPORT);
-const reportHost = reportURL && reportURL.host;
-const agentPW = process.env.NETWATCH_URL_AUTH;
-
-// FUNCTIONS
-
 // Waits.
 const wait = ms => {
   return new Promise(resolve => {
@@ -57,22 +47,40 @@ const wait = ms => {
     }, ms);
   });
 };
-// Ends a response with an object in JSON format.
-const respondWithObject = (object, response) => {
-  response.setHeader('content-type', 'application/json; charset=utf-8');
-  response.end(JSON.stringify(object));
-};
 /*
   Requests a network job and, when found, performs and reports it.
   Arguments:
   0. whether to continue watching after a job is run.
   1: interval in seconds from a no-job check to the next check.
-  2. whether to ignore unknown-certificate errors from watched servers.
+  2. whether to ignore unknown-certificate errors from a watched server.
 */
 exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) => {
-  // If the job and report URLs exist and are valid:
-  if (jobURL && reportURL) {
+  const jobURL = toURL(process.env.NETWATCH_URL_JOB);
+  const reportURL = toURL(process.env.NETWATCH_URL_REPORT);
+  const authType = process.env.NETWATCH_AUTH_TYPE;
+  const workerID = process.env.NETWATCH_WORKER_ID;
+  const workerSecret = process.env.NETWATCH_WORKER_SECRET;
+  const jobHost = jobURL && jobURL.host;
+  const reportHost = reportURL && reportURL.host;
+  // If the netWatch configuration is valid:
+  if (
+    jobHost
+    && reportHost
+    && ['none', 'pathBody', 'header'].includes(authType)
+    && (
+      authType === 'none'
+      || authType === 'pathBody' && workerSecret
+      || authType === 'header' && workerID && workerSecret
+    )
+  ) {
     // Configure the watch.
+    const headers = {
+      'content-type': 'application/json; charset=utf-8'
+    };
+    if (authType === 'header') {
+      const authBuffer = Buffer.from(`${workerID}:${workerSecret}`);
+      headers.authorization = `Basic ${authBuffer.toString('base64')}`;
+    }
     let noJobYet = true;
     let abort = false;
     const certInfo = `Certificate-${isCertTolerant ? '' : 'in'}tolerant`;
@@ -90,15 +98,17 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
       // Perform it.
       await new Promise(async resolve => {
         try {
-          const client = jobURL.protocol === 'https:' ? httpsClient : httpClient;
-          // Request a job.
+          // Get the client and request options for a job request.
+          let client = httpClient;
           const requestOptions = {
             method: 'POST',
-            headers: {
-              host: jobHost,
-              'content-type': 'application/json; charset=utf-8'
-            }
+            headers
           };
+          if (jobURL.protocol === 'https:') {
+            client = httpsClient;
+            requestOptions.rejectUnauthorized = ! isCertTolerant;
+          }
+          // Request a job.
           client.request(jobURL, requestOptions, response => {
             // Initialize a collection of data from the response.
             const chunks = [];
@@ -107,6 +117,9 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             .on('error', async error => {
               // Report it.
               console.log(`${logStart}error message ${error.message}`);
+              // Wait for the specified interval.
+              await wait(1000 * intervalInSeconds);
+              resolve(true);
             })
             // If the response delivers data:
             .on('data', chunk => {
@@ -119,7 +132,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
               try {
                 // Parse it as a JSON job.
                 let contentObj = JSON.parse(content);
-                const {id, sources} = contentObj;
+                const {id} = contentObj;
                 // If it is a no-job message:
                 if (! Object.keys(contentObj).length) {
                   // Report this.
@@ -134,11 +147,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   const jobValidity = isValidJob(contentObj);
                   // If it is invalid:
                   if (! jobValidity.isValid) {
-                    // Report this to the server.
-                    respondWithObject({
-                      message: `invalidJob`,
-                      error: jobValidity.error
-                    }, response);
+                    // Report this.
                     console.log(`${logStart}invalid job (${jobValidity.error})`);
                     // Wait for the specified interval.
                     await wait(1000 * intervalInSeconds);
@@ -148,28 +157,33 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                   else {
                     // Prevent further watching, if unwanted.
                     noJobYet = false;
-                    // Add the agent and the server ID to the job.
-                    sources.agent = process.env.AGENT || '';
-                    // Perform the job and create a report.
                     console.log(`${logStart}job ${id} (${nowString()})`);
                     try {
+                      // Perform the job and create a report.
                       const report = await doJob(contentObj);
+                      // Make it the report property of the response body.
                       const responseObj = {
-                        agentPW,
                         report
                       };
+                      // If a worker secret is required:
+                      if (authType === 'pathBody') {
+                        // Add it to the response body.
+                        responseObj.agentPW = workerSecret;
+                      }
                       let responseJSON = JSON.stringify(responseObj, null, 2);
                       console.log(`Job ${id} finished (${nowString()})`);
                       const reportLogStart = `Submitted report ${id} to ${reportURL} and got `;
+                      // Get the options and client for a report-submission request.
                       const requestOptions = {
                         method: 'POST',
-                        headers: {
-                          host: reportHost,
-                          'content-type': 'application/json; charset=utf-8'
-                        }
+                        headers
                       };
+                      let client = httpClient;
+                      if (reportURL.protocol === 'https:') {
+                        client = httpsClient;
+                        requestOptions.rejectUnauthorized = ! isCertTolerant;
+                      }
                       // Submit the report.
-                      const client = reportURL.protocol === 'https:' ? httpsClient : httpClient;
                       client.request(reportURL, requestOptions, repResponse => {
                         // Initialize a collection of data from the response.
                         const chunks = [];
@@ -252,7 +266,7 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                 // Wait for the specified interval.
                 await wait(1000 * intervalInSeconds);
                 resolve(true);
-              };
+              }
             });
           })
           // If the job request throws an error:
@@ -282,9 +296,9 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             resolve(true);
           })
           // Finish sending the job request.
-          .end(JSON.stringify({
-            agentPW
-          }));
+          .end(JSON.stringify(
+            authType === 'pathBody' ? {agentPW: workerSecret} : {}
+          ));
         }
         // If requesting a job throws an error:
         catch(error) {
@@ -301,6 +315,6 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
   // Otherwise, i.e. if the job or report URL does not exist or is invalid:
   else {
     // Report this.
-    console.log('ERROR: Job or report URL does not exist or is invalid');
+    console.log('ERROR: Configuration of netWatch is invalid');
   }
 };
