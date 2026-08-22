@@ -112,6 +112,9 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
             .on('error', async error => {
               // Report it.
               console.log(`${logStart}error message ${error.message}`);
+              // Wait for the specified interval.
+              await wait(1000 * intervalInSeconds);
+              resolve(true);
             })
             // If the response delivers data:
             .on('data', chunk => {
@@ -165,12 +168,17 @@ exports.netWatch = async (isForever, intervalInSeconds, isCertTolerant = true) =
                       let responseJSON = JSON.stringify(responseObj, null, 2);
                       console.log(`Job ${id} finished (${nowString()})`);
                       const reportLogStart = `Submitted report ${id} to ${reportURL} and got `;
+                      // Get the options and client for a report-submission request.
                       const requestOptions = {
                         method: 'POST',
                         headers
                       };
+                      let client = httpClient;
+                      if (reportURL.protocol === 'https:') {
+                        client = httpsClient;
+                        requestOptions.rejectUnauthorized = ! isCertTolerant;
+                      }
                       // Submit the report.
-                      const client = reportURL.protocol === 'https:' ? httpsClient : httpClient;
                       client.request(reportURL, requestOptions, repResponse => {
                         // Initialize a collection of data from the response.
                         const chunks = [];
