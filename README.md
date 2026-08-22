@@ -288,20 +288,17 @@ In both cases, the first argument of `dirWatch` tells Testaro whether to continu
 
 ### Server polling
 
-Testaro can poll a server for jobs to be performed. The server can act as the “controller” described in [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3). The server is responsible for preparing Testaro jobs, assigning them to Testaro agents, receiving reports back from those agents, and performing any further processing of the reports, including enhancement, storage, and disclosure to audiences. It can be any server reachable with a URL. That includes a server running on the same host as Testaro, with a URL such as `localhost:3000`.
+Testaro can poll a server for jobs to be performed. The server can act as the “controller” described in [How to run a thousand accessibility tests](https://medium.com/cvs-health-tech-blog/how-to-run-a-thousand-accessibility-tests-63692ad120c3). The server is responsible for preparing Testaro jobs, assigning them to Testaro workers, receiving reports back from those workers, and performing any further processing of the reports, including enhancement, storage, and disclosure to audiences. It can be any server reachable with a URL. That includes a server running on the same host as Testaro, with a URL such as `localhost:3000`.
 
-To allow Testaro to poll a server for jobs, define the following environment variables:
+To allow Testaro to poll a server for jobs, define the environment variables documented under `netWatch variables` in the [env.example](env.example) file. The URL paths are determined by agreement between Testaro and the server. A single Testaro instance can watch one server.
 
-- `NETWATCH_URL_JOB`: which URL to poll for available jobs
-- `NETWATCH_URL_REPORT`: which URL to send job reports to
-- `NETWATCH_URL_AUTH` (optional): a password supplied to the server as the `agentPW` property of the request body when polling and when delivering a report
-- `WORKER_ID` and `WORKER_SECRET` (optional, but both required if either is set): credentials supplied to the server as a `Basic` authorization header when polling and when delivering a report
+`NETWATCH_AUTH_TYPE` selects how Testaro authenticates to the server:
 
-The URL paths are determined by agreement between Testaro and the server and may omit any identifier of the Testaro instance. A single Testaro instance watches one server.
+- `none`: no credentials are sent. `NETWATCH_WORKER_ID` and `NETWATCH_WORKER_SECRET` are not required.
+- `pathBody`: the ID of the Testaro instance may be part of the URL path, as required by the server, and the password (`NETWATCH_WORKER_SECRET`) is transmitted in the request body as the value of an `agentPW` property.
+- `header`: the request carries an `authorization` header whose value is `Basic`, followed by a space and the base64 encoding of `NETWATCH_WORKER_ID:NETWATCH_WORKER_SECRET`.
 
-Testaro sends the job request as a `POST` request. If `NETWATCH_URL_AUTH` is set, the request body is a JSON object with an `agentPW` property; otherwise the body is an empty JSON object. If `WORKER_ID` and `WORKER_SECRET` are both set, the request also carries an `authorization` header whose value is `Basic`, followed by a space and the base64 encoding of `WORKER_ID:WORKER_SECRET`.
-
-Testaro sends the report as a `POST` request whose body is a JSON object with a `report` property and, if `NETWATCH_URL_AUTH` is set, an `agentPW` property. The same `authorization` header, if any, is attached.
+Testaro sends job requests and completed reports as `POST` requests. When Testaro sends a report to the server, the report is the value of a `report` property in the request body.
 
 An application can make Testaro poll a server for jobs with:
 

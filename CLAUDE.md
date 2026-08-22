@@ -81,9 +81,7 @@ Key variables:
 - `WAITS` — ms delay inserted between Playwright operations (useful for debugging)
 - `WAVE_KEY` — API key for the WAVE subscription API
 - `JOBDIR` / `REPORTDIR` — root directories for job files and report output
-- `AGENT` — instance name used in network-watch mode
-- `NETWATCH_URL_JOB`/`NETWATCH_URL_REPORT`/`NETWATCH_URL_AUTH` — server polling configuration
-- `WORKER_ID`/`WORKER_SECRET` — optional Basic auth credentials for the watched server
+- `NETWATCH_URL_JOB`/`NETWATCH_URL_REPORT`/`NETWATCH_AUTH_TYPE`/`NETWATCH_WORKER_ID`/`NETWATCH_WORKER_SECRET` — server polling configuration
 - `TIMEOUT_MULTIPLIER` — scales all per-tool time limits (default 1)
 
 ## Code style

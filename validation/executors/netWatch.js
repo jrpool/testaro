@@ -1,5 +1,6 @@
 /*
   © 2022–2024 CVS Health and/or one of its affiliates. All rights reserved.
+  © 2026 Jonathan Robert Pool.
 
   Licensed under the MIT License. See LICENSE file at the project root or
   https://opensource.org/license/mit/ for details.
@@ -20,8 +21,15 @@ const fs = require('fs/promises');
 
 // Override netWatch environment variables with validation-specific ones.
 const jobDir = `${__dirname}/../jobs/todo`;
-process.env.JOB_URLS = 'http://localhost:3007/api/job';
-process.env.AGENT = 'testarauth';
+process.env.NETWATCH_URL_JOB = 'http://localhost:3007/api/job';
+process.env.NETWATCH_URL_REPORT = 'http://localhost:3007/api/report';
+process.env.NETWATCH_AUTH_TYPE = 'header';
+process.env.NETWATCH_WORKER_ID = 'testaro1';
+process.env.NETWATCH_WORKER_SECRET = 'testarosecret';
+const workerAuth = `Basic ${
+  Buffer.from(`${process.env.NETWATCH_WORKER_ID}:${process.env.NETWATCH_WORKER_SECRET}`)
+  .toString('base64')
+}`;
 const {netWatch} = require('../../netWatch');
 const client = require('http');
 const jobID = '240101T1200-simple-example';
@@ -39,7 +47,7 @@ setTimeout(() => {
 let server;
 // Handles Testaro requests to the server.
 const requestHandler = (request, response) => {
-  const {method} = request;
+  const {method, url} = request;
   const bodyParts = [];
   request.on('error', err => {
     console.error(err);
@@ -48,66 +56,52 @@ const requestHandler = (request, response) => {
     bodyParts.push(chunk);
   })
   .on('end', async () => {
-    // Remove any trailing slash from the URL.
-    const requestURL = request.url.replace(/\/$/, '');
-    // If the request method is GET:
-    if (method === 'GET') {
-      // If a job is validly requested:
+    // If the authorization header is missing or wrong:
+    if (request.headers.authorization !== workerAuth) {
+      response.statusCode = 401;
+      response.end(JSON.stringify({error: 'ERROR: Authorization invalid'}));
+      return;
+    }
+    // If the request is a job request:
+    if (method === 'POST' && url === '/api/job') {
       console.log('Server got a job request from Testaro');
-      if (requestURL === `/api/job?agent=${process.env.AGENT}`) {
-        // If at least 7 seconds has elapsed since timing started:
-        if (Date.now() > startTime + 7000) {
-          // Respond with a job.
-          const jobJSON = await fs.readFile(`${jobDir}/${jobID}.json`);
-          await response.end(jobJSON);
-          console.log('Server sent job to Testaro');
-          jobGiven = true;
-        }
-        // Otherwise, i.e. if timing started less than 7 seconds ago:
-        else {
-          // Send an empty-object response.
-          await response.end('{}');
-        }
+      // If at least 7 seconds has elapsed since timing started:
+      if (Date.now() > startTime + 7000) {
+        // Respond with a job.
+        const jobJSON = await fs.readFile(`${jobDir}/${jobID}.json`);
+        response.end(jobJSON);
+        console.log('Server sent job to Testaro');
+        jobGiven = true;
       }
+      // Otherwise, i.e. if timing started less than 7 seconds ago:
       else {
-        const error = {
-          error: 'ERROR: Job request invalid'
-        };
-        const errorJSON = JSON.stringify(error);
-        await response.end(errorJSON);
+        // Send an empty-object response.
+        response.end('{}');
       }
     }
-    // Otherwise, if the request method is POST:
-    else if (method === 'POST') {
+    // Otherwise, if the request is a report submission:
+    else if (method === 'POST' && url === '/api/report') {
       console.log('Server got report from Testaro');
       const ack = {};
-      // If a report is validly submitted:
-      if (requestURL === '/api') {
-        // If a job was earlier given to Testaro:
-        if (jobGiven) {
-          // Respond, reporting success or failure.
-          try {
-            const bodyJSON = bodyParts.join('');
-            const body = JSON.parse(bodyJSON);
-            if (
-              body.acts
-              && body.sources
-              && body.sources.agent
-              && body.sources.agent === process.env.AGENT
-            ) {
-              ack.message = 'Success: Valid report submitted';
-            }
-            else {
-              ack.message = 'Failure: Report invalid';
-            }
+      // If a job was earlier given to Testaro:
+      if (jobGiven) {
+        // Respond, reporting success or failure.
+        try {
+          const bodyJSON = bodyParts.join('');
+          const body = JSON.parse(bodyJSON);
+          if (body.report && body.report.acts && body.report.jobData) {
+            ack.message = 'Success: Valid report submitted';
           }
-          catch(error) {
-            ack.message = `ERROR: ${error.message}`;
+          else {
+            ack.message = 'Failure: Report invalid';
           }
+        }
+        catch(error) {
+          ack.message = `ERROR: ${error.message}`;
         }
       }
       else {
-        ack.message = 'ERROR: Report submission invalid';
+        ack.message = 'ERROR: Report submitted before a job was given';
       }
       const ackJSON = JSON.stringify(ack);
       response.end(ackJSON);
@@ -115,6 +109,11 @@ const requestHandler = (request, response) => {
       // This ends the validation, so stop the server.
       server.close();
       console.log('Server closed');
+    }
+    // Otherwise, i.e. if the request is neither:
+    else {
+      response.statusCode = 404;
+      response.end(JSON.stringify({error: 'ERROR: Request invalid'}));
     }
   });
 };

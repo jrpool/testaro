@@ -15,7 +15,7 @@
 - **Key files**: `run.js` (main executor), `actSpecs.js` (act specifications), `call.js` (CLI entry), `tests/testaro.js` (Testaro tool rules)
 - **Tools**: Integrates these accessibility tools: Axe, Alfa, IBM Checker, QualWeb, ASLint, WAVE, Ed11y, HTML CodeSniffer, Nu Html Checker API, Nu Html Checker, Testaro
 - **Data flow**: Jobs (JSON) → run.js → tool tests → reports (with standardized results)
-- **Env vars**: Required for WAVE (`WAVE_KEY`); optional `DEBUG`, `WAITS`, `JOBDIR`, `REPORTDIR`, `AGENT`
+- **Env vars**: Required for WAVE (`WAVE_KEY`); optional `DEBUG`, `WAITS`, `JOBDIR`, `REPORTDIR`
 
 ## Code Style
 
