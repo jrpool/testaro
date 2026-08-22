@@ -299,7 +299,7 @@ To allow Testaro to poll a server for jobs, define the following environment var
 
 The URL paths are determined by agreement between Testaro and the server and may omit any identifier of the Testaro instance. A single Testaro instance watches one server.
 
-Testaro sends the job request as a `POST` request. If `NETWATCH_URL_AUTH` is set, the request body is a JSON object with an `agentPW` property; otherwise the body is an empty JSON object. If `WORKER_ID` and `WORKER_SECRET` are both set, the request also carries an `authorization` header whose value is `Basic ` followed by the base64 encoding of `WORKER_ID:WORKER_SECRET`.
+Testaro sends the job request as a `POST` request. If `NETWATCH_URL_AUTH` is set, the request body is a JSON object with an `agentPW` property; otherwise the body is an empty JSON object. If `WORKER_ID` and `WORKER_SECRET` are both set, the request also carries an `authorization` header whose value is `Basic`, followed by a space and the base64 encoding of `WORKER_ID:WORKER_SECRET`.
 
 Testaro sends the report as a `POST` request whose body is a JSON object with a `report` property and, if `NETWATCH_URL_AUTH` is set, an `agentPW` property. The same `authorization` header, if any, is attached.
 
@@ -522,7 +522,7 @@ Thus, when the `rules` argument is omitted, QualWeb will test for all of the rul
 
 The target can be provided to QualWeb either as HTML or as a URL. Experience indicates that the results can differ between these methods, with each method reporting some rule violations or some instances that the other method does not report. For at least some cases, more rules are reported violated when HTML is provided (`withNewItems: false`).
 
-QualWeb creates sandboxed Puppeteer pages to perform its tests on. Therefore, the host must permit sandboxed browsers to be launched. See the discussion above about browser security.
+QualWeb creates sandboxed Playwright pages to perform its tests on. Therefore, the host must permit sandboxed browsers to be launched. See the discussion above about browser security.
 
 ### Testaro
 
